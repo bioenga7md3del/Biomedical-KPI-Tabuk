@@ -83,7 +83,7 @@
       <div class="stat"><div>إجمالي الأوامر</div><div id="wo-total" class="v">-</div></div>
       <div class="stat good"><div>الأوامر المنتهية</div><div id="wo-done" class="v">-</div><div id="wo-donep" class="hint"></div></div>
       <div class="stat warn"><div>تحت الإصلاح</div><div id="wo-pend" class="v">-</div><div id="wo-pendp" class="hint"></div></div>
-      <div class="stat"><div>عدد الفنيين</div><div id="wo-techs" class="v">-</div></div>
+      <div class="stat"><div id="wo-count-label">عدد الفنيين</div><div id="wo-count" class="v">-</div></div>
       <div class="stat"><div>Avg Response KPI</div><div id="wo-resp" class="v">-</div><div class="hint">الهدف &lt; 1 يوم</div></div>
       <div class="stat"><div>Avg Repair KPI</div><div id="wo-rep" class="v">-</div><div class="hint">الهدف &lt; 5 أيام</div></div>
     </div>
@@ -237,7 +237,7 @@ function aggregate(rows, filters){
   const devMap=new Map();
   filtered.forEach(r=> devMap.set(r.device,(devMap.get(r.device)||0)+1));
   const byDevice=Array.from(devMap.entries()).map(([name,count])=>({name,count}))
-                      .sort((a,b)=> b.count-a.count).slice(0,15);
+                      .sort((a,b)=> b.count-a.count);
 
   const dmap=new Map();
   filtered.forEach(r=> dmap.set(r.dept,(dmap.get(r.dept)||0)+1));
@@ -298,7 +298,13 @@ function refreshAll(){
   document.getElementById('wo-pend').textContent=A.pend;
   document.getElementById('wo-donep').textContent=`${A.rate}% من الإجمالي`;
   document.getElementById('wo-pendp').textContent=`${(100-A.rate).toFixed(1)}% من الإجمالي`;
-  document.getElementById('wo-techs').textContent=new Set(A.filtered.map(r=>r.assigned)).size;
+  if (CURRENT_SITE==='__ALL__'){
+    document.getElementById('wo-count-label').textContent='عدد المواقع';
+    document.getElementById('wo-count').textContent=new Set(A.filtered.map(r=>r.site)).size;
+  } else {
+    document.getElementById('wo-count-label').textContent='عدد الفنيين';
+    document.getElementById('wo-count').textContent=new Set(A.filtered.map(r=>r.assigned)).size;
+  }
   document.getElementById('wo-rate').style.width=`${A.rate}%`;
 
   const respAvg=avg(A.filtered.map(r=>r.resp).filter(x=>x!=null))||0;
@@ -310,15 +316,77 @@ function refreshAll(){
 
   // Charts
   drawDoughnut('wo-status',[`منتهي (${A.done})`,`تحت الإصلاح (${A.pend})`],[A.done,A.pend]);
+  // عنوان الكارد حسب التاب
+const barsTitle = document.querySelector('#wo-bars').closest('.card').querySelector('h2');
+if (CURRENT_SITE==='__ALL__'){
+  barsTitle.textContent='متوسط Response/Repair لكل موقع';
+  const perSite = (function(){
+    const m=new Map();
+    A.filtered.forEach(r=>{
+      const k=r.site||'غير محدد';
+      if(!m.has(k)) m.set(k,{name:k,rs:[],rp:[]});
+      if(r.resp!=null) m.get(k).rs.push(r.resp);
+      if(r.rep!=null)  m.get(k).rp.push(r.rep);
+    });
+    return Array.from(m.values()).map(s=>({name:s.name,resp:avg(s.rs)||0,rep:avg(s.rp)||0})).sort((a,b)=> b.resp-a.resp);
+  })();
+  drawBars('wo-bars', perSite.map(s=>s.name), [
+    {label:'Avg Response', data:perSite.map(s=>s.resp), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
+    {label:'Avg Repair',   data:perSite.map(s=>s.rep),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
+  ]);
+} else {
+  barsTitle.textContent='متوسط Response/Repair لكل فني';
   drawBars('wo-bars', A.byTech.map(t=>t.name), [
     {label:'Avg Response', data:A.byTech.map(t=>t.resp??0), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
     {label:'Avg Repair',   data:A.byTech.map(t=>t.rep??0),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
   ]);
-  drawDoughnut('wo-devices', A.byDevice.map(d=>d.name), A.byDevice.map(d=>d.count));
+}
+  const devList = (CURRENT_SITE==='__ALL__') ? A.byDevice.slice(0,10) : A.byDevice;
+drawDoughnut('wo-devices', devList.map(d=>d.name), devList.map(d=>d.count));
   drawBars('wo-depts', A.byDept.map(d=>d.name), [{label:'WO count', data:A.byDept.map(d=>d.count), borderWidth:1, backgroundColor:'rgba(75,192,192,.7)'}]);
 
   // جدول الفنيين
-  const tb=document.querySelector('#wo-tech-table tbody'); tb.innerHTML='';
+  const tableCardTitle = document.querySelector('#wo-tech-table').closest('.card').querySelector('h2');
+const thead=document.querySelector('#wo-tech-table thead');
+const tb=document.querySelector('#wo-tech-table tbody');
+if (CURRENT_SITE==='__ALL__'){
+  tableCardTitle.textContent='جدول أداء المواقع';
+  thead.innerHTML=`<tr>
+    <th>Site</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
+    <th>Avg Response</th><th>Avg Repair</th><th>نسبة الإنجاز</th>
+  </tr>`;
+  tb.innerHTML='';
+  const siteMap=new Map();
+  A.filtered.forEach(r=>{
+    const k=r.site||'غير محدد';
+    if(!siteMap.has(k)) siteMap.set(k,{name:k,total:0,done:0,pend:0,rs:[],rp:[]});
+    const s=siteMap.get(k);
+    s.total++; (r.status==='completed')? s.done++ : s.pend++;
+    if(r.resp!=null) s.rs.push(r.resp);
+    if(r.rep!=null)  s.rp.push(r.rep);
+  });
+  const rows = Array.from(siteMap.values()).map(s=>({
+    name:s.name,total:s.total,done:s.done,pend:s.pend,
+    resp:avg(s.rs),rep:avg(s.rp),rate: s.total? +(s.done*100/s.total).toFixed(1):0
+  })).sort((a,b)=> b.total-a.total);
+  rows.forEach(s=>{
+    const rCol=colorByTarget(s.resp, TARGETS.response);
+    const fCol=colorByTarget(s.rep,  TARGETS.repair);
+    tb.insertAdjacentHTML('beforeend',`
+      <tr>
+        <td>${s.name}</td><td>${s.total}</td><td>${s.done}</td><td>${s.pend}</td>
+        <td><span class="badge ${rCol.cls}">${rCol.text}</span></td>
+        <td><span class="badge ${fCol.cls}">${fCol.text}</span></td>
+        <td>${s.rate}%</td>
+      </tr>`);
+  });
+} else {
+  tableCardTitle.textContent='جدول أداء الفنيين';
+  thead.innerHTML=`<tr>
+    <th>الفني</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
+    <th>Avg Response</th><th>Avg Repair</th><th>التقييم</th>
+  </tr>`;
+  tb.innerHTML='';
   A.byTech.forEach(t=>{
     const rCol=colorByTarget(t.resp, TARGETS.response);
     const fCol=colorByTarget(t.rep,  TARGETS.repair);
@@ -330,6 +398,7 @@ function refreshAll(){
         <td>${rankBadge(t.resp,t.rep)}</td>
       </tr>`);
   });
+}
 
   // تحت الإصلاح
   const pb=document.querySelector('#wo-pending tbody'); pb.innerHTML='';
