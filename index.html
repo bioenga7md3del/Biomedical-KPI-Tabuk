@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>لوحة الصيانة التصحيحية حسب الموقع (WO • Oct 2025)</title>
-  
+
   <!-- Chart.js & SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -26,10 +26,15 @@
     .uploader{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 8px}
     .pill{display:inline-flex;align-items:center;gap:8px;background:#eef2f7;border:1px dashed #cdd6e1;border-radius:999px;padding:8px 12px;cursor:pointer}
     .pill input{display:none}
-    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-    .stat{background:#fff;border-radius:10px;padding:12px;border-top:4px solid #4a6491;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+
+    /* المؤشرات العامة — أفقي مع تمرير جانبي */
+    .stats{display:flex;flex-wrap:nowrap;gap:12px;overflow-x:auto;align-items:stretch;padding-bottom:8px;scroll-snap-type:x mandatory}
+    .stats::-webkit-scrollbar{height:10px}
+    .stats::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
+    .stat{min-width:230px;flex:0 0 auto;scroll-snap-align:start;background:#fff;border-radius:10px;padding:12px;border-top:4px solid #4a6491;box-shadow:0 4px 12px rgba(0,0,0,.05)}
     .stat.good{border-top-color:#28a745}.stat.warn{border-top-color:#ffc107}.stat.bad{border-top-color:#dc3545}
     .stat .v{font-size:1.4rem;font-weight:700}
+
     .filters{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
     .filters select{padding:10px 12px;border:1px solid #d8dee9;border-radius:10px;min-width:200px;background:#fff}
     .row-two{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
@@ -59,7 +64,7 @@
     </div>
   </header>
 
-  <!-- Dynamic Tabs (Sites will be injected here) -->
+  <!-- Dynamic Tabs (Sites) -->
   <div id="sites-tabs" class="tabs">
     <button class="tab-btn active" data-site="__ALL__">All Sites — كل المواقع</button>
   </div>
@@ -76,16 +81,17 @@
     <div class="hint">الموقع الحالي: <span id="current-site" class="site-pill">All Sites — كل المواقع</span></div>
   </div>
 
-  <!-- Stats -->
+  <!-- Stats (horizontal row) -->
   <div class="card">
-    <h2>مؤشرات عامة</h2>
+    <h2>المؤشرات العامة</h2>
     <div class="stats">
-      <div class="stat"><div><div id="wo-total-label">إجمالي الأوامر</div><div id="wo-total" class="v">-</div></div>
+      <div class="stat"><div id="wo-total-label">إجمالي الأوامر</div><div id="wo-total" class="v">-</div></div>
       <div class="stat good"><div>الأوامر المنتهية</div><div id="wo-done" class="v">-</div><div id="wo-donep" class="hint"></div></div>
       <div class="stat warn"><div>تحت الإصلاح</div><div id="wo-pend" class="v">-</div><div id="wo-pendp" class="hint"></div></div>
       <div class="stat"><div id="wo-count-label">عدد الفنيين</div><div id="wo-count" class="v">-</div></div>
       <div class="stat"><div>Avg Response KPI</div><div id="wo-resp" class="v">-</div><div class="hint">الهدف &lt; 1 يوم</div></div>
       <div class="stat"><div>Avg Repair KPI</div><div id="wo-rep" class="v">-</div><div class="hint">الهدف &lt; 5 أيام</div></div>
+      <!-- يظهر فقط في All Sites -->
       <div class="stat" id="wo-sites-card" style="display:none"><div>عدد المواقع</div><div id="wo-sites" class="v">-</div></div>
     </div>
     <div class="progress" style="margin-top:8px"><div id="wo-rate" class="fill" style="width:0%"></div></div>
@@ -235,11 +241,13 @@ function aggregate(rows, filters){
     resp:avg(t.rs), rep:avg(t.rp)
   })).sort((a,b)=> b.total-a.total);
 
+  // devices
   const devMap=new Map();
   filtered.forEach(r=> devMap.set(r.device,(devMap.get(r.device)||0)+1));
   const byDevice=Array.from(devMap.entries()).map(([name,count])=>({name,count}))
                       .sort((a,b)=> b.count-a.count);
 
+  // sites (بدل Department)
   const smap=new Map();
   filtered.forEach(r=> smap.set(r.site,(smap.get(r.site)||0)+1));
   const bySite=Array.from(smap.entries()).map(([name,count])=>({name,count}))
@@ -278,7 +286,6 @@ let ALL_ROWS=[]; // كل البيانات
 let CURRENT_SITE='__ALL__';
 
 function refreshAll(){
-  // تحضير الفلاتر المحلية
   const filters={
     site: CURRENT_SITE==='__ALL__' ? '' : CURRENT_SITE,
     tech: document.getElementById('wo-tech-filter').value,
@@ -287,7 +294,7 @@ function refreshAll(){
   };
   const A=aggregate(ALL_ROWS, filters);
 
-  // تعبئة قائمة الفنيين/المراكز للقيم المتاحة داخل التاب الحالي
+  // تعبئة قوائم الفنيين/المراكز داخل التاب الحالي
   const techSel=document.getElementById('wo-tech-filter');
   const deptSel=document.getElementById('wo-dept-filter');
   techSel.innerHTML='<option value="">جميع الفنيين (Assigned To)</option>' + A.techs.map(t=>`<option>${t}</option>`).join('');
@@ -299,14 +306,23 @@ function refreshAll(){
   document.getElementById('wo-pend').textContent=A.pend;
   document.getElementById('wo-donep').textContent=`${A.rate}% من الإجمالي`;
   document.getElementById('wo-pendp').textContent=`${(100-A.rate).toFixed(1)}% من الإجمالي`;
-  if (CURRENT_SITE==='__ALL__'){
-    document.getElementById('wo-count-label').textContent='عدد المواقع';
-    document.getElementById('wo-count').textContent=new Set(A.filtered.map(r=>r.site)).size;
-  } else {
-    document.getElementById('wo-count-label').textContent='عدد الفنيين';
-    document.getElementById('wo-count').textContent=new Set(A.filtered.map(r=>r.assigned)).size;
-  }
   document.getElementById('wo-rate').style.width=`${A.rate}%`;
+
+  // عدد الفنيين أو المواقع بحسب التاب
+  const countLabelEl = document.getElementById('wo-count-label');
+  const countValueEl = document.getElementById('wo-count');
+  if (CURRENT_SITE==='__ALL__'){
+    countLabelEl.textContent='عدد المواقع';
+    countValueEl.textContent=new Set(A.filtered.map(r=>r.site)).size;
+    document.getElementById('wo-total-label').textContent='عدد أوامر العمل (جميع المواقع)';
+    document.getElementById('wo-sites-card').style.display='';
+    document.getElementById('wo-sites').textContent = new Set(A.filtered.map(r=>r.site)).size;
+  } else {
+    countLabelEl.textContent='عدد الفنيين';
+    countValueEl.textContent=new Set(A.filtered.map(r=>r.assigned)).size;
+    document.getElementById('wo-total-label').textContent='إجمالي الأوامر';
+    document.getElementById('wo-sites-card').style.display='none';
+  }
 
   const respAvg=avg(A.filtered.map(r=>r.resp).filter(x=>x!=null))||0;
   const repAvg=avg(A.filtered.map(r=>r.rep ).filter(x=>x!=null))||0;
@@ -317,11 +333,10 @@ function refreshAll(){
 
   // Charts
   drawDoughnut('wo-status',[`منتهي (${A.done})`,`تحت الإصلاح (${A.pend})`],[A.done,A.pend]);
-  // عنوان الكارد حسب التاب
-const barsTitle = document.querySelector('#wo-bars').closest('.card').querySelector('h2');
-if (CURRENT_SITE==='__ALL__'){
-  barsTitle.textContent='متوسط Response/Repair لكل موقع';
-  const perSite = (function(){
+
+  const barsTitle = document.querySelector('#wo-bars').closest('.card').querySelector('h2');
+  if (CURRENT_SITE==='__ALL__'){
+    barsTitle.textContent='متوسط Response/Repair لكل موقع';
     const m=new Map();
     A.filtered.forEach(r=>{
       const k=r.site||'غير محدد';
@@ -329,77 +344,79 @@ if (CURRENT_SITE==='__ALL__'){
       if(r.resp!=null) m.get(k).rs.push(r.resp);
       if(r.rep!=null)  m.get(k).rp.push(r.rep);
     });
-    return Array.from(m.values()).map(s=>({name:s.name,resp:avg(s.rs)||0,rep:avg(s.rp)||0})).sort((a,b)=> b.resp-a.resp);
-  })();
-  drawBars('wo-bars', perSite.map(s=>s.name), [
-    {label:'Avg Response', data:perSite.map(s=>s.resp), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
-    {label:'Avg Repair',   data:perSite.map(s=>s.rep),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
-  ]);
-} else {
-  barsTitle.textContent='متوسط Response/Repair لكل فني';
-  drawBars('wo-bars', A.byTech.map(t=>t.name), [
-    {label:'Avg Response', data:A.byTech.map(t=>t.resp??0), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
-    {label:'Avg Repair',   data:A.byTech.map(t=>t.rep??0),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
-  ]);
-}
+    const perSite = Array.from(m.values()).map(s=>({name:s.name,resp:avg(s.rs)||0,rep:avg(s.rp)||0}));
+    drawBars('wo-bars', perSite.map(s=>s.name), [
+      {label:'Avg Response', data:perSite.map(s=>s.resp), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
+      {label:'Avg Repair',   data:perSite.map(s=>s.rep),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
+    ]);
+  } else {
+    barsTitle.textContent='متوسط Response/Repair لكل فني';
+    drawBars('wo-bars', A.byTech.map(t=>t.name), [
+      {label:'Avg Response', data:A.byTech.map(t=>t.resp??0), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
+      {label:'Avg Repair',   data:A.byTech.map(t=>t.rep??0),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
+    ]);
+  }
+
+  // الأجهزة الأكثر تعطّلًا — Top 10 في All Sites
   const devList = (CURRENT_SITE==='__ALL__') ? A.byDevice.slice(0,10) : A.byDevice;
-drawDoughnut('wo-devices', devList.map(d=>d.name), devList.map(d=>d.count));
+  drawDoughnut('wo-devices', devList.map(d=>d.name), devList.map(d=>d.count));
+
+  // المواقع الأكثر تعطّلًا (Site)
   drawBars('wo-depts', A.bySite.map(s=>s.name), [{label:'WO count', data:A.bySite.map(s=>s.count), borderWidth:1, backgroundColor:'rgba(75,192,192,.7)'}]);
 
-  // جدول الفنيين
+  // جدول الأداء: مواقع في All Sites / فنيين داخل موقع
   const tableCardTitle = document.querySelector('#wo-tech-table').closest('.card').querySelector('h2');
-const thead=document.querySelector('#wo-tech-table thead');
-const tb=document.querySelector('#wo-tech-table tbody');
-if (CURRENT_SITE==='__ALL__'){
-  tableCardTitle.textContent='جدول أداء المواقع';
-  thead.innerHTML=`<tr>
-    <th>Site</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
-    <th>Avg Response</th><th>Avg Repair</th><th>نسبة الإنجاز</th>
-  </tr>`;
+  const thead=document.querySelector('#wo-tech-table thead');
+  const tb=document.querySelector('#wo-tech-table tbody');
   tb.innerHTML='';
-  const siteMap=new Map();
-  A.filtered.forEach(r=>{
-    const k=r.site||'غير محدد';
-    if(!siteMap.has(k)) siteMap.set(k,{name:k,total:0,done:0,pend:0,rs:[],rp:[]});
-    const s=siteMap.get(k);
-    s.total++; (r.status==='completed')? s.done++ : s.pend++;
-    if(r.resp!=null) s.rs.push(r.resp);
-    if(r.rep!=null)  s.rp.push(r.rep);
-  });
-  const rows = Array.from(siteMap.values()).map(s=>({
-    name:s.name,total:s.total,done:s.done,pend:s.pend,
-    resp:avg(s.rs),rep:avg(s.rp),rate: s.total? +(s.done*100/s.total).toFixed(1):0
-  })).sort((a,b)=> b.total-a.total);
-  rows.forEach(s=>{
-    const rCol=colorByTarget(s.resp, TARGETS.response);
-    const fCol=colorByTarget(s.rep,  TARGETS.repair);
-    tb.insertAdjacentHTML('beforeend',`
-      <tr>
-        <td>${s.name}</td><td>${s.total}</td><td>${s.done}</td><td>${s.pend}</td>
-        <td><span class="badge ${rCol.cls}">${rCol.text}</span></td>
-        <td><span class="badge ${fCol.cls}">${fCol.text}</span></td>
-        <td>${s.rate}%</td>
-      </tr>`);
-  });
-} else {
-  tableCardTitle.textContent='جدول أداء الفنيين';
-  thead.innerHTML=`<tr>
-    <th>الفني</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
-    <th>Avg Response</th><th>Avg Repair</th><th>التقييم</th>
-  </tr>`;
-  tb.innerHTML='';
-  A.byTech.forEach(t=>{
-    const rCol=colorByTarget(t.resp, TARGETS.response);
-    const fCol=colorByTarget(t.rep,  TARGETS.repair);
-    tb.insertAdjacentHTML('beforeend',`
-      <tr>
-        <td>${t.name}</td><td>${t.total}</td><td>${t.done}</td><td>${t.pend}</td>
-        <td><span class="badge ${rCol.cls}">${rCol.text}</span></td>
-        <td><span class="badge ${fCol.cls}">${fCol.text}</span></td>
-        <td>${rankBadge(t.resp,t.rep)}</td>
-      </tr>`);
-  });
-}
+  if (CURRENT_SITE==='__ALL__'){
+    tableCardTitle.textContent='جدول أداء المواقع';
+    thead.innerHTML=`<tr>
+      <th>Site</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
+      <th>Avg Response</th><th>Avg Repair</th><th>نسبة الإنجاز</th>
+    </tr>`;
+    const siteMap=new Map();
+    A.filtered.forEach(r=>{
+      const k=r.site||'غير محدد';
+      if(!siteMap.has(k)) siteMap.set(k,{name:k,total:0,done:0,pend:0,rs:[],rp:[]});
+      const s=siteMap.get(k);
+      s.total++; (r.status==='completed')? s.done++ : s.pend++;
+      if(r.resp!=null) s.rs.push(r.resp);
+      if(r.rep!=null)  s.rp.push(r.rep);
+    });
+    const rows = Array.from(siteMap.values()).map(s=>({
+      name:s.name,total:s.total,done:s.done,pend:s.pend,
+      resp:avg(s.rs),rep:avg(s.rp),rate: s.total? +(s.done*100/s.total).toFixed(1):0
+    })).sort((a,b)=> b.total-a.total);
+    rows.forEach(s=>{
+      const rCol=colorByTarget(s.resp, TARGETS.response);
+      const fCol=colorByTarget(s.rep,  TARGETS.repair);
+      tb.insertAdjacentHTML('beforeend',`
+        <tr>
+          <td>${s.name}</td><td>${s.total}</td><td>${s.done}</td><td>${s.pend}</td>
+          <td><span class="badge ${rCol.cls}">${rCol.text}</span></td>
+          <td><span class="badge ${fCol.cls}">${fCol.text}</span></td>
+          <td>${s.rate}%</td>
+        </tr>`);
+    });
+  } else {
+    tableCardTitle.textContent='جدول أداء الفنيين';
+    thead.innerHTML=`<tr>
+      <th>الفني</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
+      <th>Avg Response</th><th>Avg Repair</th><th>التقييم</th>
+    </tr>`;
+    A.byTech.forEach(t=>{
+      const rCol=colorByTarget(t.resp, TARGETS.response);
+      const fCol=colorByTarget(t.rep,  TARGETS.repair);
+      tb.insertAdjacentHTML('beforeend',`
+        <tr>
+          <td>${t.name}</td><td>${t.total}</td><td>${t.done}</td><td>${t.pend}</td>
+          <td><span class="badge ${rCol.cls}">${rCol.text}</span></td>
+          <td><span class="badge ${fCol.cls}">${fCol.text}</span></td>
+          <td>${rankBadge(t.resp,t.rep)}</td>
+        </tr>`);
+    });
+  }
 
   // تحت الإصلاح
   const pb=document.querySelector('#wo-pending tbody'); pb.innerHTML='';
@@ -423,7 +440,6 @@ function rankBadge(resp,rep){
 /* ===== Tabs (Sites) ===== */
 function buildSiteTabs(){
   const cont=document.getElementById('sites-tabs');
-  // حافظ على زر All Sites الأول
   cont.innerHTML='';
   const allBtn=document.createElement('button');
   allBtn.className='tab-btn active';
@@ -445,7 +461,7 @@ function buildSiteTabs(){
       cont.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       CURRENT_SITE=btn.dataset.site;
-      // إعادة تصفير الفلاتر عند تغيير الموقع لعرض القيم المتاحة داخله
+      // إعادة تصفير الفلاتر عند تغيير الموقع
       document.getElementById('wo-tech-filter').value='';
       document.getElementById('wo-status-filter').value='';
       document.getElementById('wo-dept-filter').value='';
@@ -486,152 +502,6 @@ document.getElementById('woFile').addEventListener('change', async (e)=>{
 ['wo-tech-filter','wo-status-filter','wo-dept-filter'].forEach(id=> document.getElementById(id).addEventListener('change', refreshAll));
 
 window.addEventListener('DOMContentLoaded', autoInit);
-</script>
-<script>
-// === Patch: All Sites aggregated view adjustments ===
-(function(){
-  if(!window.aggregate || !window.ALL_ROWS){ return; }
-  const _orig = window.refreshAll;
-  window.refreshAll = function(){
-    // Call original to keep base rendering
-    try{ _orig && _orig(); }catch(e){}
-
-    // Recompute using current filters/site
-    const techSel=document.getElementById('wo-tech-filter');
-    const statSel=document.getElementById('wo-status-filter');
-    const deptSel=document.getElementById('wo-dept-filter');
-    const filters={
-      site: (window.CURRENT_SITE==='__ALL__')? '' : window.CURRENT_SITE,
-      tech: techSel? techSel.value : '',
-      status: statSel? statSel.value : '',
-      dept: deptSel? deptSel.value : ''
-    };
-    const A = aggregate(window.ALL_ROWS, filters);
-
-    // 1) Count card: show Sites count in All Sites, Technicians in site tab
-    const countLabelEl = document.getElementById('wo-count-label');
-    const countValueEl = document.getElementById('wo-count') || document.getElementById('wo-techs');
-    if(window.CURRENT_SITE==='__ALL__'){
-      if(countLabelEl) countLabelEl.textContent='عدد المواقع';
-      if(countValueEl) countValueEl.textContent = new Set(A.filtered.map(r=>r.site)).size;
-    } else {
-      if(countLabelEl) countLabelEl.textContent='عدد الفنيين';
-      if(countValueEl) countValueEl.textContent = new Set(A.filtered.map(r=>r.assigned)).size;
-    }
-
-    // 2) Bars: per Site in All Sites; per Technician in site tab
-    const barsCanvas = document.getElementById('wo-bars');
-    if(barsCanvas){
-      const barsTitle = barsCanvas.closest('.card').querySelector('h2');
-      if(window.CURRENT_SITE==='__ALL__'){
-        if(barsTitle) barsTitle.textContent='متوسط Response/Repair لكل موقع';
-        const m=new Map();
-        A.filtered.forEach(r=>{
-          const k=r.site||'غير محدد';
-          if(!m.has(k)) m.set(k,{name:k,rs:[],rp:[]});
-          if(r.resp!=null) m.get(k).rs.push(r.resp);
-          if(r.rep!=null)  m.get(k).rp.push(r.rep);
-        });
-        const perSite = Array.from(m.values()).map(s=>({name:s.name,resp:avg(s.rs)||0,rep:avg(s.rp)||0}));
-        // redraw
-        drawBars('wo-bars', perSite.map(s=>s.name), [
-          {label:'Avg Response', data:perSite.map(s=>s.resp), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
-          {label:'Avg Repair',   data:perSite.map(s=>s.rep),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
-        ]);
-      } else {
-        if(barsTitle) barsTitle.textContent='متوسط Response/Repair لكل فني';
-      }
-    }
-
-    // 3) Devices Top 10 only in All Sites
-    const devCanvas = document.getElementById('wo-devices');
-    if(devCanvas){
-      const devList = (window.CURRENT_SITE==='__ALL__') ? A.byDevice.slice(0,10) : A.byDevice;
-      drawDoughnut('wo-devices', devList.map(d=>d.name), devList.map(d=>d.count));
-    }
-
-    // 4) Table: Sites performance in All Sites; Technicians in site tab
-    const table = document.getElementById('wo-tech-table');
-    if(table){
-      const tableCardTitle = table.closest('.card').querySelector('h2');
-      const thead = table.querySelector('thead');
-      const tbody = table.querySelector('tbody');
-      tbody.innerHTML = '';
-      if(window.CURRENT_SITE==='__ALL__'){
-        if(tableCardTitle) tableCardTitle.textContent='جدول أداء المواقع';
-        if(thead) thead.innerHTML = `<tr>
-          <th>Site</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
-          <th>Avg Response</th><th>Avg Repair</th><th>نسبة الإنجاز</th>
-        </tr>`;
-        const siteMap=new Map();
-        A.filtered.forEach(r=>{
-          const k=r.site||'غير محدد';
-          if(!siteMap.has(k)) siteMap.set(k,{name:k,total:0,done:0,pend:0,rs:[],rp:[]});
-          const s=siteMap.get(k);
-          s.total++; (r.status==='completed')? s.done++ : s.pend++;
-          if(r.resp!=null) s.rs.push(r.resp);
-          if(r.rep!=null)  s.rp.push(r.rep);
-        });
-        const rows = Array.from(siteMap.values()).map(s=>({
-          name:s.name,total:s.total,done:s.done,pend:s.pend,
-          resp:avg(s.rs),rep:avg(s.rp),rate: s.total? +(s.done*100/s.total).toFixed(1):0
-        })).sort((a,b)=> b.total-a.total);
-        rows.forEach(s=>{
-          const rCol=colorByTarget(s.resp, {ok:1,warn:1});
-          const fCol=colorByTarget(s.rep,  {ok:5,warn:5});
-          tbody.insertAdjacentHTML('beforeend',`
-            <tr>
-              <td>${s.name}</td><td>${s.total}</td><td>${s.done}</td><td>${s.pend}</td>
-              <td><span class="badge ${rCol.cls}">${rCol.text}</span></td>
-              <td><span class="badge ${fCol.cls}">${fCol.text}</span></td>
-              <td>${s.rate}%</td>
-            </tr>`);
-        });
-      } else {
-        if(tableCardTitle) tableCardTitle.textContent='جدول أداء الفنيين';
-        if(thead) thead.innerHTML = `<tr>
-          <th>الفني</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
-          <th>Avg Response</th><th>Avg Repair</th><th>التقييم</th>
-        </tr>`;
-        // original body already filled by _orig();
-      }
-    }
-  };
-})();
-</script>
-<script>
-// === Add Sites indicator & dynamic labels for All Sites ===
-(function(){
-  const _orig = window.refreshAll;
-  window.refreshAll = function(){
-    try{ _orig && _orig(); }catch(e){}
-    const totalLabel = document.getElementById('wo-total-label');
-    const sitesCard  = document.getElementById('wo-sites-card');
-    const sitesVal   = document.getElementById('wo-sites');
-
-    const techSel=document.getElementById('wo-tech-filter');
-    const statSel=document.getElementById('wo-status-filter');
-    const deptSel=document.getElementById('wo-dept-filter');
-    const filters={
-      site: (window.CURRENT_SITE==='__ALL__')? '' : window.CURRENT_SITE,
-      tech: techSel? techSel.value : '',
-      status: statSel? statSel.value : '',
-      dept: deptSel? deptSel.value : ''
-    };
-    if(typeof aggregate==='function' && Array.isArray(window.ALL_ROWS)){
-      const A = aggregate(window.ALL_ROWS, filters);
-      const sitesCount = new Set(A.filtered.map(r=>r.site)).size;
-      if(window.CURRENT_SITE==='__ALL__'){
-        if(totalLabel) totalLabel.textContent='عدد أوامر العمل (جميع المواقع)';
-        if(sitesCard){ sitesCard.style.display=''; }
-        if(sitesVal){ sitesVal.textContent = sitesCount; }
-      } else {
-        if(totalLabel) totalLabel.textContent='إجمالي الأوامر';
-        if(sitesCard){ sitesCard.style.display='none'; }
-      }
-    }
-  };
-})();
 </script>
 </body>
 </html>
