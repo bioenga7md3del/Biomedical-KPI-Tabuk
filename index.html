@@ -80,12 +80,13 @@
   <div class="card">
     <h2>مؤشرات عامة</h2>
     <div class="stats">
-      <div class="stat"><div>إجمالي الأوامر</div><div id="wo-total" class="v">-</div></div>
+      <div class="stat"><div><div id="wo-total-label">إجمالي الأوامر</div><div id="wo-total" class="v">-</div></div>
       <div class="stat good"><div>الأوامر المنتهية</div><div id="wo-done" class="v">-</div><div id="wo-donep" class="hint"></div></div>
       <div class="stat warn"><div>تحت الإصلاح</div><div id="wo-pend" class="v">-</div><div id="wo-pendp" class="hint"></div></div>
       <div class="stat"><div id="wo-count-label">عدد الفنيين</div><div id="wo-count" class="v">-</div></div>
       <div class="stat"><div>Avg Response KPI</div><div id="wo-resp" class="v">-</div><div class="hint">الهدف &lt; 1 يوم</div></div>
       <div class="stat"><div>Avg Repair KPI</div><div id="wo-rep" class="v">-</div><div class="hint">الهدف &lt; 5 أيام</div></div>
+      <div class="stat" id="wo-sites-card" style="display:none"><div>عدد المواقع</div><div id="wo-sites" class="v">-</div></div>
     </div>
     <div class="progress" style="margin-top:8px"><div id="wo-rate" class="fill" style="width:0%"></div></div>
     <div class="hint" style="text-align:left;margin-top:6px">نسبة الإنجاز</div>
@@ -593,6 +594,40 @@ window.addEventListener('DOMContentLoaded', autoInit);
           <th>Avg Response</th><th>Avg Repair</th><th>التقييم</th>
         </tr>`;
         // original body already filled by _orig();
+      }
+    }
+  };
+})();
+</script>
+<script>
+// === Add Sites indicator & dynamic labels for All Sites ===
+(function(){
+  const _orig = window.refreshAll;
+  window.refreshAll = function(){
+    try{ _orig && _orig(); }catch(e){}
+    const totalLabel = document.getElementById('wo-total-label');
+    const sitesCard  = document.getElementById('wo-sites-card');
+    const sitesVal   = document.getElementById('wo-sites');
+
+    const techSel=document.getElementById('wo-tech-filter');
+    const statSel=document.getElementById('wo-status-filter');
+    const deptSel=document.getElementById('wo-dept-filter');
+    const filters={
+      site: (window.CURRENT_SITE==='__ALL__')? '' : window.CURRENT_SITE,
+      tech: techSel? techSel.value : '',
+      status: statSel? statSel.value : '',
+      dept: deptSel? deptSel.value : ''
+    };
+    if(typeof aggregate==='function' && Array.isArray(window.ALL_ROWS)){
+      const A = aggregate(window.ALL_ROWS, filters);
+      const sitesCount = new Set(A.filtered.map(r=>r.site)).size;
+      if(window.CURRENT_SITE==='__ALL__'){
+        if(totalLabel) totalLabel.textContent='عدد أوامر العمل (جميع المواقع)';
+        if(sitesCard){ sitesCard.style.display=''; }
+        if(sitesVal){ sitesVal.textContent = sitesCount; }
+      } else {
+        if(totalLabel) totalLabel.textContent='إجمالي الأوامر';
+        if(sitesCard){ sitesCard.style.display='none'; }
       }
     }
   };
