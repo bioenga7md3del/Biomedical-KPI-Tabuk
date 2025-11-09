@@ -115,7 +115,7 @@
   <!-- Charts Row 2 -->
   <div class="row-two">
     <div class="card"><h2>الأجهزة الأكثر تعطّلًا</h2><div class="chart-box"><canvas id="wo-devices"></canvas></div></div>
-    <div class="card"><h2>أكثر المراكز الصحية تعطّلًا (Department)</h2><div class="chart-box"><canvas id="wo-depts"></canvas></div></div>
+    <div class="card"><h2>المواقع الأكثر تعطّلًا (Site)</h2><div class="chart-box"><canvas id="wo-depts"></canvas></div></div>
   </div>
 
   <!-- Tables -->
@@ -240,10 +240,10 @@ function aggregate(rows, filters){
   const byDevice=Array.from(devMap.entries()).map(([name,count])=>({name,count}))
                       .sort((a,b)=> b.count-a.count);
 
-  const dmap=new Map();
-  filtered.forEach(r=> dmap.set(r.dept,(dmap.get(r.dept)||0)+1));
-  const byDept=Array.from(dmap.entries()).map(([name,count])=>({name,count}))
-                    .sort((a,b)=> b.count-a.count).slice(0,15);
+  const smap=new Map();
+  filtered.forEach(r=> smap.set(r.site,(smap.get(r.site)||0)+1));
+  const bySite=Array.from(smap.entries()).map(([name,count])=>({name,count}))
+                    .sort((a,b)=> b.count-a.count);
 
   const total=filtered.length, done=filtered.filter(r=>r.status==='completed').length;
   const pend=total-done, rate= total? Math.round(done*1000/total)/10 : 0;
@@ -251,7 +251,7 @@ function aggregate(rows, filters){
   const pendingRows=filtered.filter(r=>r.status==='pending');
   const techs=Array.from(new Set(filtered.map(r=>r.assigned))).sort((a,b)=> a.localeCompare(b,'ar'));
   const depts=Array.from(new Set(filtered.map(r=>r.dept))).sort((a,b)=> a.localeCompare(b,'ar'));
-  return {filtered,byTech,byDevice,byDept,total,done,pend,rate,pendingRows,techs,depts};
+  return {filtered,byTech,byDevice,bySite,total,done,pend,rate,pendingRows,techs,depts};
 }
 
 /* ===== Charts helpers ===== */
@@ -344,7 +344,7 @@ if (CURRENT_SITE==='__ALL__'){
 }
   const devList = (CURRENT_SITE==='__ALL__') ? A.byDevice.slice(0,10) : A.byDevice;
 drawDoughnut('wo-devices', devList.map(d=>d.name), devList.map(d=>d.count));
-  drawBars('wo-depts', A.byDept.map(d=>d.name), [{label:'WO count', data:A.byDept.map(d=>d.count), borderWidth:1, backgroundColor:'rgba(75,192,192,.7)'}]);
+  drawBars('wo-depts', A.bySite.map(s=>s.name), [{label:'WO count', data:A.bySite.map(s=>s.count), borderWidth:1, backgroundColor:'rgba(75,192,192,.7)'}]);
 
   // جدول الفنيين
   const tableCardTitle = document.querySelector('#wo-tech-table').closest('.card').querySelector('h2');
