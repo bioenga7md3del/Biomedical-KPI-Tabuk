@@ -3,514 +3,481 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>لوحة القيادة الذكية للصيانة الطبية</title>
+    <title>لوحة مؤشرات الصيانة الطبية (V3)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #2563eb; --primary-dark: #1e40af;
-            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
-            --bg: #f3f4f6; --card-bg: #ffffff; --text: #1f2937; --text-light: #6b7280;
+            --primary: #0056b3; --sec: #17a2b8; --bg: #f4f6f9; --card: #fff;
+            --txt: #333; --txt-light: #777;
+            --success: #28a745; --danger: #dc3545; --warning: #ffc107;
         }
-        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; }
-        
-        /* Layout */
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        .header { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 24px; }
-        .header-info h1 { margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark); }
-        .header-info p { margin: 5px 0 0; color: var(--text-light); }
-        
-        /* Upload Area */
-        .upload-box { position: relative; overflow: hidden; display: inline-block; }
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-print { background: #fff; border: 1px solid #d1d5db; color: var(--text); }
-        .btn-print:hover { background: #f9fafb; }
-        input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { margin: 0; background: var(--bg); color: var(--txt); padding-bottom: 50px; }
 
-        /* Controls & Filters */
-        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .filter-card { background: var(--card-bg); padding: 16px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .filter-card label { display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px; font-weight: 700; }
-        select, input.search-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; outline: none; }
-        select:focus, input.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        /* Header */
+        header { background: linear-gradient(135deg, #0056b3 0%, #004494 100%); color: #fff; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        h1 { margin: 0; font-size: 1.5rem; }
+        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .btn { border: 1px solid white; color: white; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn:hover { background: white; color: var(--primary); }
+        .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
+
+        /* Layout */
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 15px; }
+        
+        /* Filters */
+        .filters { display: flex; gap: 15px; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-group { flex: 1; min-width: 200px; }
+        .filter-group label { display: block; font-size: 0.85rem; color: var(--txt-light); margin-bottom: 5px; font-weight: bold; }
+        select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; background: #fafafa; }
 
         /* KPI Cards */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .kpi-card { background: var(--card-bg); padding: 20px; border-radius: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-right: 4px solid transparent; }
-        .kpi-card.blue { border-color: var(--primary); }
+        .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .kpi-card { background: var(--card); padding: 20px; border-radius: 12px; border-top: 4px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
         .kpi-card.green { border-color: var(--success); }
         .kpi-card.orange { border-color: var(--warning); }
         .kpi-card.red { border-color: var(--danger); }
-        .kpi-title { font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; }
-        .kpi-value { font-size: 1.8rem; font-weight: 800; color: var(--text); }
-        .kpi-sub { font-size: 0.8rem; margin-top: 4px; }
-        .trend-up { color: var(--success); } .trend-down { color: var(--danger); }
+        .kpi-label { color: var(--txt-light); font-size: 0.9rem; margin-bottom: 5px; }
+        .kpi-val { font-size: 2rem; font-weight: 700; color: var(--primary); }
+        .kpi-hint { font-size: 0.8rem; color: #888; margin-top: 5px; }
+        .icon-bg { position: absolute; top: 20px; left: 20px; font-size: 2.5rem; opacity: 0.1; }
 
-        /* Charts Section */
-        .charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px; }
-        .chart-container { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 350px; position: relative; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .chart-title { font-size: 1.1rem; font-weight: 700; color: var(--text); }
-
-        /* Data Table */
-        .table-container { background: var(--card-bg); border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
-        .table-header { padding: 20px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
-        .table-responsive { overflow-x: auto; max-height: 500px; }
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-        th { background: #f9fafb; padding: 12px 16px; text-align: right; font-size: 0.9rem; font-weight: 700; color: var(--text-light); position: sticky; top: 0; z-index: 10; }
-        td { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
-        tr:hover { background: #f8fafc; }
+        /* Charts & Tables */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .card-title { margin: 0 0 20px; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; }
         
-        /* Badges */
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
-        .bg-ok { background: #d1fae5; color: #065f46; }
-        .bg-warn { background: #fef3c7; color: #92400e; }
-        .bg-bad { background: #fee2e2; color: #991b1b; }
-        .bg-blue { background: #dbeafe; color: #1e40af; }
-
-        /* Print Styles */
-        @media print {
-            body { background: #fff; padding: 0; }
-            .no-print, .upload-box, .btn, .search-input { display: none !important; }
-            .container { max-width: 100%; padding: 0; }
-            .header, .kpi-card, .chart-container, .table-container { box-shadow: none; border: 1px solid #eee; }
-            .charts-row { grid-template-columns: 1fr 1fr; page-break-inside: avoid; }
-            .table-responsive { max-height: none; overflow: visible; }
-        }
-
-        /* Empty State */
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
-        .empty-icon { font-size: 4rem; color: #d1d5db; margin-bottom: 20px; }
+        .chart-box { height: 300px; position: relative; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        th { background: #f8f9fa; color: var(--primary); font-weight: 700; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .b-ok { background: #d4edda; color: #155724; }
+        .b-warn { background: #fff3cd; color: #856404; }
+        
+        /* Loading */
+        #loader { text-align: center; padding: 50px; color: var(--txt-light); font-size: 1.2rem; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header class="header">
-        <div class="header-info">
-            <h1 id="report-title">لوحة معلومات الصيانة الطبية</h1>
-            <p id="report-subtitle">قم برفع ملف البيانات (Excel/CSV) للبدء</p>
+<header>
+    <div class="header-content">
+        <div>
+            <h1>لوحة مؤشرات الصيانة الطبية</h1>
+            <div style="font-size:0.9rem; opacity:0.9; margin-top:5px">تحليل أوامر العمل (Corrective / PPM)</div>
         </div>
-        <div class="actions no-print" style="display:flex; gap:10px">
-            <div class="upload-box">
-                <button class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> رفع الملف</button>
-                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
-            </div>
-            <button class="btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة / PDF</button>
+        <div class="upload-btn-wrapper no-print">
+            <button class="btn"><i class="fas fa-file-upload"></i> رفع ملف Excel</button>
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
         </div>
-    </header>
+    </div>
+</header>
 
-    <div id="dashboard-content" style="display:none;">
-        <div class="controls no-print">
-            <div class="filter-card">
-                <label><i class="fas fa-hospital"></i> الموقع (Site)</label>
-                <select id="siteFilter"><option value="All">كل المواقع</option></select>
-            </div>
-            <div class="filter-card">
-                <label><i class="fas fa-filter"></i> نوع الأمر (WO Type)</label>
+<div class="container">
+    <div id="loader">يرجى رفع ملف البيانات للبدء...</div>
+    
+    <div id="dashboard" class="hidden">
+        <div class="filters">
+            <div class="filter-group">
+                <label>نوع الصيانة (Work Order Type)</label>
                 <select id="typeFilter">
-                    <option value="All">الكل (All Types)</option>
                     <option value="Corrective">صيانة تصحيحية (Corrective)</option>
                     <option value="PPM">صيانة وقائية (PPM)</option>
+                    <option value="All">الكل</option>
                 </select>
             </div>
-            <div class="filter-card">
-                <label><i class="fas fa-search"></i> بحث سريع</label>
-                <input type="text" id="searchInput" class="search-input" placeholder="رقم الأمر، الجهاز، الفني...">
+            <div class="filter-group">
+                <label>الموقع (Site)</label>
+                <select id="siteFilter"><option value="">الكل</option></select>
+            </div>
+            <div class="filter-group">
+                <label>الفني (Technician)</label>
+                <select id="techFilter"><option value="">الكل</option></select>
             </div>
         </div>
 
-        <div class="kpi-grid">
-            <div class="kpi-card blue">
-                <div class="kpi-title">إجمالي أوامر العمل</div>
-                <div class="kpi-value" id="kpi-total">-</div>
-                <div class="kpi-sub" id="kpi-total-sub"></div>
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-label">إجمالي الأوامر</div>
+                <div class="kpi-val" id="kpi-total">-</div>
+                <i class="fas fa-clipboard-list icon-bg"></i>
             </div>
             <div class="kpi-card green">
-                <div class="kpi-title">تم الإنجاز (Completed)</div>
-                <div class="kpi-value" id="kpi-done">-</div>
-                <div class="kpi-sub trend-up" id="kpi-rate">0% معدل إنجاز</div>
+                <div class="kpi-label">تم الإنجاز (Completed)</div>
+                <div class="kpi-val" id="kpi-done">-</div>
+                <div class="kpi-hint" id="kpi-rate">-</div>
+                <i class="fas fa-check-circle icon-bg"></i>
             </div>
             <div class="kpi-card orange">
-                <div class="kpi-title">قيد العمل (Pending)</div>
-                <div class="kpi-value" id="kpi-pending">-</div>
-                <div class="kpi-sub" id="kpi-pending-sub">أوامر نشطة</div>
+                <div class="kpi-label">قيد العمل (Pending)</div>
+                <div class="kpi-val" id="kpi-pending">-</div>
+                <div class="kpi-hint">Sign-off فارغ</div>
+                <i class="fas fa-clock icon-bg"></i>
             </div>
-            <div class="kpi-card red" id="kpi-mttr-card">
-                <div class="kpi-title">متوسط وقت الإصلاح (MTTR)</div>
-                <div class="kpi-value" id="kpi-mttr">-</div>
-                <div class="kpi-sub">الهدف: < 5 أيام</div>
+            <div class="kpi-card">
+                <div class="kpi-label">متوسط سرعة الاستجابة</div>
+                <div class="kpi-val" id="kpi-resp">-</div>
+                <div class="kpi-hint">Start - Fail (بالساعات)</div>
+                <i class="fas fa-running icon-bg"></i>
             </div>
-        </div>
-
-        <div class="charts-row">
-            <div class="chart-container">
-                <div class="chart-header"><div class="chart-title">حالة الأوامر</div></div>
-                <canvas id="chartStatus"></canvas>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header"><div class="chart-title">أداء الفنيين (Top 10)</div></div>
-                <canvas id="chartTech"></canvas>
-            </div>
-        </div>
-        <div class="charts-row">
-            <div class="chart-container">
-                <div class="chart-header"><div class="chart-title">أكثر الأجهزة تعطلاً / صيانة</div></div>
-                <canvas id="chartDevices"></canvas>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header"><div class="chart-title">التوزيع حسب الأقسام</div></div>
-                <canvas id="chartDepts"></canvas>
+            <div class="kpi-card red">
+                <div class="kpi-label">متوسط وقت الإصلاح</div>
+                <div class="kpi-val" id="kpi-fix">-</div>
+                <div class="kpi-hint">SignOff - Start (بالأيام)</div>
+                <i class="fas fa-tools icon-bg"></i>
             </div>
         </div>
 
-        <div class="table-container">
-            <div class="table-header">
-                <h3 style="margin:0">سجل الأوامر النشطة (Pending)</h3>
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">حالة الأوامر (Status)</div>
+                <div class="chart-box"><canvas id="chartStatus"></canvas></div>
             </div>
-            <div class="table-responsive">
-                <table id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>رقم الأمر</th>
-                            <th>نوع الأمر</th>
-                            <th>الموقع</th>
-                            <th>الفني</th>
-                            <th>الجهاز</th>
-                            <th>التاريخ</th>
-                            <th>الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="card">
+                <div class="card-title">توزيع الأوامر حسب الموقع</div>
+                <div class="chart-box"><canvas id="chartSite"></canvas></div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">أداء الفنيين (Top 10)</div>
+                <div class="chart-box"><canvas id="chartTech"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-title">الأجهزة الأكثر تعطلاً (Top 10)</div>
+                <div class="chart-box"><canvas id="chartDevice"></canvas></div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card" style="grid-column: span 2;">
+                <div class="card-title">جدول مؤشرات الأداء للفنيين (Technician KPIs)</div>
+                <div style="overflow-x:auto">
+                    <table id="tableTech">
+                        <thead>
+                            <tr>
+                                <th>الفني</th>
+                                <th>عدد الأوامر</th>
+                                <th>Avg Response (ساعة)</th>
+                                <th>Avg Repair (يوم)</th>
+                                <th>التقييم</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
         
-        <footer style="text-align:center; margin-top:30px; color:#9ca3af; font-size:0.8rem">
-            Generated by Medical Maintenance Dashboard v2.0
-        </footer>
-    </div>
+        <div class="grid-2">
+            <div class="card" style="grid-column: span 2;">
+                <div class="card-title">جدول مؤشرات المواقع (Site KPIs)</div>
+                <div style="overflow-x:auto">
+                    <table id="tableSite">
+                        <thead>
+                            <tr>
+                                <th>الموقع</th>
+                                <th>إجمالي الأعطال</th>
+                                <th>منتهي</th>
+                                <th>قيد العمل</th>
+                                <th>Avg Response</th>
+                                <th>Avg Repair</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-    <div id="empty-state" class="empty-state">
-        <i class="fas fa-file-excel empty-icon"></i>
-        <h2>بانتظار ملف البيانات...</h2>
-        <p>يرجى رفع ملف Excel أو CSV لعرض التحليلات.</p>
     </div>
 </div>
 
 <script>
-    // --- Global State ---
+    // --- Config & State ---
     let RAW_DATA = [];
-    let FILTERED_DATA = [];
-    let CHART_INSTANCES = {};
+    let CHART_STORE = {};
 
-    // --- Column Mapping Logic (Smart Detection) ---
-    // This helps if column names change slightly in future exports
-    const COL_MAP = {
-        id: ['Control No', 'Work Order No', 'رقم الأمر'],
-        type: ['Work Order Type', 'WO Type', 'نوع الأمر'],
-        site: ['Site', 'Location', 'الموقع'],
-        dept: ['Department', 'القسم'],
-        tech: ['Assigned To', 'Technician', 'الفني'],
-        device: ['ECRI Code', 'Equipment Name', 'Asset', 'Device', 'الجهاز'],
-        failDate: ['Fail Date', 'Start Date', 'تاريخ العطل'],
-        signDate: ['sign off date', 'Completion Date', 'تاريخ الإغلاق'],
-        status: ['Status', 'الحالة'],
-        mfr: ['Manufacturer', 'الشركة المصنعة']
+    // --- Helpers ---
+    // Date Parser: Handles "YYYY-MM-DD HH:mm:ss" AND "DD-MM-YYYY"
+    function parseCustomDate(str) {
+        if (!str) return null;
+        if (str instanceof Date) return str;
+        str = String(str).trim();
+        if (str === '') return null;
+
+        // Try standard ISO first
+        let d = new Date(str);
+        if (!isNaN(d.getTime())) return d;
+
+        // Try DD-MM-YYYY (e.g. 31-12-2025)
+        const parts = str.split(/[-/]/);
+        if (parts.length >= 3) {
+            // Assume format DD-MM-YYYY
+            // parts[0]=DD, parts[1]=MM, parts[2]=YYYY
+            // Check if parts[2] looks like year
+            if (parts[2].length === 4) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+        }
+        return null;
+    }
+
+    // Column Mapping based on user input
+    const COLS = {
+        type: ['Work Order Type', 'WO Type'],
+        failDate: ['Fail Date'], // تاريخ العطل
+        startDate: ['start date'], // بداية العمل
+        signDate: ['sign off date', 'Completion Date'], // الإغلاق
+        tech: ['Assigned To'],
+        site: ['Site'],
+        device: ['ECRI Code'], // اسم الجهاز
+        id: ['Control No', '#']
     };
 
-    function pickVal(row, keys) {
-        if (!row) return null;
-        // Search for key case-insensitive
+    function getVal(row, keys) {
         const rowKeys = Object.keys(row);
         for (let k of keys) {
             const found = rowKeys.find(rk => rk.toLowerCase().trim() === k.toLowerCase().trim());
             if (found) return row[found];
         }
-        return null;
-    }
-
-    // --- Initialization ---
-    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-    document.getElementById('siteFilter').addEventListener('change', updateDashboard);
-    document.getElementById('typeFilter').addEventListener('change', updateDashboard);
-    document.getElementById('searchInput').addEventListener('input', updateDashboard);
-
-    async function handleFileUpload(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            const data = evt.target.result;
-            const workbook = XLSX.read(data, {type: 'binary', cellDates: true});
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const json = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
-
-            processData(json, file.name);
-        };
-        reader.readAsBinaryString(file);
-    }
-
-    // --- Data Processing ---
-    function processData(json, filename) {
-        RAW_DATA = json.map((row, index) => {
-            const failRaw = pickVal(row, COL_MAP.failDate);
-            const signRaw = pickVal(row, COL_MAP.signDate);
-            
-            // Normalize Status
-            let status = pickVal(row, COL_MAP.status) || 'Unknown';
-            // Logic: If sign off date exists, it is closed regardless of status text
-            const isClosed = (signRaw && String(signRaw).trim() !== '') || status.toLowerCase().includes('approv') || status.toLowerCase().includes('clos');
-            
-            // Normalize Type (PPM vs CM)
-            let typeRaw = pickVal(row, COL_MAP.type) || 'Corrective';
-            let isPPM = typeRaw.toLowerCase().includes('ppm') || typeRaw.toLowerCase().includes('prevent');
-            let type = isPPM ? 'PPM' : 'Corrective';
-
-            // Dates
-            let dFail = parseDate(failRaw);
-            let dSign = parseDate(signRaw);
-            
-            // Repair Time (Days) - Only for Corrective
-            let repairDays = null;
-            if (!isPPM && dFail && dSign) {
-                const diffTime = Math.abs(dSign - dFail);
-                repairDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-            }
-
-            return {
-                id: pickVal(row, COL_MAP.id) || `ROW-${index}`,
-                type: type,
-                site: pickVal(row, COL_MAP.site) || 'غير محدد',
-                dept: pickVal(row, COL_MAP.dept) || 'غير محدد',
-                tech: pickVal(row, COL_MAP.tech) || 'Unassigned',
-                device: pickVal(row, COL_MAP.device) || 'Unknown Device',
-                failDate: dFail,
-                signDate: dSign,
-                status: isClosed ? 'Completed' : 'Pending',
-                repairDays: repairDays,
-                raw: row
-            };
-        });
-
-        // Auto-Detect Date for Title
-        const validDateRow = RAW_DATA.find(r => r.failDate);
-        if (validDateRow) {
-            const date = validDateRow.failDate;
-            const monthNames = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
-              "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
-            ];
-            document.getElementById('report-title').innerText = `تقرير الصيانة - ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-            document.getElementById('report-subtitle').innerText = `مصدر البيانات: ${filename}`;
-        }
-
-        // Populate Site Filter
-        const sites = [...new Set(RAW_DATA.map(r => r.site))].sort();
-        const siteSel = document.getElementById('siteFilter');
-        siteSel.innerHTML = '<option value="All">كل المواقع (All Sites)</option>';
-        sites.forEach(s => {
-            if(s) siteSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`);
-        });
-
-        // Show Dashboard
-        document.getElementById('empty-state').style.display = 'none';
-        document.getElementById('dashboard-content').style.display = 'block';
-
-        updateDashboard();
-    }
-
-    function parseDate(v) {
-        if (!v) return null;
-        if (v instanceof Date) return v;
-        const d = new Date(v);
-        return isNaN(d) ? null : d;
+        return null; // or undefined
     }
 
     // --- Core Logic ---
-    function updateDashboard() {
-        const siteFilter = document.getElementById('siteFilter').value;
-        const typeFilter = document.getElementById('typeFilter').value;
-        const searchTxt = document.getElementById('searchInput').value.toLowerCase();
-
-        // 1. Filter Data
-        FILTERED_DATA = RAW_DATA.filter(r => {
-            const matchSite = siteFilter === 'All' || r.site === siteFilter;
-            const matchType = typeFilter === 'All' || 
-                              (typeFilter === 'Corrective' && r.type === 'Corrective') ||
-                              (typeFilter === 'PPM' && r.type === 'PPM');
-            
-            const matchSearch = !searchTxt || 
-                                String(r.id).toLowerCase().includes(searchTxt) ||
-                                String(r.device).toLowerCase().includes(searchTxt) ||
-                                String(r.tech).toLowerCase().includes(searchTxt);
-            
-            return matchSite && matchType && matchSearch;
-        });
-
-        // 2. Calculate KPIs
-        const total = FILTERED_DATA.length;
-        const completed = FILTERED_DATA.filter(r => r.status === 'Completed').length;
-        const pending = total - completed;
-        const rate = total ? Math.round((completed / total) * 100) : 0;
-
-        // MTTR (Only for Corrective WOs in the filtered set)
-        const closedCorrective = FILTERED_DATA.filter(r => r.type === 'Corrective' && r.status === 'Completed' && r.repairDays !== null);
-        const avgRepair = closedCorrective.length 
-            ? (closedCorrective.reduce((sum, r) => sum + r.repairDays, 0) / closedCorrective.length).toFixed(1)
-            : '-';
-
-        // 3. Update DOM
-        animateValue('kpi-total', total);
-        animateValue('kpi-done', completed);
-        animateValue('kpi-pending', pending);
-        document.getElementById('kpi-rate').innerText = `${rate}% نسبة الإنجاز`;
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
         
-        document.getElementById('kpi-mttr').innerText = avgRepair;
-        // Hide MTTR card if looking only at PPM
-        const mttrCard = document.getElementById('kpi-mttr-card');
-        if (typeFilter === 'PPM') {
-            mttrCard.style.opacity = '0.5';
-            document.getElementById('kpi-mttr').innerText = 'N/A';
-        } else {
-            mttrCard.style.opacity = '1';
-        }
+        const data = await file.arrayBuffer();
+        const wb = XLSX.read(data, {type:'array', cellDates:true}); // Read dates as objects if possible
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, {defval:''});
+        
+        processData(json);
+    });
 
-        // 4. Update Charts
-        updateCharts(FILTERED_DATA);
+    ['typeFilter', 'siteFilter', 'techFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updateDashboard);
+    });
 
-        // 5. Update Table (Show max 100 pending/recent items to avoid lag)
-        updateTable(FILTERED_DATA);
+    function processData(json) {
+        RAW_DATA = json.map(row => {
+            const typeRaw = getVal(row, COLS.type) || '';
+            const isPPM = typeRaw.toLowerCase().includes('ppm');
+            const type = isPPM ? 'PPM' : 'Corrective';
+
+            // Dates
+            const dFail = parseCustomDate(getVal(row, COLS.failDate));
+            const dStart = parseCustomDate(getVal(row, COLS.startDate));
+            const dSign = parseCustomDate(getVal(row, COLS.signDate));
+
+            // Status: If signDate exists => Completed
+            const isDone = (dSign != null);
+            
+            // KPIs (Only calculate if dates exist)
+            let respHours = null;
+            let repairDays = null;
+
+            if (type === 'Corrective') { // KPIs mainly for Corrective
+                // Response = Start - Fail
+                if (dFail && dStart) {
+                    const diffMs = dStart - dFail;
+                    respHours = diffMs / (1000 * 60 * 60); // Hours
+                    if(respHours < 0) respHours = 0; // Prevent negative data entry errors
+                }
+                // Repair = SignOff - Start
+                if (dStart && dSign) {
+                    const diffMs = dSign - dStart;
+                    repairDays = diffMs / (1000 * 60 * 60 * 24); // Days
+                    if(repairDays < 0) repairDays = 0;
+                }
+            }
+
+            return {
+                type,
+                site: getVal(row, COLS.site) || 'Unknown Site',
+                tech: getVal(row, COLS.tech) || 'Unknown Tech',
+                device: getVal(row, COLS.device) || 'Unknown Device',
+                status: isDone ? 'Completed' : 'Pending',
+                dFail, dStart, dSign,
+                respHours, repairDays
+            };
+        });
+
+        // Fill Filters
+        populateSelect('siteFilter', [...new Set(RAW_DATA.map(r=>r.site))].sort());
+        populateSelect('techFilter', [...new Set(RAW_DATA.map(r=>r.tech))].sort());
+
+        document.getElementById('loader').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        updateDashboard();
     }
 
-    function animateValue(id, value) {
-        document.getElementById(id).innerText = value;
+    function populateSelect(id, list) {
+        const sel = document.getElementById(id);
+        sel.innerHTML = '<option value="">الكل</option>';
+        list.forEach(item => {
+            if(item) sel.insertAdjacentHTML('beforeend', `<option value="${item}">${item}</option>`);
+        });
     }
 
-    // --- Charts Rendering ---
-    function updateCharts(data) {
-        // Prepare Aggregations
-        const statusCounts = { Completed: 0, Pending: 0 };
-        const techCounts = {};
-        const devCounts = {};
-        const deptCounts = {};
+    // --- Dashboard Update ---
+    function updateDashboard() {
+        const fType = document.getElementById('typeFilter').value;
+        const fSite = document.getElementById('siteFilter').value;
+        const fTech = document.getElementById('techFilter').value;
 
-        data.forEach(r => {
-            statusCounts[r.status]++;
-            
-            // Tech
-            techCounts[r.tech] = (techCounts[r.tech] || 0) + 1;
-            
-            // Device
-            const dName = r.device.length > 20 ? r.device.substring(0,20)+'...' : r.device;
-            devCounts[dName] = (devCounts[dName] || 0) + 1;
-
-            // Dept
-            deptCounts[r.dept] = (deptCounts[r.dept] || 0) + 1;
+        // Filter
+        const data = RAW_DATA.filter(r => {
+            if (fType !== 'All' && r.type !== fType) return false;
+            if (fSite && r.site !== fSite) return false;
+            if (fTech && r.tech !== fTech) return false;
+            return true;
         });
 
-        // Helpers for ChartJS
-        const getSortedKeys = (obj, limit=10) => Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,limit);
+        // Aggregations
+        const total = data.length;
+        const done = data.filter(r => r.status === 'Completed').length;
+        const pending = total - done;
 
-        // 1. Status Doughnut
-        renderChart('chartStatus', 'doughnut', {
-            labels: ['منتهي (Completed)', 'قيد العمل (Pending)'],
-            datasets: [{
-                data: [statusCounts.Completed, statusCounts.Pending],
-                backgroundColor: ['#10b981', '#f59e0b']
-            }]
+        // Averages (Filter out nulls)
+        const respArr = data.map(r=>r.respHours).filter(v=>v!=null);
+        const repairArr = data.map(r=>r.repairDays).filter(v=>v!=null);
+        
+        const avgResp = respArr.length ? (respArr.reduce((a,b)=>a+b,0)/respArr.length).toFixed(1) : '-';
+        const avgRepair = repairArr.length ? (repairArr.reduce((a,b)=>a+b,0)/repairArr.length).toFixed(1) : '-';
+
+        // Update Cards
+        document.getElementById('kpi-total').textContent = total;
+        document.getElementById('kpi-done').textContent = done;
+        document.getElementById('kpi-pending').textContent = pending;
+        document.getElementById('kpi-rate').textContent = total ? Math.round((done/total)*100)+'% نسبة الإنجاز' : '';
+        document.getElementById('kpi-resp').textContent = avgResp;
+        document.getElementById('kpi-fix').textContent = avgRepair;
+
+        // --- Charts ---
+        drawChart('chartStatus', 'pie', {
+            labels: ['منتهي', 'قيد العمل'],
+            datasets: [{ data: [done, pending], backgroundColor: ['#28a745', '#ffc107'] }]
         });
 
-        // 2. Tech Bar (Top 10)
-        const topTechs = getSortedKeys(techCounts);
-        renderChart('chartTech', 'bar', {
-            labels: topTechs.map(i => i[0]),
-            datasets: [{
-                label: 'عدد الأوامر',
-                data: topTechs.map(i => i[1]),
-                backgroundColor: '#3b82f6',
-                borderRadius: 4
-            }]
+        // Site Distribution
+        const bySite = groupBy(data, 'site');
+        const topSites = Object.entries(bySite).sort((a,b)=>b[1].length - a[1].length);
+        drawChart('chartSite', 'bar', {
+            labels: topSites.map(x=>x[0]),
+            datasets: [{ label: 'عدد الأوامر', data: topSites.map(x=>x[1].length), backgroundColor: '#0056b3' }]
         });
 
-        // 3. Devices (Horizontal Bar)
-        const topDevs = getSortedKeys(devCounts);
-        renderChart('chartDevices', 'bar', {
-            labels: topDevs.map(i => i[0]),
-            datasets: [{
-                label: 'التكرار',
-                data: topDevs.map(i => i[1]),
-                backgroundColor: '#8b5cf6',
-                borderRadius: 4
-            }],
+        // Tech Performance (Top 10 by volume)
+        const byTech = groupBy(data, 'tech');
+        const techStats = Object.keys(byTech).map(k => {
+            const list = byTech[k];
+            const rs = list.map(x=>x.respHours).filter(x=>x!=null);
+            const fs = list.map(x=>x.repairDays).filter(x=>x!=null);
+            return {
+                name: k,
+                count: list.length,
+                avgR: rs.length ? rs.reduce((a,b)=>a+b)/rs.length : 0,
+                avgF: fs.length ? fs.reduce((a,b)=>a+b)/fs.length : 0
+            };
+        }).sort((a,b) => b.count - a.count);
+
+        drawChart('chartTech', 'bar', {
+            labels: techStats.slice(0,10).map(t=>t.name),
+            datasets: [
+                { label: 'Avg Response (hr)', data: techStats.slice(0,10).map(t=>t.avgR), backgroundColor: '#17a2b8' },
+                { label: 'Avg Repair (day)', data: techStats.slice(0,10).map(t=>t.avgF), backgroundColor: '#dc3545' }
+            ]
+        });
+
+        // Top Devices
+        const byDev = groupBy(data, 'device');
+        const topDevs = Object.entries(byDev).sort((a,b)=>b[1].length - a[1].length).slice(0,10);
+        drawChart('chartDevice', 'bar', {
+            labels: topDevs.map(x=>x[0].substring(0,15)+'...'),
+            datasets: [{ label: 'عدد الأعطال', data: topDevs.map(x=>x[1].length), backgroundColor: '#6610f2' }]
         }, { indexAxis: 'y' });
 
-        // 4. Depts (Pie or Bar)
-        const topDepts = getSortedKeys(deptCounts);
-        renderChart('chartDepts', 'pie', {
-            labels: topDepts.map(i => i[0]),
-            datasets: [{
-                data: topDepts.map(i => i[1]),
-                backgroundColor: ['#ec4899', '#6366f1', '#14b8a6', '#f97316', '#64748b']
-            }]
-        });
+        // --- Tables ---
+        renderTableTech(techStats);
+        renderTableSite(data);
     }
 
-    function renderChart(canvasId, type, data, extraOptions={}) {
-        if (CHART_INSTANCES[canvasId]) {
-            CHART_INSTANCES[canvasId].destroy();
-        }
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        CHART_INSTANCES[canvasId] = new Chart(ctx, {
-            type: type,
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' }
-                },
-                ...extraOptions
-            }
-        });
+    function groupBy(arr, key) {
+        return arr.reduce((acc, r) => { (acc[r[key]] = acc[r[key]] || []).push(r); return acc; }, {});
     }
 
-    // --- Table Rendering ---
-    function updateTable(data) {
-        const tbody = document.querySelector('#dataTable tbody');
-        tbody.innerHTML = '';
-        
-        // Prioritize showing Pending items first
-        const sorted = [...data].sort((a,b) => (a.status === 'Pending' ? -1 : 1));
-        const limit = 100; // Limit rendering for speed
-
-        sorted.slice(0, limit).forEach((r, i) => {
-            const dateStr = r.failDate ? r.failDate.toLocaleDateString('en-GB') : '-';
-            const badgeClass = r.status === 'Completed' ? 'bg-ok' : 'bg-warn';
-            const typeBadge = r.type === 'PPM' ? '<span class="badge bg-blue">PPM</span>' : '<span class="badge" style="background:#eee">CM</span>';
+    // --- Table Renders ---
+    function renderTableTech(stats) {
+        const tb = document.querySelector('#tableTech tbody');
+        tb.innerHTML = '';
+        stats.forEach(s => {
+            let rank = '<span class="badge b-ok">ممتاز</span>';
+            // Simple logic: If repair > 5 days -> Warning
+            if(s.avgF > 7) rank = '<span class="badge b-warn">يحتاج تحسين</span>';
+            if(s.count === 0) rank = '-';
             
-            const rowHTML = `
-                <tr>
-                    <td>${i+1}</td>
-                    <td style="font-family:monospace; font-weight:bold">${r.id}</td>
-                    <td>${typeBadge}</td>
-                    <td>${r.site}</td>
-                    <td>${r.tech}</td>
-                    <td>${r.device}</td>
-                    <td>${dateStr}</td>
-                    <td><span class="badge ${badgeClass}">${r.status}</span></td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('beforeend', rowHTML);
+            const html = `<tr>
+                <td>${s.name}</td>
+                <td>${s.count}</td>
+                <td>${s.avgR.toFixed(1)}</td>
+                <td>${s.avgF.toFixed(1)}</td>
+                <td>${rank}</td>
+            </tr>`;
+            tb.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    function renderTableSite(data) {
+        const tb = document.querySelector('#tableSite tbody');
+        tb.innerHTML = '';
+        const bySite = groupBy(data, 'site');
+        const rows = Object.keys(bySite).map(site => {
+            const list = bySite[site];
+            const done = list.filter(x=>x.status==='Completed').length;
+            const pend = list.length - done;
+            const rs = list.map(x=>x.respHours).filter(x=>x!=null);
+            const fs = list.map(x=>x.repairDays).filter(x=>x!=null);
+            return {
+                site, total: list.length, done, pend,
+                avgR: rs.length ? (rs.reduce((a,b)=>a+b)/rs.length).toFixed(1) : '-',
+                avgF: fs.length ? (fs.reduce((a,b)=>a+b)/fs.length).toFixed(1) : '-'
+            };
+        }).sort((a,b)=>b.total - a.total);
+
+        rows.forEach(r => {
+            tb.insertAdjacentHTML('beforeend', `<tr>
+                <td>${r.site}</td><td>${r.total}</td><td>${r.done}</td>
+                <td style="color:${r.pend>0?'red':'green'}">${r.pend}</td>
+                <td>${r.avgR}</td><td>${r.avgF}</td>
+            </tr>`);
+        });
+    }
+
+    // --- Chart Helper ---
+    function drawChart(id, type, data, opts={}) {
+        const ctx = document.getElementById(id).getContext('2d');
+        if(CHART_STORE[id]) CHART_STORE[id].destroy();
+        CHART_STORE[id] = new Chart(ctx, {
+            type, data, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                ...opts
+            }
         });
     }
 
