@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Dashboard V10</title>
+    <title>Medical Maintenance Dashboard V11</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -13,55 +13,53 @@
     <style>
         :root { 
             --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
-            --primary: #3b82f6; --secondary: #64748b;
-            --success: #22c55e; --danger: #ef4444; --warning: #f59e0b; --purple: #a855f7;
+            --primary: #2563eb; --secondary: #64748b;
+            --success: #22c55e; --danger: #ef4444; --warning: #f59e0b;
         }
         * { box-sizing: border-box; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
         
         .header { background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .header h1 { margin: 0; font-size: 1.5rem; color: #1e293b; }
         .btn-upload { background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; position: relative; overflow: hidden; transition: 0.2s; }
-        .btn-upload:hover { background: #2563eb; }
+        .btn-upload:hover { background: #1d4ed8; }
         .btn-upload input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
         .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
 
         .filter-bar { background: #fff; padding: 1rem; border-radius: 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
         .filter-label { font-weight: bold; color: var(--secondary); }
-        .site-select { padding: 0.5rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: inherit; font-size: 1rem; min-width: 250px; outline: none; }
-        .site-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .site-select { padding: 0.5rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: inherit; font-size: 1rem; min-width: 300px; outline: none; }
+        .site-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; border-top: 4px solid transparent; }
         .kpi-card.blue { border-top-color: var(--primary); }
         .kpi-card.green { border-top-color: var(--success); }
         .kpi-card.red { border-top-color: var(--danger); }
         .kpi-card.orange { border-top-color: var(--warning); }
-        .kpi-card.purple { border-top-color: var(--purple); }
         
-        .kpi-label { font-size: 0.85rem; color: var(--secondary); margin-bottom: 0.5rem; font-weight: 600; }
-        .kpi-val { font-size: 2rem; font-weight: 800; color: #1e293b; }
-        .kpi-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 0.5rem; }
+        .kpi-val { font-size: 2rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
+        .kpi-sub { font-size: 0.85rem; color: #94a3b8; }
 
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         
-        .panel { background: var(--surface); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 1.5rem; height: 100%; border: 1px solid #f1f5f9; }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; }
+        .panel { background: var(--surface); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 1.5rem; height: 100%; border: 1px solid #f1f5f9; display: flex; flex-direction: column; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; }
         .panel-title { font-size: 1.1rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.5rem; }
-        .chart-box { height: 300px; position: relative; }
-
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-        th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-size: 0.85rem; font-weight: 700; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        
+        .chart-box { height: 320px; position: relative; width: 100%; }
+        
+        .table-wrap { overflow-x: auto; flex-grow: 1; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.9rem; }
+        th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
+        td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; }
         tr:hover { background: #f8fafc; }
         
         .badge { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
-        .b-ok { background: #dcfce7; color: #166534; }
-        .b-bad { background: #fee2e2; color: #991b1b; }
+        .b-open { background: #fee2e2; color: #dc2626; }
+        .b-closed { background: #dcfce7; color: #166534; }
         .b-warn { background: #ffedd5; color: #9a3412; }
-        .b-crit { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
 
         #emptyState { text-align: center; padding: 5rem 1rem; color: #94a3b8; }
         #dashboard { display: none; }
@@ -71,8 +69,8 @@
 
 <header class="header">
     <div>
-        <h1>Medical Maintenance Dashboard (V10)</h1>
-        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">تحليل دقيق للحالات (Signed Off Only)</div>
+        <h1>Medical Maintenance Dashboard (V11)</h1>
+        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">تحليل المواقع، الأقسام، والأعطال المتكررة</div>
     </div>
     <div class="btn-upload">
         <i class="fas fa-file-excel"></i> رفع البيانات
@@ -82,16 +80,16 @@
 
 <div class="container">
     <div id="emptyState">
-        <i class="fas fa-chart-pie" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
+        <i class="fas fa-chart-bar" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
         <h2>جاهز للتحليل</h2>
-        <p>قم برفع ملف Excel (سيتم اعتبار أي حالة غير "Signed Off" مفتوحة).</p>
+        <p>قم برفع ملف Excel لعرض التحليلات.</p>
     </div>
 
     <div id="dashboard">
         
         <div class="filter-bar">
             <i class="fas fa-filter filter-label"></i>
-            <span class="filter-label">تصفية حسب الموقع:</span>
+            <span class="filter-label">اختر الموقع (Site):</span>
             <select id="siteFilter" class="site-select">
                 <option value="All">كل المواقع (All Sites)</option>
             </select>
@@ -99,51 +97,41 @@
 
         <div class="grid-kpi">
             <div class="kpi-card blue">
-                <div class="kpi-label">إجمالي الأوامر</div>
+                <div>إجمالي الأوامر</div>
                 <div class="kpi-val" id="kpi-total">0</div>
                 <div class="kpi-sub">Total Orders</div>
             </div>
             <div class="kpi-card green">
-                <div class="kpi-label">Signed Off</div>
+                <div>نسبة الإنجاز (Signed Off)</div>
                 <div class="kpi-val" id="kpi-rate">0%</div>
                 <div class="kpi-sub" id="kpi-closed">0 مغلق</div>
             </div>
             <div class="kpi-card red">
-                <div class="kpi-label">Avg Response</div>
+                <div>Avg Response</div>
                 <div class="kpi-val" id="kpi-resp">0</div>
-                <div class="kpi-sub">أيام (Days)</div>
+                <div class="kpi-sub">أيام (Start - Fail)</div>
             </div>
             <div class="kpi-card orange">
-                <div class="kpi-label">Avg Repair</div>
+                <div>Avg Repair</div>
                 <div class="kpi-val" id="kpi-fix">0</div>
-                <div class="kpi-sub">أيام (Days)</div>
+                <div class="kpi-sub">أيام (SignOff - Start)</div>
             </div>
-             <div class="kpi-card purple">
-                <div class="kpi-label">مخاطر Class A</div>
-                <div class="kpi-val" id="kpi-class-a">0</div>
-                <div class="kpi-sub" id="kpi-class-a-pend" style="color:#ef4444">0 معطل</div>
-            </div>
-             <div class="kpi-card orange">
-                <div class="kpi-label">الأصول المتكررة</div>
-                <div class="kpi-val" id="kpi-lemon">0</div>
-                <div class="kpi-sub">جهاز تعطل > مرتين</div>
+             <div class="kpi-card red">
+                <div>الأوامر المفتوحة</div>
+                <div class="kpi-val" id="kpi-open">0</div>
+                <div class="kpi-sub" style="color:#ef4444">تحتاج متابعة</div>
             </div>
         </div>
 
         <div class="grid-2">
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">المنحنى الزمني (Daily Trend)</div></div>
-                <div class="chart-box"><canvas id="chartTrend"></canvas></div>
+                <div class="panel-header">
+                    <div class="panel-title" id="dynamicChartTitle">المواقع الأكثر تعطلاً</div>
+                </div>
+                <div class="chart-box"><canvas id="chartDynamic"></canvas></div>
             </div>
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">الشركات المصنعة (Top Manufacturers)</div></div>
-                <div class="chart-box"><canvas id="chartMfr"></canvas></div>
-            </div>
-        </div>
-
-        <div class="grid-2">
-            <div class="panel">
-                <div class="panel-header"><div class="panel-title">الأجهزة الأكثر تعطلاً</div></div>
+                <div class="panel-header"><div class="panel-title">الأجهزة الأكثر تعطلاً (Top 5)</div></div>
                 <div class="table-wrap">
                     <table id="topDevTable">
                         <thead><tr><th>الجهاز</th><th>العدد</th></tr></thead>
@@ -151,36 +139,45 @@
                     </table>
                 </div>
             </div>
-            <div class="panel">
-                <div class="panel-header"><div class="panel-title" style="color:#dc2626">الأوامر المتأخرة (Non-Signed Off)</div></div>
-                <div class="table-wrap">
-                    <table id="oldestTable">
-                        <thead><tr><th>رقم الأمر</th><th>الحالة</th><th>أيام</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+        </div>
+
+        <div class="panel" style="margin-bottom: 2rem;">
+            <div class="panel-header">
+                <div class="panel-title" style="color:#f59e0b">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    الأجهزة المتكررة الأعطال (Lemon Assets - Failures > 1)
                 </div>
+            </div>
+            <div class="table-wrap" style="max-height: 400px; overflow-y: auto;">
+                <table id="lemonTable">
+                    <thead>
+                        <tr>
+                            <th>الجهاز</th>
+                            <th>السيريال (Serial)</th>
+                            <th>عدد مرات العطل</th>
+                            <th>الموقع / القسم</th>
+                            <th>آخر فني</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
 
-        <div class="panel">
+        <div class="panel" style="margin-bottom: 2rem;">
             <div class="panel-header">
-                <div class="panel-title">
-                    <i class="fas fa-users-cog"></i> 
-                    أداء الفنيين 
-                    <span style="font-size:0.8rem; font-weight:normal; margin-right:10px; color:#64748b">(مرتبط بالفلتر)</span>
-                </div>
+                <div class="panel-title"><i class="fas fa-users-cog"></i> جدول أداء الفنيين</div>
             </div>
-            <div class="table-wrap">
+            <div class="table-wrap" style="max-height: 400px; overflow-y: auto;">
                 <table id="techTable">
                     <thead>
                         <tr>
                             <th>الفني</th>
                             <th>الإجمالي</th>
-                            <th>Signed Off</th>
+                            <th>مغلق</th>
                             <th>مفتوح</th>
                             <th>Avg Response (يوم)</th>
                             <th>Avg Repair (يوم)</th>
-                            <th>Class A</th>
                             <th>التقييم</th>
                         </tr>
                     </thead>
@@ -188,9 +185,35 @@
                 </table>
             </div>
         </div>
-        
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title" style="color:#dc2626">
+                    <i class="fas fa-list-ul"></i>
+                    قائمة أوامر العمل المفتوحة (Open Work Orders)
+                </div>
+            </div>
+            <div class="table-wrap" style="max-height: 600px; overflow-y: auto;">
+                <table id="openWOTable">
+                    <thead>
+                        <tr>
+                            <th>رقم الأمر</th>
+                            <th>تاريخ العطل</th>
+                            <th>مدة الفتح</th>
+                            <th>الموقع</th>
+                            <th>القسم</th>
+                            <th>الجهاز</th>
+                            <th>الفني</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
         <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:30px">
-            Dashboard V10 • Medical Maintenance
+            Medical Maintenance Dashboard V11.0
         </footer>
 
     </div>
@@ -200,15 +223,15 @@
     // --- Config ---
     const COLS = {
         id: ['Control No', '#'],
-        status: ['Status', 'الحالة'], // Added Status Column
+        status: ['Status', 'الحالة'],
         failDate: ['Fail Date'],
         startDate: ['start date', 'Start Date'],
         signDate: ['sign off date', 'Completion Date'],
         tech: ['Assigned To', 'Technician'],
         device: ['ECRI Code', 'Equipment Name', 'Asset', 'الجهاز'],
         site: ['Site', 'Location', 'الموقع'],
-        mfr: ['Manufacturer', 'الشركة'],
-        class: ['Classification', 'Risk']
+        dept: ['Department', 'القسم'], // Added Dept
+        serial: ['Serial number', 'Serial No', 'S/N']
     };
 
     let RAW_DATA = [];
@@ -264,47 +287,37 @@
             const dFail = parseDate(getVal(r, COLS.failDate));
             const dStart = parseDate(getVal(r, COLS.startDate));
             const dSign = parseDate(getVal(r, COLS.signDate));
-            
-            // STRICT LOGIC: Status MUST be "Signed Off" to be closed
             const statusRaw = String(getVal(r, COLS.status)).trim();
+            
+            // STRICT LOGIC: Closed only if "Signed Off"
             const isClosed = statusRaw.toLowerCase() === 'signed off';
 
-            // Calc Metrics (In Days)
-            let respDays = null;
-            let fixDays = null;
-
-            // Response: Start - Fail
+            let respDays = null, fixDays = null;
             if(dFail && dStart) {
                 let ms = dStart - dFail;
                 respDays = ms / (1000 * 60 * 60 * 24);
                 if(respDays < 0) respDays = 0;
             }
-
-            // Repair: Sign - Start (Only if closed AND dates exist)
             if(isClosed && dStart && dSign) {
                 let ms = dSign - dStart;
                 fixDays = ms / (1000 * 60 * 60 * 24);
                 if(fixDays < 0) fixDays = 0;
             }
 
-            // Classification
-            let cls = String(getVal(r, COLS.class)).trim().toUpperCase();
-            if(cls.length > 1) cls = cls.substring(0,1);
-
             RAW_DATA.push({
                 id: getVal(r, COLS.id) || '-',
                 tech: getVal(r, COLS.tech) || 'Unknown',
                 device: getVal(r, COLS.device) || 'Device',
                 site: getVal(r, COLS.site) || 'Unknown',
-                mfr: getVal(r, COLS.mfr) || 'Other',
-                class: cls,
-                status: statusRaw || 'Unknown',
+                dept: getVal(r, COLS.dept) || '-',
+                serial: getVal(r, COLS.serial) || 'N/A',
+                status: statusRaw,
                 dFail, dStart, isClosed,
                 respDays, fixDays
             });
         });
 
-        // Populate Site Filter
+        // Fill Site Filter
         const sites = [...new Set(RAW_DATA.map(r => r.site))].sort();
         const siteSel = document.getElementById('siteFilter');
         siteSel.innerHTML = '<option value="All">كل المواقع (All Sites)</option>';
@@ -320,13 +333,12 @@
 
     function renderDashboard() {
         const siteVal = document.getElementById('siteFilter').value;
-        
-        // Filter Data
         const data = RAW_DATA.filter(r => siteVal === 'All' || r.site === siteVal);
         
-        // 1. KPI Cards
+        // 1. KPIS
         const total = data.length;
         const closed = data.filter(x => x.isClosed).length;
+        const open = total - closed;
         const rate = total ? Math.round((closed/total)*100) : 0;
         
         const rArr = data.filter(x=>x.respDays!=null).map(x=>x.respDays);
@@ -334,116 +346,131 @@
         const avgR = rArr.length ? (rArr.reduce((a,b)=>a+b,0)/rArr.length).toFixed(2) : '-';
         const avgF = fArr.length ? (fArr.reduce((a,b)=>a+b,0)/fArr.length).toFixed(2) : '-';
 
-        // Class A Stats
-        const classA = data.filter(r => r.class === 'A');
-        const classAPend = classA.filter(r => !r.isClosed).length;
-
-        // Lemons
-        const devCounts = {};
-        data.forEach(r => { 
-            if(r.device && r.device !== 'Device') devCounts[r.device] = (devCounts[r.device]||0)+1; 
-        });
-        const lemons = Object.values(devCounts).filter(c => c > 2).length;
-
         document.getElementById('kpi-total').innerText = total;
         document.getElementById('kpi-rate').innerText = rate + '%';
         document.getElementById('kpi-closed').innerText = `${closed} Signed Off`;
+        document.getElementById('kpi-open').innerText = open;
         document.getElementById('kpi-resp').innerText = avgR;
         document.getElementById('kpi-fix').innerText = avgF;
-        document.getElementById('kpi-class-a').innerText = classA.length;
-        document.getElementById('kpi-class-a-pend').innerText = `${classAPend} مفتوح`;
-        document.getElementById('kpi-lemon').innerText = lemons;
 
-        // 2. Charts
-        // Trend
-        const dates = {};
-        data.forEach(r => {
-            if(r.dFail) {
-                const k = r.dFail.toISOString().split('T')[0];
-                dates[k] = (dates[k]||0)+1;
-            }
+        // 2. DYNAMIC CHART (Site or Dept) & TOP DEVICES
+        // Top Devices
+        const devCounts = {};
+        data.forEach(r => { if(r.device && r.device!=='Device') devCounts[r.device] = (devCounts[r.device]||0)+1; });
+        const topDevs = Object.entries(devCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        
+        const devTb = document.querySelector('#topDevTable tbody');
+        devTb.innerHTML = '';
+        topDevs.forEach(([d, c]) => {
+            devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,35)}</td><td><span class="badge b-warn">${c}</span></td></tr>`);
         });
-        const dateKeys = Object.keys(dates).sort();
-        drawChart('chartTrend', 'line', {
-            labels: dateKeys,
-            datasets: [{
-                label: 'الأعطال اليومية',
-                data: dateKeys.map(k=>dates[k]),
-                borderColor: '#3b82f6', tension: 0.3, fill: true, backgroundColor: 'rgba(59,130,246,0.1)'
+
+        // Dynamic Chart
+        const chartTitle = document.getElementById('dynamicChartTitle');
+        let chartDataMap = {};
+        
+        if(siteVal === 'All') {
+            chartTitle.innerText = "المواقع الأكثر تعطلاً";
+            data.forEach(r => chartDataMap[r.site] = (chartDataMap[r.site]||0)+1);
+        } else {
+            chartTitle.innerText = `الأقسام الأكثر تعطلاً في ${siteVal}`;
+            data.forEach(r => chartDataMap[r.dept] = (chartDataMap[r.dept]||0)+1);
+        }
+        
+        const sortedChartData = Object.entries(chartDataMap).sort((a,b)=>b[1]-a[1]).slice(0, 10);
+        drawChart('chartDynamic', 'bar', {
+            labels: sortedChartData.map(x=>x[0]),
+            datasets: [{ 
+                label: 'عدد الأعطال', 
+                data: sortedChartData.map(x=>x[1]), 
+                backgroundColor: '#3b82f6',
+                borderRadius: 4
             }]
         });
 
-        // Mfr
-        const mfrs = {};
-        data.forEach(r => { mfrs[r.mfr] = (mfrs[r.mfr]||0)+1; });
-        const topMfrs = Object.entries(mfrs).sort((a,b)=>b[1]-a[1]).slice(0, 6);
-        drawChart('chartMfr', 'doughnut', {
-            labels: topMfrs.map(x=>x[0]),
-            datasets: [{ data: topMfrs.map(x=>x[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'] }]
+        // 3. LEMON ASSETS (Repeated)
+        // Group by Serial (if exists) + Device
+        const lemonMap = {};
+        data.forEach(r => {
+            if(r.device && r.device !== 'Device') {
+                const key = r.serial !== 'N/A' ? `${r.device} (${r.serial})` : r.device;
+                if(!lemonMap[key]) lemonMap[key] = { r:r, count:0 };
+                lemonMap[key].count++;
+            }
         });
+        
+        const lemons = Object.values(lemonMap).filter(x => x.count > 1).sort((a,b)=>b.count - a.count);
+        const lemonTb = document.querySelector('#lemonTable tbody');
+        lemonTb.innerHTML = '';
+        if(lemons.length === 0) {
+            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center">لا توجد أجهزة متكررة الأعطال</td></tr>';
+        } else {
+            lemons.forEach(item => {
+                lemonTb.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td>${item.r.device}</td>
+                        <td style="font-family:monospace">${item.r.serial}</td>
+                        <td><span class="badge b-warn">${item.count}</span></td>
+                        <td>${item.r.site} / ${item.r.dept}</td>
+                        <td>${item.r.tech}</td>
+                    </tr>
+                `);
+            });
+        }
 
-        // 3. Tables
-        // Top Devices
-        const sortedDevs = Object.entries(devCounts).sort((a,b)=>b[1]-a[1]).slice(0, 5);
-        const devTb = document.querySelector('#topDevTable tbody');
-        devTb.innerHTML = '';
-        sortedDevs.forEach(([d, c]) => {
-            devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,30)}</td><td><span class="badge b-bad">${c}</span></td></tr>`);
-        });
-
-        // Oldest Pending (Logic: Not Signed Off)
-        const pending = data.filter(r => !r.isClosed && r.dStart).sort((a,b) => a.dStart - b.dStart).slice(0, 5);
-        const oldTb = document.querySelector('#oldestTable tbody');
-        oldTb.innerHTML = '';
-        pending.forEach(r => {
-            const days = Math.floor((new Date() - r.dStart)/(1000*60*60*24));
-            oldTb.insertAdjacentHTML('beforeend', `
-                <tr>
-                    <td>${r.id}</td>
-                    <td><span class="badge b-warn">${r.status}</span></td>
-                    <td>${days} يوم</td>
-                </tr>
-            `);
-        });
-
-        // Tech Table
+        // 4. TECH TABLE
         const techs = {};
         data.forEach(r => {
             if(!techs[r.tech]) techs[r.tech] = [];
             techs[r.tech].push(r);
         });
-
         const techTb = document.querySelector('#techTable tbody');
         techTb.innerHTML = '';
         Object.entries(techs).sort((a,b)=>b[1].length - a[1].length).forEach(([name, list]) => {
             const c = list.filter(x=>x.isClosed).length;
             const o = list.length - c;
-            
             const rs = list.filter(x=>x.respDays!=null).map(x=>x.respDays);
             const fs = list.filter(x=>x.fixDays!=null).map(x=>x.fixDays);
-            
             const ar = rs.length ? (rs.reduce((a,b)=>a+b)/rs.length).toFixed(2) : '-';
             const af = fs.length ? (fs.reduce((a,b)=>a+b)/fs.length).toFixed(2) : '-';
             
-            const ca = list.filter(x=>x.class==='A').length;
-
-            let rank = '<span class="badge b-ok">ممتاز</span>';
-            if(af > 7) rank = '<span class="badge b-bad">ضعيف</span>';
+            let rank = '<span class="badge b-closed">ممتاز</span>';
+            if(af > 7) rank = '<span class="badge b-open">ضعيف</span>';
             else if(af > 3) rank = '<span class="badge b-warn">متوسط</span>';
 
             techTb.insertAdjacentHTML('beforeend', `
                 <tr>
-                    <td>${name}</td>
-                    <td>${list.length}</td>
-                    <td>${c}</td>
+                    <td>${name}</td><td>${list.length}</td><td>${c}</td>
                     <td style="color:${o>0?'red':'inherit'}">${o}</td>
-                    <td>${ar}</td>
-                    <td>${af}</td>
-                    <td>${ca > 0 ? '<span class="badge b-crit">'+ca+'</span>' : '-'}</td>
-                    <td>${rank}</td>
+                    <td>${ar}</td><td>${af}</td><td>${rank}</td>
                 </tr>
             `);
         });
+
+        // 5. OPEN WORK ORDERS (BOTTOM)
+        const openOrders = data.filter(r => !r.isClosed).sort((a,b) => (a.dStart||0) - (b.dStart||0));
+        const openTb = document.querySelector('#openWOTable tbody');
+        openTb.innerHTML = '';
+        if(openOrders.length === 0) {
+            openTb.innerHTML = '<tr><td colspan="8" style="text-align:center">ممتاز! لا توجد أوامر مفتوحة.</td></tr>';
+        } else {
+            openOrders.forEach(r => {
+                const daysOpen = r.dFail ? Math.floor((new Date() - r.dFail)/(1000*60*60*24)) : '-';
+                const dateStr = r.dFail ? r.dFail.toLocaleDateString('en-GB') : '-';
+                openTb.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td>${r.id}</td>
+                        <td>${dateStr}</td>
+                        <td><span class="badge b-open">${daysOpen} يوم</span></td>
+                        <td>${r.site}</td>
+                        <td>${r.dept}</td>
+                        <td>${r.device}</td>
+                        <td>${r.tech}</td>
+                        <td>${r.status}</td>
+                    </tr>
+                `);
+            });
+        }
     }
 
     let charts = {};
@@ -454,7 +481,8 @@
             type, data,
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: type==='line'?'top':'right' } },
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } },
                 ...opts
             }
         });
