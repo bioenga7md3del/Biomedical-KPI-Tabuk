@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Dashboard V11</title>
+    <title>Medical Maintenance Dashboard V12</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -69,8 +69,8 @@
 
 <header class="header">
     <div>
-        <h1>Medical Maintenance Dashboard (V11)</h1>
-        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">تحليل المواقع، الأقسام، والأعطال المتكررة</div>
+        <h1>Medical Maintenance Dashboard (V12)</h1>
+        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">تحليل الأداء المتقدم (Lemon Assets Precision)</div>
     </div>
     <div class="btn-upload">
         <i class="fas fa-file-excel"></i> رفع البيانات
@@ -145,7 +145,7 @@
             <div class="panel-header">
                 <div class="panel-title" style="color:#f59e0b">
                     <i class="fas fa-exclamation-triangle"></i>
-                    الأجهزة المتكررة الأعطال (Lemon Assets - Failures > 1)
+                    الأصول المتكررة الأعطال (تكرار السيريال > 1 في الملف)
                 </div>
             </div>
             <div class="table-wrap" style="max-height: 400px; overflow-y: auto;">
@@ -156,7 +156,7 @@
                             <th>السيريال (Serial)</th>
                             <th>عدد مرات العطل</th>
                             <th>الموقع / القسم</th>
-                            <th>آخر فني</th>
+                            <th>الفني</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -213,7 +213,7 @@
         </div>
 
         <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:30px">
-            Medical Maintenance Dashboard V11.0
+            Medical Maintenance Dashboard V12.0
         </footer>
 
     </div>
@@ -230,7 +230,7 @@
         tech: ['Assigned To', 'Technician'],
         device: ['ECRI Code', 'Equipment Name', 'Asset', 'الجهاز'],
         site: ['Site', 'Location', 'الموقع'],
-        dept: ['Department', 'القسم'], // Added Dept
+        dept: ['Department', 'القسم'], 
         serial: ['Serial number', 'Serial No', 'S/N']
     };
 
@@ -353,19 +353,7 @@
         document.getElementById('kpi-resp').innerText = avgR;
         document.getElementById('kpi-fix').innerText = avgF;
 
-        // 2. DYNAMIC CHART (Site or Dept) & TOP DEVICES
-        // Top Devices
-        const devCounts = {};
-        data.forEach(r => { if(r.device && r.device!=='Device') devCounts[r.device] = (devCounts[r.device]||0)+1; });
-        const topDevs = Object.entries(devCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        
-        const devTb = document.querySelector('#topDevTable tbody');
-        devTb.innerHTML = '';
-        topDevs.forEach(([d, c]) => {
-            devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,35)}</td><td><span class="badge b-warn">${c}</span></td></tr>`);
-        });
-
-        // Dynamic Chart
+        // 2. DYNAMIC CHART
         const chartTitle = document.getElementById('dynamicChartTitle');
         let chartDataMap = {};
         
@@ -388,28 +376,41 @@
             }]
         });
 
-        // 3. LEMON ASSETS (Repeated)
-        // Group by Serial (if exists) + Device
-        const lemonMap = {};
+        // 3. TOP DEVICES (Count by Device Name)
+        const devCounts = {};
+        data.forEach(r => { if(r.device && r.device!=='Device') devCounts[r.device] = (devCounts[r.device]||0)+1; });
+        const topDevs = Object.entries(devCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        const devTb = document.querySelector('#topDevTable tbody');
+        devTb.innerHTML = '';
+        topDevs.forEach(([d, c]) => {
+            devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,35)}</td><td><span class="badge b-warn">${c}</span></td></tr>`);
+        });
+
+        // 4. LEMON ASSETS (Strict Logic: Same Serial > 1 in file)
+        const serialMap = {};
         data.forEach(r => {
-            if(r.device && r.device !== 'Device') {
-                const key = r.serial !== 'N/A' ? `${r.device} (${r.serial})` : r.device;
-                if(!lemonMap[key]) lemonMap[key] = { r:r, count:0 };
-                lemonMap[key].count++;
+            // Normalize Serial
+            const sn = r.serial ? String(r.serial).trim().toUpperCase() : '';
+            // Ignore N/A, NO, -, empty, or too short
+            if(sn && sn.length > 2 && sn !== 'N/A' && sn !== 'NO' && sn !== '-') {
+                 if(!serialMap[sn]) serialMap[sn] = { r:r, count:0 };
+                 serialMap[sn].count++;
             }
         });
         
-        const lemons = Object.values(lemonMap).filter(x => x.count > 1).sort((a,b)=>b.count - a.count);
+        // Filter those appearing more than once
+        const lemons = Object.values(serialMap).filter(x => x.count > 1).sort((a,b)=>b.count - a.count);
+        
         const lemonTb = document.querySelector('#lemonTable tbody');
         lemonTb.innerHTML = '';
         if(lemons.length === 0) {
-            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center">لا توجد أجهزة متكررة الأعطال</td></tr>';
+            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center">لا توجد أجهزة متكررة بنفس السيريال في هذا الملف</td></tr>';
         } else {
             lemons.forEach(item => {
                 lemonTb.insertAdjacentHTML('beforeend', `
                     <tr>
                         <td>${item.r.device}</td>
-                        <td style="font-family:monospace">${item.r.serial}</td>
+                        <td style="font-family:monospace; font-weight:bold; color:#d97706">${item.r.serial}</td>
                         <td><span class="badge b-warn">${item.count}</span></td>
                         <td>${item.r.site} / ${item.r.dept}</td>
                         <td>${item.r.tech}</td>
@@ -418,7 +419,7 @@
             });
         }
 
-        // 4. TECH TABLE
+        // 5. TECH TABLE
         const techs = {};
         data.forEach(r => {
             if(!techs[r.tech]) techs[r.tech] = [];
@@ -447,7 +448,7 @@
             `);
         });
 
-        // 5. OPEN WORK ORDERS (BOTTOM)
+        // 6. OPEN WORK ORDERS
         const openOrders = data.filter(r => !r.isClosed).sort((a,b) => (a.dStart||0) - (b.dStart||0));
         const openTb = document.querySelector('#openWOTable tbody');
         openTb.innerHTML = '';
