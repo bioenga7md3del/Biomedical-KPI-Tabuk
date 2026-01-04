@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Dashboard V14 (Auto-Fix)</title>
+    <title>Medical Maintenance Dashboard V15</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -12,14 +12,14 @@
 
     <style>
         :root { 
-            --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a; 
+            --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
             --primary: #2563eb; --secondary: #64748b;
             --success: #22c55e; --danger: #ef4444; --warning: #f59e0b;
         }
         * { box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
         
-        .header { background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .header { background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .header h1 { margin: 0; font-size: 1.5rem; color: #1e293b; }
         .btn-upload { background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; position: relative; overflow: hidden; transition: 0.2s; }
         .btn-upload:hover { background: #1d4ed8; }
@@ -30,7 +30,8 @@
         .filter-bar { background: #fff; padding: 1rem; border-radius: 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
         .filter-label { font-weight: bold; color: var(--secondary); }
         .site-select { padding: 0.5rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: inherit; font-size: 1rem; min-width: 300px; outline: none; }
-        
+        .site-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
         .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; border-top: 4px solid transparent; }
         .kpi-card.blue { border-top-color: var(--primary); }
@@ -52,25 +53,25 @@
         th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
         td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; }
         
+        /* Badges & Colors */
         .badge { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
         .b-open { background: #fee2e2; color: #dc2626; }
-        .b-closed { background: #dcfce7; color: #166534; }
-        .b-warn { background: #ffedd5; color: #9a3412; }
-        .b-crit { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        
+        /* Evaluation Colors */
+        .val-good { color: #166534; background: #dcfce7; font-weight: bold; padding: 2px 8px; border-radius: 4px; }
+        .val-warn { color: #b45309; background: #ffedd5; font-weight: bold; padding: 2px 8px; border-radius: 4px; }
+        .val-bad { color: #991b1b; background: #fee2e2; font-weight: bold; padding: 2px 8px; border-radius: 4px; }
 
         #emptyState { text-align: center; padding: 5rem 1rem; color: #94a3b8; }
         #dashboard { display: none; }
-        
-        /* Debug Info */
-        #debugInfo { background: #e0f2fe; color: #0369a1; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; display:none; }
     </style>
 </head>
 <body>
 
 <header class="header">
     <div>
-        <h1>Medical Maintenance Dashboard (V14)</h1>
-        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">Smart Detection & Auto-Fix Enabled</div>
+        <h1>Medical Maintenance Dashboard (V15)</h1>
+        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">نظام التقييم المخصص</div>
     </div>
     <div class="btn-upload">
         <i class="fas fa-file-excel"></i> رفع البيانات
@@ -79,12 +80,10 @@
 </header>
 
 <div class="container">
-    <div id="debugInfo"></div>
-    
     <div id="emptyState">
-        <i class="fas fa-magic" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
+        <i class="fas fa-sliders-h" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
         <h2>جاهز للعمل</h2>
-        <p>قم برفع الملف، وسيقوم النظام باكتشاف الأعمدة تلقائياً.</p>
+        <p>قم برفع ملف Excel لبدء التحليل.</p>
     </div>
 
     <div id="dashboard">
@@ -111,17 +110,17 @@
             <div class="kpi-card red">
                 <div>Avg Response</div>
                 <div class="kpi-val" id="kpi-resp">0</div>
-                <div class="kpi-sub">أيام (Start - Fail)</div>
+                <div class="kpi-sub">أيام (الهدف <= 1 يوم)</div>
             </div>
             <div class="kpi-card orange">
                 <div>Avg Repair</div>
                 <div class="kpi-val" id="kpi-fix">0</div>
-                <div class="kpi-sub">أيام (SignOff - Start)</div>
+                <div class="kpi-sub">أيام (الهدف < 5 أيام)</div>
             </div>
-             <div class="kpi-card red" style="border-top-color: #b91c1c;">
-                <div>الأصول "الكارثية"</div>
-                <div class="kpi-val" id="kpi-lemon" style="color:#b91c1c">0</div>
-                <div class="kpi-sub">> 10 أعطال</div>
+            <div class="kpi-card red">
+                <div>أوامر مفتوحة</div>
+                <div class="kpi-val" id="kpi-open">0</div>
+                <div class="kpi-sub" style="color:#ef4444">تتطلب إجراء</div>
             </div>
         </div>
 
@@ -133,7 +132,7 @@
                 <div class="chart-box"><canvas id="chartDynamic"></canvas></div>
             </div>
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">الأجهزة الأكثر تعطلاً (Top 5 Overall)</div></div>
+                <div class="panel-header"><div class="panel-title">الأجهزة الأكثر تعطلاً (Top 5)</div></div>
                 <div class="table-wrap">
                     <table id="topDevTable">
                         <thead><tr><th>الجهاز</th><th>العدد</th></tr></thead>
@@ -145,32 +144,9 @@
 
         <div class="panel" style="margin-bottom: 2rem;">
             <div class="panel-header">
-                <div class="panel-title" style="color:#b91c1c">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    الأجهزة عالية الخطورة (تكرار السيريال > 10 مرات)
-                </div>
-            </div>
-            <div class="table-wrap" style="max-height: 400px; overflow-y: auto;">
-                <table id="lemonTable">
-                    <thead>
-                        <tr>
-                            <th>الجهاز</th>
-                            <th>السيريال (Serial)</th>
-                            <th>عدد مرات العطل</th>
-                            <th>الموقع / القسم</th>
-                            <th>الفني</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="panel" style="margin-bottom: 2rem;">
-            <div class="panel-header">
                 <div class="panel-title"><i class="fas fa-users-cog"></i> جدول أداء الفنيين</div>
             </div>
-            <div class="table-wrap" style="max-height: 400px; overflow-y: auto;">
+            <div class="table-wrap" style="max-height: 500px; overflow-y: auto;">
                 <table id="techTable">
                     <thead>
                         <tr>
@@ -178,9 +154,9 @@
                             <th>الإجمالي</th>
                             <th>Signed Off</th>
                             <th>مفتوح</th>
-                            <th>Avg Response</th>
-                            <th>Avg Repair</th>
-                            <th>التقييم</th>
+                            <th>Avg Response (يوم)</th>
+                            <th>Avg Repair (يوم)</th>
+                            <th>التقييم العام</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -215,14 +191,13 @@
         </div>
         
         <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:30px">
-            Medical Maintenance Dashboard V14.0
+            Medical Maintenance Dashboard V15.0
         </footer>
     </div>
 </div>
 
 <script>
     // --- Config ---
-    // Mapping arrays to support various column name possibilities
     const COLS = {
         id: ['Control No', '#'],
         status: ['Status', 'الحالة'],
@@ -244,31 +219,21 @@
         let s = String(v).trim();
         if (s==='' || s==='-' || s.toLowerCase()==='null') return null;
         
-        // 1. Try standard ISO (YYYY-MM-DD)
         let d = new Date(s);
         if (!isNaN(d.getTime()) && s.includes('-') && s.indexOf('-')===4) return d;
 
-        // 2. Try European (DD-MM-YYYY) or Excel export format (DD/MM/YYYY)
-        // Can also contain time: "31-12-2025 14:49"
-        let parts = s.split(/[\/\-\.]/); // Split by / or - or .
+        let parts = s.split(/[\/\-\.]/); 
         if (parts.length >= 3) {
             let day = parseInt(parts[0], 10);
-            let month = parseInt(parts[1], 10) - 1; // JS months are 0-11
-            
-            // Year might have time attached "2025 14:49"
+            let month = parseInt(parts[1], 10) - 1; 
             let yearPart = parts[2].split(' ')[0];
             let year = parseInt(yearPart, 10);
             if(year < 100) year+=2000;
-            
-            // Check valid parts
-            if(!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                return new Date(year, month, day);
-            }
+            if(!isNaN(day) && !isNaN(month) && !isNaN(year)) return new Date(year, month, day);
         }
         return null;
     }
 
-    // --- Helper to find value by column aliases ---
     function getVal(row, keys) {
         const rowKeys = Object.keys(row);
         for(let k of keys) {
@@ -287,12 +252,9 @@
         const wb = XLSX.read(buf, {type:'array'});
         const ws = wb.Sheets[wb.SheetNames[0]];
         
-        // 1. Smart Header Detection
-        // Convert sheet to array of arrays to scan for header
+        // Smart Header Detection
         const aoa = XLSX.utils.sheet_to_json(ws, {header: 1});
         let headerRowIndex = 0;
-        
-        // Look for a known column in the first 10 rows
         for(let i=0; i < Math.min(aoa.length, 10); i++) {
             const rowStr = JSON.stringify(aoa[i]).toLowerCase();
             if(rowStr.includes('fail date') || rowStr.includes('control no') || rowStr.includes('assigned to')) {
@@ -300,15 +262,7 @@
                 break;
             }
         }
-
-        // Read data starting from the detected header
         const json = XLSX.utils.sheet_to_json(ws, {range: headerRowIndex, defval:''});
-        
-        // Debug info
-        const debugDiv = document.getElementById('debugInfo');
-        debugDiv.style.display = 'block';
-        debugDiv.innerHTML = `✔ تم اكتشاف البيانات بداية من السطر رقم ${headerRowIndex + 1}. تم تحميل ${json.length} صف.`;
-
         processData(json);
     });
 
@@ -318,27 +272,19 @@
 
     function processData(rows) {
         RAW_DATA = [];
-        
         rows.forEach(r => {
             const dFail = parseDate(getVal(r, COLS.failDate));
             const dStart = parseDate(getVal(r, COLS.startDate));
             const dSign = parseDate(getVal(r, COLS.signDate));
             const statusRaw = String(getVal(r, COLS.status)).trim();
-            
-            // STRICT LOGIC: Case-insensitive check for 'Signed Off'
-            // NOTE: Even if 'Closed' is in file, user wants ONLY 'Signed Off' to be closed.
             const isClosed = statusRaw.toLowerCase() === 'signed off';
 
             let respDays = null, fixDays = null;
-            
-            // Response: Start - Fail
             if(dFail && dStart) {
                 let ms = dStart - dFail;
                 respDays = ms / (1000 * 60 * 60 * 24);
                 if(respDays < 0) respDays = 0;
             }
-            
-            // Repair: Sign - Start (Only valid if closed and dates exist)
             if(isClosed && dStart && dSign) {
                 let ms = dSign - dStart;
                 fixDays = ms / (1000 * 60 * 60 * 24);
@@ -358,7 +304,6 @@
             });
         });
 
-        // Fill Site Filter
         const sites = [...new Set(RAW_DATA.map(r => r.site))].sort();
         const siteSel = document.getElementById('siteFilter');
         siteSel.innerHTML = '<option value="All">كل المواقع (All Sites)</option>';
@@ -368,7 +313,6 @@
 
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
-
         renderDashboard();
     }
 
@@ -392,11 +336,11 @@
         document.getElementById('kpi-closed').innerText = `${closed} Signed Off`;
         document.getElementById('kpi-resp').innerText = avgR;
         document.getElementById('kpi-fix').innerText = avgF;
+        document.getElementById('kpi-open').innerText = open;
 
         // 2. DYNAMIC CHART (Site vs Dept)
         const chartTitle = document.getElementById('dynamicChartTitle');
         let chartDataMap = {};
-        
         if(siteVal === 'All') {
             chartTitle.innerText = "المواقع الأكثر تعطلاً";
             data.forEach(r => chartDataMap[r.site] = (chartDataMap[r.site]||0)+1);
@@ -423,42 +367,10 @@
         const devTb = document.querySelector('#topDevTable tbody');
         devTb.innerHTML = '';
         topDevs.forEach(([d, c]) => {
-            devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,35)}</td><td><span class="badge b-warn">${c}</span></td></tr>`);
+            devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,35)}</td><td><span class="badge val-warn">${c}</span></td></tr>`);
         });
 
-        // 4. LEMON ASSETS (Count > 10)
-        const serialMap = {};
-        data.forEach(r => {
-            const sn = r.serial ? String(r.serial).trim().toUpperCase() : '';
-            // Ignore junk serials
-            if(sn && sn.length > 2 && sn !== 'N/A' && sn !== 'NO' && sn !== '-') {
-                 if(!serialMap[sn]) serialMap[sn] = { r:r, count:0 };
-                 serialMap[sn].count++;
-            }
-        });
-        
-        const lemons = Object.values(serialMap).filter(x => x.count > 10).sort((a,b)=>b.count - a.count);
-        document.getElementById('kpi-lemon').innerText = lemons.length;
-
-        const lemonTb = document.querySelector('#lemonTable tbody');
-        lemonTb.innerHTML = '';
-        if(lemons.length === 0) {
-            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999">لا توجد أجهزة تجاوزت 10 أعطال</td></tr>';
-        } else {
-            lemons.forEach(item => {
-                lemonTb.insertAdjacentHTML('beforeend', `
-                    <tr>
-                        <td>${item.r.device}</td>
-                        <td style="font-family:monospace; font-weight:bold; color:#d97706">${item.r.serial}</td>
-                        <td><span class="badge b-crit">${item.count}</span></td>
-                        <td>${item.r.site} / ${item.r.dept}</td>
-                        <td>${item.r.tech}</td>
-                    </tr>
-                `);
-            });
-        }
-
-        // 5. TECH TABLE
+        // 4. TECH TABLE (Custom Evaluation Logic)
         const techs = {};
         data.forEach(r => {
             if(!techs[r.tech]) techs[r.tech] = [];
@@ -466,38 +378,63 @@
         });
         const techTb = document.querySelector('#techTable tbody');
         techTb.innerHTML = '';
+        
         Object.entries(techs).sort((a,b)=>b[1].length - a[1].length).forEach(([name, list]) => {
             const c = list.filter(x=>x.isClosed).length;
             const o = list.length - c;
-            
             const rs = list.filter(x=>x.respDays!=null).map(x=>x.respDays);
             const fs = list.filter(x=>x.fixDays!=null).map(x=>x.fixDays);
             
-            const ar = rs.length ? (rs.reduce((a,b)=>a+b)/rs.length).toFixed(2) : '-';
-            const af = fs.length ? (fs.reduce((a,b)=>a+b)/fs.length).toFixed(2) : '-';
+            // Calc Avgs
+            const arVal = rs.length ? (rs.reduce((a,b)=>a+b)/rs.length) : null;
+            const afVal = fs.length ? (fs.reduce((a,b)=>a+b)/fs.length) : null;
             
-            let rank = '<span class="badge b-closed">ممتاز</span>';
-            if(af !== '-' && parseFloat(af) > 7) rank = '<span class="badge b-open">ضعيف</span>';
-            else if(af !== '-' && parseFloat(af) > 3) rank = '<span class="badge b-warn">متوسط</span>';
+            const arStr = arVal !== null ? arVal.toFixed(2) : '-';
+            const afStr = afVal !== null ? afVal.toFixed(2) : '-';
 
+            // --- Rating Logic (Coloring) ---
+            // Response: <=1 (Good), 1..2 (Warn), >2 (Bad)
+            let respClass = '';
+            if(arVal !== null) {
+                if(arVal <= 1) respClass = 'val-good';
+                else if(arVal <= 2) respClass = 'val-warn';
+                else respClass = 'val-bad';
+            }
+
+            // Repair: <5 (Good), 5..10 (Warn), >10 (Bad)
+            let fixClass = '';
+            if(afVal !== null) {
+                if(afVal < 5) fixClass = 'val-good';
+                else if(afVal <= 10) fixClass = 'val-warn';
+                else fixClass = 'val-bad';
+            }
+
+            // Overall Rank
+            let rank = '<span class="badge b-closed">ممتاز</span>';
+            // If either is bad -> Poor
+            if((arVal > 2) || (afVal > 10)) rank = '<span class="badge b-open">ضعيف</span>';
+            // Else if either is warn -> Average
+            else if((arVal > 1) || (afVal >= 5)) rank = '<span class="badge b-warn">متوسط</span>';
+            
             techTb.insertAdjacentHTML('beforeend', `
                 <tr>
                     <td>${name}</td><td>${list.length}</td><td>${c}</td>
                     <td style="color:${o>0?'red':'inherit'}">${o}</td>
-                    <td>${ar}</td><td>${af}</td><td>${rank}</td>
+                    <td><span class="${respClass}">${arStr}</span></td>
+                    <td><span class="${fixClass}">${afStr}</span></td>
+                    <td>${rank}</td>
                 </tr>
             `);
         });
 
-        // 6. OPEN WORK ORDERS
+        // 5. OPEN WORK ORDERS
         const openOrders = data.filter(r => !r.isClosed).sort((a,b) => (a.dStart||0) - (b.dStart||0));
         const openTb = document.querySelector('#openWOTable tbody');
         openTb.innerHTML = '';
         if(openOrders.length === 0) {
-            openTb.innerHTML = '<tr><td colspan="8" style="text-align:center">ممتاز! لا توجد أوامر مفتوحة.</td></tr>';
+            openTb.innerHTML = '<tr><td colspan="8" style="text-align:center">لا توجد أوامر مفتوحة.</td></tr>';
         } else {
-            // Show top 200 to avoid freezing
-            openOrders.slice(0, 200).forEach(r => {
+            openOrders.slice(0, 300).forEach(r => {
                 const daysOpen = r.dFail ? Math.floor((new Date() - r.dFail)/(1000*60*60*24)) : '-';
                 const dateStr = r.dFail ? r.dFail.toLocaleDateString('en-GB') : '-';
                 openTb.insertAdjacentHTML('beforeend', `
@@ -513,9 +450,6 @@
                     </tr>
                 `);
             });
-            if(openOrders.length > 200) {
-                openTb.insertAdjacentHTML('beforeend', `<tr><td colspan="8" style="text-align:center; font-weight:bold">... وهناك ${openOrders.length - 200} أمر آخر ...</td></tr>`);
-            }
         }
     }
 
