@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Dashboard V18</title>
+    <title>لوحة مؤشرات الصيانة الطبية 2025 - تجمع تبوك الصحي</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -12,27 +12,33 @@
 
     <style>
         :root { 
-            --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a; 
-            --primary: #2563eb; --secondary: #64748b;
+            --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
+            --primary: #1e3a8a; /* Tabuk Blueish tone */
+            --secondary: #64748b;
             --success: #16a34a; --danger: #dc2626; --warning: #d97706; --purple: #7c3aed;
         }
         * { box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
         
-        .header { background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .header h1 { margin: 0; font-size: 1.6rem; color: #1e293b; font-weight: 800; }
-        .btn-upload { background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; position: relative; overflow: hidden; transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.2); }
-        .btn-upload:hover { background: #1d4ed8; transform: translateY(-1px); }
+        /* Header Design */
+        .header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .header-content { display: flex; align-items: center; gap: 20px; }
+        .logo-img { height: 80px; object-fit: contain; } /* Logo Size */
+        .header-titles h1 { margin: 0; font-size: 1.5rem; color: var(--primary); font-weight: 800; }
+        .header-titles p { margin: 5px 0 0; font-size: 0.9rem; color: var(--secondary); font-weight: 600; }
+        
+        .btn-upload { background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; position: relative; overflow: hidden; transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.2); }
+        .btn-upload:hover { background: #1e40af; transform: translateY(-1px); }
         .btn-upload input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
         .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
 
-        /* Filter */
+        /* Controls */
         .filter-bar { background: #fff; padding: 1rem; border-radius: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
         .site-select { padding: 0.6rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: inherit; font-size: 1rem; min-width: 300px; outline: none; transition: 0.2s; }
         .site-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-        /* KPIs */
+        /* KPI Grid */
         .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; border-top: 5px solid transparent; display: flex; flex-direction: column; justify-content: space-between; }
         
@@ -63,12 +69,13 @@
         td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         tr:hover { background: #f8fafc; }
 
-        /* Badges & Ratings */
+        /* Indicators */
         .badge { padding: 0.3rem 0.7rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
         .b-crit { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
         .b-warn { background: #ffedd5; color: #9a3412; }
         .b-ok { background: #dcfce7; color: #166534; }
 
+        /* Custom Rating Cells */
         .val-good { color: #15803d; background: #dcfce7; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
         .val-warn { color: #b45309; background: #ffedd5; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
         .val-bad { color: #b91c1c; background: #fee2e2; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
@@ -80,12 +87,15 @@
 <body>
 
 <header class="header">
-    <div>
-        <h1>Medical Maintenance Dashboard <span style="font-weight:400; color:#64748b; font-size:1.2rem">| V18</span></h1>
-        <div style="font-size:0.9rem; color:#64748b; margin-top:5px">
-            شامل: تقييم المواقع والفنيين • الأصول الكارثية • تحليل التأخير
+    <div class="header-content">
+        <img src="TabukCluster.jpeg" alt="شعار تجمع تبوك الصحي" class="logo-img" />
+        
+        <div class="header-titles">
+            <h1>لوحة مؤشرات الصيانة الطبية 2025</h1>
+            <p>تم إعداد المؤشرات عن طريق قسم الصيانة الطبية بتجمع تبوك الصحي</p>
         </div>
     </div>
+    
     <div class="btn-upload">
         <i class="fas fa-file-excel"></i> رفع البيانات
         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
@@ -94,15 +104,15 @@
 
 <div class="container">
     <div id="emptyState">
-        <i class="fas fa-chart-pie" style="font-size:5rem; margin-bottom:1.5rem; color:#e2e8f0"></i>
-        <h2>جاهز للتحليل</h2>
-        <p>قم برفع ملف Excel لبدء العرض.</p>
+        <i class="fas fa-chart-line" style="font-size:5rem; margin-bottom:1.5rem; color:#e2e8f0"></i>
+        <h2>النظام جاهز للتحليل</h2>
+        <p>يرجى رفع ملف Excel لعرض المؤشرات.</p>
     </div>
 
     <div id="dashboard">
         
         <div class="filter-bar">
-            <i class="fas fa-filter" style="color:#2563eb; font-size:1.2rem"></i>
+            <i class="fas fa-filter" style="color:var(--primary); font-size:1.2rem"></i>
             <span style="font-weight:bold; color:#475569">نطاق العرض (الموقع):</span>
             <select id="siteFilter" class="site-select">
                 <option value="All">--- كل المواقع (All Sites) ---</option>
@@ -111,10 +121,11 @@
 
         <div class="grid-kpi">
             <div class="kpi-card blue">
-                <div class="kpi-label">إجمالي الأوامر</div>
+                <div class="kpi-label">إجمالي الأوامر (Total WO)</div>
                 <div class="kpi-val" id="kpi-total">0</div>
-                <div class="kpi-sub">Total Orders</div>
+                <div class="kpi-sub">أمر عمل</div>
             </div>
+
             <div class="kpi-card green" style="align-items: center; text-align: center;">
                 <div class="kpi-label" style="width:100%; text-align:right">نسبة الإنجاز (Signed Off)</div>
                 <div class="kpi-chart-container" style="width: 120px; height: 120px;">
@@ -123,16 +134,19 @@
                 </div>
                 <div class="kpi-sub" id="kpi-closed-count" style="margin-top:5px">0 منجز</div>
             </div>
+
             <div class="kpi-card red">
                 <div class="kpi-label">متوسط الاستجابة</div>
                 <div class="kpi-val" id="kpi-resp">0</div>
                 <div class="kpi-sub">أيام (المعيار <= 1)</div>
             </div>
+
             <div class="kpi-card orange">
                 <div class="kpi-label">متوسط الإصلاح</div>
                 <div class="kpi-val" id="kpi-fix">0</div>
                 <div class="kpi-sub">أيام (المعيار < 5)</div>
             </div>
+
             <div class="kpi-card purple">
                 <div class="kpi-label">الأصول "الكارثية"</div>
                 <div class="kpi-val" id="kpi-lemon" style="color:#7c3aed">0</div>
@@ -156,16 +170,16 @@
                 </div>
                 <div class="chart-box"><canvas id="chartAging"></canvas></div>
                 <div style="text-align:center; font-size:0.8rem; color:#64748b; margin-top:10px">
-                    توزيع الأوامر المفتوحة حسب مدة الانتظار
+                    تصنيف أعمار الأوامر التي لم تغلق بعد
                 </div>
             </div>
         </div>
 
         <div class="panel" style="margin-bottom: 2rem;">
             <div class="panel-header">
-                <div class="panel-title" style="color:#2563eb">
+                <div class="panel-title" style="color:var(--primary)">
                     <i class="fas fa-hospital"></i> 
-                    جدول تقييم المواقع (Site Performance)
+                    جدول تقييم أداء المواقع (Site Performance)
                 </div>
             </div>
             <div class="table-wrap" style="max-height: 400px; overflow-y: auto;">
@@ -175,7 +189,7 @@
                             <th>الموقع</th>
                             <th>الإجمالي</th>
                             <th>منجز</th>
-                            <th>مفتوح (Backlog)</th>
+                            <th>مفتوح</th>
                             <th>Avg Response</th>
                             <th>Avg Repair</th>
                             <th>التقييم</th>
@@ -190,7 +204,7 @@
             <div class="panel-header">
                 <div class="panel-title" style="color:#7c3aed">
                     <i class="fas fa-bomb"></i>
-                    الأصول الكارثية (>10 أعطال)
+                    الأصول الكارثية (أجهزة تعطلت أكثر من 10 مرات)
                 </div>
             </div>
             <div class="table-wrap" style="max-height: 350px; overflow-y: auto;">
@@ -198,7 +212,7 @@
                     <thead>
                         <tr>
                             <th>الجهاز</th>
-                            <th>السيريال</th>
+                            <th>السيريال (Serial)</th>
                             <th>عدد مرات العطل</th>
                             <th>الموقع</th>
                             <th>الفني</th>
@@ -258,27 +272,29 @@
         </div>
         
         <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:40px">
-            Tabuk Health Cluster • Medical Maintenance Dashboard V18.0
+            Tabuk Health Cluster • Medical Maintenance Dashboard 2025
         </footer>
     </div>
 </div>
 
 <script>
+    // --- 1. CONFIGURATION ---
     const COLS = {
-        id: ['Control No', '#'],
+        id: ['Control No', '#', 'رقم الأمر'],
         status: ['Status', 'الحالة'],
         failDate: ['Fail Date', 'تاريخ العطل'],
-        startDate: ['start date', 'Start Date'],
-        signDate: ['sign off date', 'Completion Date'],
-        tech: ['Assigned To', 'Technician'],
-        device: ['ECRI Code', 'Equipment Name', 'Asset'],
-        site: ['Site', 'Location'],
+        startDate: ['start date', 'Start Date', 'تاريخ البدء'],
+        signDate: ['sign off date', 'Completion Date', 'تاريخ الاغلاق'],
+        tech: ['Assigned To', 'Technician', 'الفني'],
+        device: ['ECRI Code', 'Equipment Name', 'Asset', 'الجهاز'],
+        site: ['Site', 'Location', 'الموقع'],
         dept: ['Department', 'القسم'], 
         serial: ['Serial number', 'Serial No', 'S/N']
     };
 
     let RAW_DATA = [];
 
+    // --- 2. UTILS ---
     function parseDate(v) {
         if (!v) return null;
         let s = String(v).trim();
@@ -287,11 +303,11 @@
         let d = new Date(s);
         if (!isNaN(d.getTime()) && s.includes('-') && s.indexOf('-')===4) return d;
 
-        let p = s.split(/[\/\-\.]/); 
-        if (p.length >= 3) {
-            let day = parseInt(p[0], 10);
-            let month = parseInt(p[1], 10) - 1; 
-            let yearPart = p[2].split(' ')[0];
+        let parts = s.split(/[\/\-\.]/); 
+        if (parts.length >= 3) {
+            let day = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10) - 1; 
+            let yearPart = parts[2].split(' ')[0];
             let year = parseInt(yearPart, 10);
             if(year < 100) year+=2000;
             if(!isNaN(day) && !isNaN(month) && !isNaN(year)) return new Date(year, month, day);
@@ -308,12 +324,15 @@
         return '';
     }
 
+    // --- 3. EVENT LISTENERS ---
     document.getElementById('fileInput').addEventListener('change', async (e) => {
         const f = e.target.files[0];
         if(!f) return;
         const buf = await f.arrayBuffer();
         const wb = XLSX.read(buf, {type:'array'});
         const ws = wb.Sheets[wb.SheetNames[0]];
+        
+        // Smart Header Detection
         const aoa = XLSX.utils.sheet_to_json(ws, {header: 1});
         let headerIdx = 0;
         for(let i=0; i<Math.min(aoa.length, 10); i++) {
@@ -330,6 +349,7 @@
         renderDashboard();
     });
 
+    // --- 4. DATA PROCESSING ---
     function processData(rows) {
         RAW_DATA = [];
         rows.forEach(r => {
@@ -337,6 +357,8 @@
             const dStart = parseDate(getVal(r, COLS.startDate));
             const dSign = parseDate(getVal(r, COLS.signDate));
             const statusRaw = String(getVal(r, COLS.status)).trim();
+            
+            // STRICT LOGIC: Closed = 'Signed Off'
             const isClosed = statusRaw.toLowerCase() === 'signed off';
 
             let respDays = null, fixDays = null;
@@ -376,6 +398,7 @@
         renderDashboard();
     }
 
+    // --- 5. RENDER DASHBOARD ---
     function renderDashboard() {
         const siteVal = document.getElementById('siteFilter').value;
         const data = RAW_DATA.filter(r => siteVal === 'All' || r.site === siteVal);
@@ -398,7 +421,7 @@
 
         drawDonutChart('chartCompletion', rate);
 
-        // --- BACKLOG AGING ---
+        // --- BACKLOG AGING (Linked to Site) ---
         const aging = { '0-3 أيام': 0, '4-7 أيام': 0, '8-30 يوم': 0, '+30 يوم': 0 };
         const now = new Date();
         data.filter(r => !r.isClosed && r.dFail).forEach(r => {
@@ -421,9 +444,9 @@
             data.forEach(r => chartDataMap[r.dept] = (chartDataMap[r.dept]||0)+1);
         }
         const sortedChartData = Object.entries(chartDataMap).sort((a,b)=>b[1]-a[1]).slice(0, 10);
-        drawBarChart('chartDynamic', sortedChartData.map(x=>x[0]), sortedChartData.map(x=>x[1]), '#3b82f6');
+        drawBarChart('chartDynamic', sortedChartData.map(x=>x[0]), sortedChartData.map(x=>x[1]), '#1e3a8a');
 
-        // --- SITE TABLE (NEW) ---
+        // --- SITE TABLE ---
         const siteStats = {};
         data.forEach(r => { if(!siteStats[r.site]) siteStats[r.site] = []; siteStats[r.site].push(r); });
         const siteTb = document.querySelector('#siteTable tbody');
