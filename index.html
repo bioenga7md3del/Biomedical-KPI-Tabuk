@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Dashboard V21 (Final)</title>
+    <title>لوحة مؤشرات الصيانة الطبية 2025 (V22)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -130,6 +130,7 @@
                 <div class="kpi-val" id="kpi-total">0</div>
                 <div class="kpi-sub">Total Work Orders</div>
             </div>
+
             <div class="kpi-card green" style="align-items: center; text-align: center;">
                 <div class="kpi-label" style="width:100%; text-align:right">نسبة الإنجاز (Signed Off)</div>
                 <div class="kpi-chart-box">
@@ -138,16 +139,25 @@
                 </div>
                 <div class="kpi-sub" id="kpi-closed-count" style="margin-top:5px">0 منجز</div>
             </div>
+
             <div class="kpi-card red">
+                <div class="kpi-label">أوامر مفتوحة (Open)</div>
+                <div class="kpi-val" id="kpi-open" style="color:var(--danger)">0</div>
+                <div class="kpi-sub">تحتاج متابعة</div>
+            </div>
+
+            <div class="kpi-card orange">
                 <div class="kpi-label">متوسط الاستجابة</div>
                 <div class="kpi-val" id="kpi-resp">0</div>
                 <div class="kpi-sub">أيام (الهدف <= 1)</div>
             </div>
+
             <div class="kpi-card orange">
                 <div class="kpi-label">متوسط الإصلاح</div>
                 <div class="kpi-val" id="kpi-fix">0</div>
                 <div class="kpi-sub">أيام (الهدف < 5)</div>
             </div>
+
             <div class="kpi-card purple">
                 <div class="kpi-label">الأصول "الكارثية"</div>
                 <div class="kpi-val" id="kpi-lemon" style="color:var(--purple)">0</div>
@@ -162,10 +172,11 @@
                 </div>
                 <div class="chart-box"><canvas id="chartDynamic"></canvas></div>
             </div>
+            
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title" style="color:var(--warning)">
-                        <i class="fas fa-history"></i> 
+                        <i class="fas fa-clock"></i> 
                         تحليل تأخير الأوامر المفتوحة (Backlog Aging)
                     </div>
                 </div>
@@ -324,6 +335,7 @@
             if(!resp.ok) throw new Error("File fetch failed");
             const buf = await resp.arrayBuffer();
             processArrayBuffer(buf);
+            
             msg.className = 'status-msg status-success';
             msg.textContent = 'تم تحميل البيانات بنجاح';
         } catch(e) {
@@ -364,9 +376,11 @@
         let s = String(v).trim();
         if (s==='' || s==='-' || s.toLowerCase()==='null') return null;
         
+        // ISO YYYY-MM-DD
         let d = new Date(s);
         if (!isNaN(d.getTime()) && s.includes('-') && s.indexOf('-')===4) return d;
 
+        // DD-MM-YYYY
         let parts = s.split(/[\/\-\.]/); 
         if (parts.length >= 3) {
             let day = parseInt(parts[0], 10);
@@ -445,6 +459,7 @@
         // --- KPIs ---
         const total = data.length;
         const closed = data.filter(x => x.isClosed).length;
+        const open = total - closed; // New calculation
         const rate = total ? Math.round((closed/total)*100) : 0;
         
         const rArr = data.filter(x=>x.respDays!=null).map(x=>x.respDays);
@@ -455,6 +470,7 @@
         document.getElementById('kpi-total').innerText = total;
         document.getElementById('kpi-rate-text').innerText = rate + '%';
         document.getElementById('kpi-closed-count').innerText = `${closed} منجز`;
+        document.getElementById('kpi-open').innerText = open; // Update Open KPI
         document.getElementById('kpi-resp').innerText = avgR;
         document.getElementById('kpi-fix').innerText = avgF;
 
