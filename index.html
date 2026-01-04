@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Ultimate Dashboard (V9)</title>
+    <title>Medical Maintenance Dashboard V10</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -12,29 +12,26 @@
 
     <style>
         :root { 
-            --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a; 
-            --primary: #2563eb; --secondary: #64748b;
-            --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --purple: #8b5cf6;
+            --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
+            --primary: #3b82f6; --secondary: #64748b;
+            --success: #22c55e; --danger: #ef4444; --warning: #f59e0b; --purple: #a855f7;
         }
         * { box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 50px; }
         
-        /* Header */
-        .header { background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .header { background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .header h1 { margin: 0; font-size: 1.5rem; color: #1e293b; }
         .btn-upload { background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; position: relative; overflow: hidden; transition: 0.2s; }
-        .btn-upload:hover { background: #1d4ed8; }
+        .btn-upload:hover { background: #2563eb; }
         .btn-upload input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
         .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
 
-        /* Filter Bar */
-        .filter-bar { background: #fff; padding: 1rem; border-radius: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; }
+        .filter-bar { background: #fff; padding: 1rem; border-radius: 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
         .filter-label { font-weight: bold; color: var(--secondary); }
         .site-select { padding: 0.5rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: inherit; font-size: 1rem; min-width: 250px; outline: none; }
-        .site-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .site-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        /* KPI Cards */
         .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; border-top: 4px solid transparent; }
         .kpi-card.blue { border-top-color: var(--primary); }
@@ -47,16 +44,13 @@
         .kpi-val { font-size: 2rem; font-weight: 800; color: #1e293b; }
         .kpi-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 0.5rem; }
 
-        /* Grid Layouts */
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         
-        /* Panels */
-        .panel { background: var(--surface); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 1.5rem; height: 100%; }
+        .panel { background: var(--surface); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 1.5rem; height: 100%; border: 1px solid #f1f5f9; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; }
         .panel-title { font-size: 1.1rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.5rem; }
         .chart-box { height: 300px; position: relative; }
 
-        /* Tables */
         .table-wrap { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; }
         th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-size: 0.85rem; font-weight: 700; border-bottom: 2px solid #e2e8f0; }
@@ -77,8 +71,8 @@
 
 <header class="header">
     <div>
-        <h1>اللوحة الشاملة للصيانة الطبية (V9)</h1>
-        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">تحليل الأداء، الفنيين، الأجهزة، والمخاطر</div>
+        <h1>Medical Maintenance Dashboard (V10)</h1>
+        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">تحليل دقيق للحالات (Signed Off Only)</div>
     </div>
     <div class="btn-upload">
         <i class="fas fa-file-excel"></i> رفع البيانات
@@ -88,16 +82,16 @@
 
 <div class="container">
     <div id="emptyState">
-        <i class="fas fa-database" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
-        <h2>بانتظار ملف البيانات</h2>
-        <p>قم برفع ملف Excel لعرض التحليل الشامل.</p>
+        <i class="fas fa-chart-pie" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
+        <h2>جاهز للتحليل</h2>
+        <p>قم برفع ملف Excel (سيتم اعتبار أي حالة غير "Signed Off" مفتوحة).</p>
     </div>
 
     <div id="dashboard">
         
         <div class="filter-bar">
             <i class="fas fa-filter filter-label"></i>
-            <span class="filter-label">اختر الموقع (Site Filter):</span>
+            <span class="filter-label">تصفية حسب الموقع:</span>
             <select id="siteFilter" class="site-select">
                 <option value="All">كل المواقع (All Sites)</option>
             </select>
@@ -107,10 +101,10 @@
             <div class="kpi-card blue">
                 <div class="kpi-label">إجمالي الأوامر</div>
                 <div class="kpi-val" id="kpi-total">0</div>
-                <div class="kpi-sub">Total Work Orders</div>
+                <div class="kpi-sub">Total Orders</div>
             </div>
             <div class="kpi-card green">
-                <div class="kpi-label">نسبة الإنجاز</div>
+                <div class="kpi-label">Signed Off</div>
                 <div class="kpi-val" id="kpi-rate">0%</div>
                 <div class="kpi-sub" id="kpi-closed">0 مغلق</div>
             </div>
@@ -125,24 +119,24 @@
                 <div class="kpi-sub">أيام (Days)</div>
             </div>
              <div class="kpi-card purple">
-                <div class="kpi-label">مؤشر Class A</div>
+                <div class="kpi-label">مخاطر Class A</div>
                 <div class="kpi-val" id="kpi-class-a">0</div>
-                <div class="kpi-sub" id="kpi-class-a-pend" style="color:#ef4444">0 معطل حالياً</div>
+                <div class="kpi-sub" id="kpi-class-a-pend" style="color:#ef4444">0 معطل</div>
             </div>
              <div class="kpi-card orange">
                 <div class="kpi-label">الأصول المتكررة</div>
                 <div class="kpi-val" id="kpi-lemon">0</div>
-                <div class="kpi-sub">أعطال متكررة لنفس الجهاز</div>
+                <div class="kpi-sub">جهاز تعطل > مرتين</div>
             </div>
         </div>
 
         <div class="grid-2">
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">المنحنى الزمني للأعطال</div></div>
+                <div class="panel-header"><div class="panel-title">المنحنى الزمني (Daily Trend)</div></div>
                 <div class="chart-box"><canvas id="chartTrend"></canvas></div>
             </div>
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">توزيع الشركات المصنعة</div></div>
+                <div class="panel-header"><div class="panel-title">الشركات المصنعة (Top Manufacturers)</div></div>
                 <div class="chart-box"><canvas id="chartMfr"></canvas></div>
             </div>
         </div>
@@ -158,10 +152,10 @@
                 </div>
             </div>
             <div class="panel">
-                <div class="panel-header"><div class="panel-title" style="color:#dc2626">الأوامر المتأخرة (Oldest Pending)</div></div>
+                <div class="panel-header"><div class="panel-title" style="color:#dc2626">الأوامر المتأخرة (Non-Signed Off)</div></div>
                 <div class="table-wrap">
                     <table id="oldestTable">
-                        <thead><tr><th>Control No</th><th>الفني</th><th>أيام</th></tr></thead>
+                        <thead><tr><th>رقم الأمر</th><th>الحالة</th><th>أيام</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -172,21 +166,21 @@
             <div class="panel-header">
                 <div class="panel-title">
                     <i class="fas fa-users-cog"></i> 
-                    جدول أداء الفنيين 
-                    <span id="tech-filter-hint" style="font-size:0.8rem; font-weight:normal; margin-right:10px; color:#64748b">(مرتبط بفلتر الموقع بالأعلى)</span>
+                    أداء الفنيين 
+                    <span style="font-size:0.8rem; font-weight:normal; margin-right:10px; color:#64748b">(مرتبط بالفلتر)</span>
                 </div>
             </div>
             <div class="table-wrap">
                 <table id="techTable">
                     <thead>
                         <tr>
-                            <th>الفني (Assigned To)</th>
-                            <th>إجمالي الأوامر</th>
-                            <th>مغلق</th>
+                            <th>الفني</th>
+                            <th>الإجمالي</th>
+                            <th>Signed Off</th>
                             <th>مفتوح</th>
                             <th>Avg Response (يوم)</th>
                             <th>Avg Repair (يوم)</th>
-                            <th>أجهزة Class A</th>
+                            <th>Class A</th>
                             <th>التقييم</th>
                         </tr>
                     </thead>
@@ -196,7 +190,7 @@
         </div>
         
         <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:30px">
-            Medical Maintenance Dashboard V9.0 • All Rights Reserved
+            Dashboard V10 • Medical Maintenance
         </footer>
 
     </div>
@@ -206,6 +200,7 @@
     // --- Config ---
     const COLS = {
         id: ['Control No', '#'],
+        status: ['Status', 'الحالة'], // Added Status Column
         failDate: ['Fail Date'],
         startDate: ['start date', 'Start Date'],
         signDate: ['sign off date', 'Completion Date'],
@@ -269,18 +264,23 @@
             const dFail = parseDate(getVal(r, COLS.failDate));
             const dStart = parseDate(getVal(r, COLS.startDate));
             const dSign = parseDate(getVal(r, COLS.signDate));
-            const isClosed = (dSign != null);
             
+            // STRICT LOGIC: Status MUST be "Signed Off" to be closed
+            const statusRaw = String(getVal(r, COLS.status)).trim();
+            const isClosed = statusRaw.toLowerCase() === 'signed off';
+
             // Calc Metrics (In Days)
             let respDays = null;
             let fixDays = null;
 
+            // Response: Start - Fail
             if(dFail && dStart) {
                 let ms = dStart - dFail;
                 respDays = ms / (1000 * 60 * 60 * 24);
                 if(respDays < 0) respDays = 0;
             }
 
+            // Repair: Sign - Start (Only if closed AND dates exist)
             if(isClosed && dStart && dSign) {
                 let ms = dSign - dStart;
                 fixDays = ms / (1000 * 60 * 60 * 24);
@@ -298,6 +298,7 @@
                 site: getVal(r, COLS.site) || 'Unknown',
                 mfr: getVal(r, COLS.mfr) || 'Other',
                 class: cls,
+                status: statusRaw || 'Unknown',
                 dFail, dStart, isClosed,
                 respDays, fixDays
             });
@@ -337,7 +338,7 @@
         const classA = data.filter(r => r.class === 'A');
         const classAPend = classA.filter(r => !r.isClosed).length;
 
-        // Lemons (Repeated Devices) - only calculate if we have devices
+        // Lemons
         const devCounts = {};
         data.forEach(r => { 
             if(r.device && r.device !== 'Device') devCounts[r.device] = (devCounts[r.device]||0)+1; 
@@ -346,11 +347,11 @@
 
         document.getElementById('kpi-total').innerText = total;
         document.getElementById('kpi-rate').innerText = rate + '%';
-        document.getElementById('kpi-closed').innerText = `${closed} مغلق`;
+        document.getElementById('kpi-closed').innerText = `${closed} Signed Off`;
         document.getElementById('kpi-resp').innerText = avgR;
         document.getElementById('kpi-fix').innerText = avgF;
         document.getElementById('kpi-class-a').innerText = classA.length;
-        document.getElementById('kpi-class-a-pend').innerText = `${classAPend} قيد العمل (Critical)`;
+        document.getElementById('kpi-class-a-pend').innerText = `${classAPend} مفتوح`;
         document.getElementById('kpi-lemon').innerText = lemons;
 
         // 2. Charts
@@ -368,7 +369,7 @@
             datasets: [{
                 label: 'الأعطال اليومية',
                 data: dateKeys.map(k=>dates[k]),
-                borderColor: '#2563eb', tension: 0.3, fill: true, backgroundColor: 'rgba(37,99,235,0.1)'
+                borderColor: '#3b82f6', tension: 0.3, fill: true, backgroundColor: 'rgba(59,130,246,0.1)'
             }]
         });
 
@@ -390,7 +391,7 @@
             devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,30)}</td><td><span class="badge b-bad">${c}</span></td></tr>`);
         });
 
-        // Oldest Pending
+        // Oldest Pending (Logic: Not Signed Off)
         const pending = data.filter(r => !r.isClosed && r.dStart).sort((a,b) => a.dStart - b.dStart).slice(0, 5);
         const oldTb = document.querySelector('#oldestTable tbody');
         oldTb.innerHTML = '';
@@ -399,8 +400,8 @@
             oldTb.insertAdjacentHTML('beforeend', `
                 <tr>
                     <td>${r.id}</td>
-                    <td>${r.tech}</td>
-                    <td><span class="badge b-warn">${days} يوم</span></td>
+                    <td><span class="badge b-warn">${r.status}</span></td>
+                    <td>${days} يوم</td>
                 </tr>
             `);
         });
@@ -426,7 +427,6 @@
             
             const ca = list.filter(x=>x.class==='A').length;
 
-            // Rating
             let rank = '<span class="badge b-ok">ممتاز</span>';
             if(af > 7) rank = '<span class="badge b-bad">ضعيف</span>';
             else if(af > 3) rank = '<span class="badge b-warn">متوسط</span>';
