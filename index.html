@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Dashboard V15</title>
+    <title>Medical Maintenance Dashboard V16 (Final)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -12,9 +12,9 @@
 
     <style>
         :root { 
-            --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
+            --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a; 
             --primary: #2563eb; --secondary: #64748b;
-            --success: #22c55e; --danger: #ef4444; --warning: #f59e0b;
+            --success: #16a34a; --danger: #dc2626; --warning: #d97706; --purple: #7c3aed;
         }
         * { box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
@@ -28,9 +28,7 @@
         .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
 
         .filter-bar { background: #fff; padding: 1rem; border-radius: 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
-        .filter-label { font-weight: bold; color: var(--secondary); }
         .site-select { padding: 0.5rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: inherit; font-size: 1rem; min-width: 300px; outline: none; }
-        .site-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
         .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; border-top: 4px solid transparent; }
@@ -38,6 +36,7 @@
         .kpi-card.green { border-top-color: var(--success); }
         .kpi-card.red { border-top-color: var(--danger); }
         .kpi-card.orange { border-top-color: var(--warning); }
+        .kpi-card.purple { border-top-color: var(--purple); }
         
         .kpi-val { font-size: 2rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
         .kpi-sub { font-size: 0.85rem; color: #94a3b8; }
@@ -53,14 +52,15 @@
         th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
         td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; }
         
-        /* Badges & Colors */
+        /* Badges & Indicators */
         .badge { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
-        .b-open { background: #fee2e2; color: #dc2626; }
+        .b-crit { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .b-warn { background: #ffedd5; color: #9a3412; }
         
-        /* Evaluation Colors */
-        .val-good { color: #166534; background: #dcfce7; font-weight: bold; padding: 2px 8px; border-radius: 4px; }
-        .val-warn { color: #b45309; background: #ffedd5; font-weight: bold; padding: 2px 8px; border-radius: 4px; }
-        .val-bad { color: #991b1b; background: #fee2e2; font-weight: bold; padding: 2px 8px; border-radius: 4px; }
+        /* Custom Rating Colors */
+        .val-good { color: #166534; background: #dcfce7; font-weight: bold; padding: 3px 10px; border-radius: 6px; }
+        .val-warn { color: #b45309; background: #ffedd5; font-weight: bold; padding: 3px 10px; border-radius: 6px; }
+        .val-bad { color: #991b1b; background: #fee2e2; font-weight: bold; padding: 3px 10px; border-radius: 6px; }
 
         #emptyState { text-align: center; padding: 5rem 1rem; color: #94a3b8; }
         #dashboard { display: none; }
@@ -70,27 +70,27 @@
 
 <header class="header">
     <div>
-        <h1>Medical Maintenance Dashboard (V15)</h1>
-        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">نظام التقييم المخصص</div>
+        <h1>Medical Maintenance Dashboard (V16 Final)</h1>
+        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">شامل: تحليل الأعطال، الأصول الكارثية، وتوزيع التأخير</div>
     </div>
     <div class="btn-upload">
-        <i class="fas fa-file-excel"></i> رفع البيانات
+        <i class="fas fa-file-excel"></i> رفع الملف
         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
     </div>
 </header>
 
 <div class="container">
     <div id="emptyState">
-        <i class="fas fa-sliders-h" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
-        <h2>جاهز للعمل</h2>
-        <p>قم برفع ملف Excel لبدء التحليل.</p>
+        <i class="fas fa-check-circle" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
+        <h2>جاهز للتحليل</h2>
+        <p>النسخة النهائية: تدعم الكشف التلقائي، التقييم الملون، وتحليل التأخير.</p>
     </div>
 
     <div id="dashboard">
         
         <div class="filter-bar">
-            <i class="fas fa-filter filter-label"></i>
-            <span class="filter-label">الموقع (Site):</span>
+            <i class="fas fa-filter" style="color:#64748b"></i>
+            <span style="font-weight:bold; color:#64748b">تصفية حسب الموقع:</span>
             <select id="siteFilter" class="site-select">
                 <option value="All">كل المواقع (All Sites)</option>
             </select>
@@ -103,24 +103,24 @@
                 <div class="kpi-sub">Total Orders</div>
             </div>
             <div class="kpi-card green">
-                <div>Signed Off</div>
+                <div>منجز (Signed Off)</div>
                 <div class="kpi-val" id="kpi-rate">0%</div>
-                <div class="kpi-sub" id="kpi-closed">0 منجز</div>
+                <div class="kpi-sub" id="kpi-closed">0 مغلق</div>
             </div>
             <div class="kpi-card red">
                 <div>Avg Response</div>
                 <div class="kpi-val" id="kpi-resp">0</div>
-                <div class="kpi-sub">أيام (الهدف <= 1 يوم)</div>
+                <div class="kpi-sub">الهدف: <= 1 يوم</div>
             </div>
             <div class="kpi-card orange">
                 <div>Avg Repair</div>
                 <div class="kpi-val" id="kpi-fix">0</div>
-                <div class="kpi-sub">أيام (الهدف < 5 أيام)</div>
+                <div class="kpi-sub">الهدف: < 5 أيام</div>
             </div>
-            <div class="kpi-card red">
-                <div>أوامر مفتوحة</div>
-                <div class="kpi-val" id="kpi-open">0</div>
-                <div class="kpi-sub" style="color:#ef4444">تتطلب إجراء</div>
+            <div class="kpi-card purple">
+                <div>الأصول "الكارثية"</div>
+                <div class="kpi-val" id="kpi-lemon" style="color:#7c3aed">0</div>
+                <div class="kpi-sub">تكرار العطل > 10 مرات</div>
             </div>
         </div>
 
@@ -132,13 +132,39 @@
                 <div class="chart-box"><canvas id="chartDynamic"></canvas></div>
             </div>
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">الأجهزة الأكثر تعطلاً (Top 5)</div></div>
-                <div class="table-wrap">
-                    <table id="topDevTable">
-                        <thead><tr><th>الجهاز</th><th>العدد</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+                <div class="panel-header">
+                    <div class="panel-title" style="color:#d97706">
+                        <i class="fas fa-history"></i> 
+                        أعمار الأوامر المفتوحة (Backlog Aging)
+                    </div>
                 </div>
+                <div class="chart-box"><canvas id="chartAging"></canvas></div>
+                <div style="font-size:0.8rem; color:#64748b; margin-top:10px; text-align:center">
+                    تحليل المدة الزمنية للأوامر التي لم تُغلق بعد
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 2rem;">
+            <div class="panel-header">
+                <div class="panel-title" style="color:#7c3aed">
+                    <i class="fas fa-exclamation-circle"></i>
+                    الأجهزة عالية الخطورة (Lemon Assets - Failures > 10)
+                </div>
+            </div>
+            <div class="table-wrap" style="max-height: 300px; overflow-y: auto;">
+                <table id="lemonTable">
+                    <thead>
+                        <tr>
+                            <th>الجهاز</th>
+                            <th>السيريال (Serial)</th>
+                            <th>عدد مرات العطل</th>
+                            <th>الموقع</th>
+                            <th>الفني</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
 
@@ -152,11 +178,11 @@
                         <tr>
                             <th>الفني</th>
                             <th>الإجمالي</th>
-                            <th>Signed Off</th>
+                            <th>مغلق</th>
                             <th>مفتوح</th>
                             <th>Avg Response (يوم)</th>
                             <th>Avg Repair (يوم)</th>
-                            <th>التقييم العام</th>
+                            <th>التقييم</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -168,7 +194,7 @@
             <div class="panel-header">
                 <div class="panel-title" style="color:#dc2626">
                     <i class="fas fa-list-ul"></i>
-                    قائمة الأوامر المفتوحة (غير Signed Off)
+                    تفاصيل الأوامر المفتوحة (Open Work Orders)
                 </div>
             </div>
             <div class="table-wrap" style="max-height: 600px; overflow-y: auto;">
@@ -191,7 +217,7 @@
         </div>
         
         <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:30px">
-            Medical Maintenance Dashboard V15.0
+            Dashboard V16.0 • Final Release
         </footer>
     </div>
 </div>
@@ -213,7 +239,7 @@
 
     let RAW_DATA = [];
 
-    // --- Smart Date Parser ---
+    // --- Helpers ---
     function parseDate(v) {
         if (!v) return null;
         let s = String(v).trim();
@@ -252,7 +278,7 @@
         const wb = XLSX.read(buf, {type:'array'});
         const ws = wb.Sheets[wb.SheetNames[0]];
         
-        // Smart Header Detection
+        // Auto Header Detection
         const aoa = XLSX.utils.sheet_to_json(ws, {header: 1});
         let headerRowIndex = 0;
         for(let i=0; i < Math.min(aoa.length, 10); i++) {
@@ -304,6 +330,7 @@
             });
         });
 
+        // Populate Filter
         const sites = [...new Set(RAW_DATA.map(r => r.site))].sort();
         const siteSel = document.getElementById('siteFilter');
         siteSel.innerHTML = '<option value="All">كل المواقع (All Sites)</option>';
@@ -336,9 +363,29 @@
         document.getElementById('kpi-closed').innerText = `${closed} Signed Off`;
         document.getElementById('kpi-resp').innerText = avgR;
         document.getElementById('kpi-fix').innerText = avgF;
-        document.getElementById('kpi-open').innerText = open;
+        
+        // 2. BACKLOG AGING (New Indicator)
+        // Group open orders by age
+        const aging = { '0-3 أيام': 0, '4-7 أيام': 0, '8-30 يوم': 0, '+30 يوم': 0 };
+        const now = new Date();
+        data.filter(r => !r.isClosed && r.dFail).forEach(r => {
+            const age = Math.floor((now - r.dFail) / (1000 * 60 * 60 * 24));
+            if(age <= 3) aging['0-3 أيام']++;
+            else if(age <= 7) aging['4-7 أيام']++;
+            else if(age <= 30) aging['8-30 يوم']++;
+            else aging['+30 يوم']++;
+        });
+        drawChart('chartAging', 'bar', {
+            labels: Object.keys(aging),
+            datasets: [{
+                label: 'عدد الأوامر المفتوحة',
+                data: Object.values(aging),
+                backgroundColor: ['#16a34a', '#facc15', '#f97316', '#dc2626'],
+                borderRadius: 6
+            }]
+        });
 
-        // 2. DYNAMIC CHART (Site vs Dept)
+        // 3. DYNAMIC SITE/DEPT CHART
         const chartTitle = document.getElementById('dynamicChartTitle');
         let chartDataMap = {};
         if(siteVal === 'All') {
@@ -348,74 +395,82 @@
             chartTitle.innerText = `الأقسام الأكثر تعطلاً في ${siteVal}`;
             data.forEach(r => chartDataMap[r.dept] = (chartDataMap[r.dept]||0)+1);
         }
-        
         const sortedChartData = Object.entries(chartDataMap).sort((a,b)=>b[1]-a[1]).slice(0, 10);
         drawChart('chartDynamic', 'bar', {
             labels: sortedChartData.map(x=>x[0]),
             datasets: [{ 
                 label: 'عدد الأعطال', 
                 data: sortedChartData.map(x=>x[1]), 
-                backgroundColor: '#3b82f6',
-                borderRadius: 4
+                backgroundColor: '#2563eb', borderRadius: 4
             }]
         });
 
-        // 3. TOP DEVICES
-        const devCounts = {};
-        data.forEach(r => { if(r.device && r.device!=='Device') devCounts[r.device] = (devCounts[r.device]||0)+1; });
-        const topDevs = Object.entries(devCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        const devTb = document.querySelector('#topDevTable tbody');
-        devTb.innerHTML = '';
-        topDevs.forEach(([d, c]) => {
-            devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,35)}</td><td><span class="badge val-warn">${c}</span></td></tr>`);
-        });
-
-        // 4. TECH TABLE (Custom Evaluation Logic)
-        const techs = {};
+        // 4. LEMON ASSETS (>10)
+        const serialMap = {};
         data.forEach(r => {
-            if(!techs[r.tech]) techs[r.tech] = [];
-            techs[r.tech].push(r);
+            const sn = r.serial ? String(r.serial).trim().toUpperCase() : '';
+            if(sn && sn.length > 2 && sn !== 'N/A' && sn !== 'NO' && sn !== '-') {
+                 if(!serialMap[sn]) serialMap[sn] = { r:r, count:0 };
+                 serialMap[sn].count++;
+            }
         });
+        const lemons = Object.values(serialMap).filter(x => x.count > 10).sort((a,b)=>b.count - a.count);
+        document.getElementById('kpi-lemon').innerText = lemons.length;
+
+        const lemonTb = document.querySelector('#lemonTable tbody');
+        lemonTb.innerHTML = '';
+        if(lemons.length === 0) {
+            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999">لا توجد أجهزة تجاوزت 10 أعطال</td></tr>';
+        } else {
+            lemons.forEach(item => {
+                lemonTb.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td>${item.r.device}</td>
+                        <td style="font-family:monospace; font-weight:bold; color:#7c3aed">${item.r.serial}</td>
+                        <td><span class="badge b-crit">${item.count}</span></td>
+                        <td>${item.r.site} / ${item.r.dept}</td>
+                        <td>${item.r.tech}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        // 5. TECH TABLE (With Colors)
+        const techs = {};
+        data.forEach(r => { if(!techs[r.tech]) techs[r.tech] = []; techs[r.tech].push(r); });
         const techTb = document.querySelector('#techTable tbody');
         techTb.innerHTML = '';
         
         Object.entries(techs).sort((a,b)=>b[1].length - a[1].length).forEach(([name, list]) => {
             const c = list.filter(x=>x.isClosed).length;
             const o = list.length - c;
+            
             const rs = list.filter(x=>x.respDays!=null).map(x=>x.respDays);
             const fs = list.filter(x=>x.fixDays!=null).map(x=>x.fixDays);
             
-            // Calc Avgs
             const arVal = rs.length ? (rs.reduce((a,b)=>a+b)/rs.length) : null;
             const afVal = fs.length ? (fs.reduce((a,b)=>a+b)/fs.length) : null;
-            
             const arStr = arVal !== null ? arVal.toFixed(2) : '-';
             const afStr = afVal !== null ? afVal.toFixed(2) : '-';
 
-            // --- Rating Logic (Coloring) ---
-            // Response: <=1 (Good), 1..2 (Warn), >2 (Bad)
-            let respClass = '';
+            // Rating Colors
+            let respClass = 'val-bad';
             if(arVal !== null) {
                 if(arVal <= 1) respClass = 'val-good';
                 else if(arVal <= 2) respClass = 'val-warn';
-                else respClass = 'val-bad';
-            }
+            } else respClass = '';
 
-            // Repair: <5 (Good), 5..10 (Warn), >10 (Bad)
-            let fixClass = '';
+            let fixClass = 'val-bad';
             if(afVal !== null) {
                 if(afVal < 5) fixClass = 'val-good';
                 else if(afVal <= 10) fixClass = 'val-warn';
-                else fixClass = 'val-bad';
-            }
+            } else fixClass = '';
 
-            // Overall Rank
-            let rank = '<span class="badge b-closed">ممتاز</span>';
-            // If either is bad -> Poor
-            if((arVal > 2) || (afVal > 10)) rank = '<span class="badge b-open">ضعيف</span>';
-            // Else if either is warn -> Average
-            else if((arVal > 1) || (afVal >= 5)) rank = '<span class="badge b-warn">متوسط</span>';
-            
+            // Rank Badge
+            let rank = '<span class="badge" style="background:#dcfce7; color:#166534">ممتاز</span>';
+            if((arVal > 2) || (afVal > 10)) rank = '<span class="badge" style="background:#fee2e2; color:#991b1b">ضعيف</span>';
+            else if((arVal > 1) || (afVal >= 5)) rank = '<span class="badge" style="background:#ffedd5; color:#9a3412">متوسط</span>';
+
             techTb.insertAdjacentHTML('beforeend', `
                 <tr>
                     <td>${name}</td><td>${list.length}</td><td>${c}</td>
@@ -427,25 +482,21 @@
             `);
         });
 
-        // 5. OPEN WORK ORDERS
-        const openOrders = data.filter(r => !r.isClosed).sort((a,b) => (a.dStart||0) - (b.dStart||0));
+        // 6. OPEN ORDERS
+        const openOrders = data.filter(r => !r.isClosed).sort((a,b) => (a.dFail||0) - (b.dFail||0));
         const openTb = document.querySelector('#openWOTable tbody');
         openTb.innerHTML = '';
         if(openOrders.length === 0) {
             openTb.innerHTML = '<tr><td colspan="8" style="text-align:center">لا توجد أوامر مفتوحة.</td></tr>';
         } else {
-            openOrders.slice(0, 300).forEach(r => {
+            openOrders.slice(0, 200).forEach(r => {
                 const daysOpen = r.dFail ? Math.floor((new Date() - r.dFail)/(1000*60*60*24)) : '-';
                 const dateStr = r.dFail ? r.dFail.toLocaleDateString('en-GB') : '-';
                 openTb.insertAdjacentHTML('beforeend', `
                     <tr>
-                        <td>${r.id}</td>
-                        <td>${dateStr}</td>
-                        <td><span class="badge b-open">${daysOpen} يوم</span></td>
-                        <td>${r.site}</td>
-                        <td>${r.dept}</td>
-                        <td>${r.device}</td>
-                        <td>${r.tech}</td>
+                        <td>${r.id}</td><td>${dateStr}</td>
+                        <td><span class="badge b-warn">${daysOpen} يوم</span></td>
+                        <td>${r.site}</td><td>${r.dept}</td><td>${r.device}</td><td>${r.tech}</td>
                         <td>${r.status}</td>
                     </tr>
                 `);
