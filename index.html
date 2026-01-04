@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Dashboard V12</title>
+    <title>Medical Maintenance Dashboard V13</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -60,6 +60,7 @@
         .b-open { background: #fee2e2; color: #dc2626; }
         .b-closed { background: #dcfce7; color: #166534; }
         .b-warn { background: #ffedd5; color: #9a3412; }
+        .b-crit { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
 
         #emptyState { text-align: center; padding: 5rem 1rem; color: #94a3b8; }
         #dashboard { display: none; }
@@ -69,8 +70,8 @@
 
 <header class="header">
     <div>
-        <h1>Medical Maintenance Dashboard (V12)</h1>
-        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">تحليل الأداء المتقدم (Lemon Assets Precision)</div>
+        <h1>Medical Maintenance Dashboard (V13)</h1>
+        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">تحليل الأداء | تركيز على الأعطال الكارثية (>10 مرات)</div>
     </div>
     <div class="btn-upload">
         <i class="fas fa-file-excel"></i> رفع البيانات
@@ -116,10 +117,10 @@
                 <div class="kpi-val" id="kpi-fix">0</div>
                 <div class="kpi-sub">أيام (SignOff - Start)</div>
             </div>
-             <div class="kpi-card red">
-                <div>الأوامر المفتوحة</div>
-                <div class="kpi-val" id="kpi-open">0</div>
-                <div class="kpi-sub" style="color:#ef4444">تحتاج متابعة</div>
+             <div class="kpi-card red" style="border-top-color: #b91c1c;">
+                <div>الأصول "الكارثية"</div>
+                <div class="kpi-val" id="kpi-lemon" style="color:#b91c1c">0</div>
+                <div class="kpi-sub">أجهزة تعطلت > 10 مرات</div>
             </div>
         </div>
 
@@ -131,7 +132,7 @@
                 <div class="chart-box"><canvas id="chartDynamic"></canvas></div>
             </div>
             <div class="panel">
-                <div class="panel-header"><div class="panel-title">الأجهزة الأكثر تعطلاً (Top 5)</div></div>
+                <div class="panel-header"><div class="panel-title">الأجهزة الأكثر تعطلاً (Top 5 Overall)</div></div>
                 <div class="table-wrap">
                     <table id="topDevTable">
                         <thead><tr><th>الجهاز</th><th>العدد</th></tr></thead>
@@ -143,9 +144,9 @@
 
         <div class="panel" style="margin-bottom: 2rem;">
             <div class="panel-header">
-                <div class="panel-title" style="color:#f59e0b">
+                <div class="panel-title" style="color:#b91c1c">
                     <i class="fas fa-exclamation-triangle"></i>
-                    الأصول المتكررة الأعطال (تكرار السيريال > 1 في الملف)
+                    الأجهزة عالية المخاطر (تكرار السيريال > 10 مرات)
                 </div>
             </div>
             <div class="table-wrap" style="max-height: 400px; overflow-y: auto;">
@@ -213,7 +214,7 @@
         </div>
 
         <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:30px">
-            Medical Maintenance Dashboard V12.0
+            Medical Maintenance Dashboard V13.0
         </footer>
 
     </div>
@@ -376,7 +377,7 @@
             }]
         });
 
-        // 3. TOP DEVICES (Count by Device Name)
+        // 3. TOP DEVICES
         const devCounts = {};
         data.forEach(r => { if(r.device && r.device!=='Device') devCounts[r.device] = (devCounts[r.device]||0)+1; });
         const topDevs = Object.entries(devCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -386,32 +387,32 @@
             devTb.insertAdjacentHTML('beforeend', `<tr><td>${d.substring(0,35)}</td><td><span class="badge b-warn">${c}</span></td></tr>`);
         });
 
-        // 4. LEMON ASSETS (Strict Logic: Same Serial > 1 in file)
+        // 4. LEMON ASSETS (Logic: count > 10)
         const serialMap = {};
         data.forEach(r => {
-            // Normalize Serial
             const sn = r.serial ? String(r.serial).trim().toUpperCase() : '';
-            // Ignore N/A, NO, -, empty, or too short
             if(sn && sn.length > 2 && sn !== 'N/A' && sn !== 'NO' && sn !== '-') {
                  if(!serialMap[sn]) serialMap[sn] = { r:r, count:0 };
                  serialMap[sn].count++;
             }
         });
         
-        // Filter those appearing more than once
-        const lemons = Object.values(serialMap).filter(x => x.count > 1).sort((a,b)=>b.count - a.count);
+        // Filter > 10 only
+        const lemons = Object.values(serialMap).filter(x => x.count > 10).sort((a,b)=>b.count - a.count);
         
+        document.getElementById('kpi-lemon').innerText = lemons.length;
+
         const lemonTb = document.querySelector('#lemonTable tbody');
         lemonTb.innerHTML = '';
         if(lemons.length === 0) {
-            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center">لا توجد أجهزة متكررة بنفس السيريال في هذا الملف</td></tr>';
+            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center">لا توجد أجهزة تجاوزت 10 أعطال</td></tr>';
         } else {
             lemons.forEach(item => {
                 lemonTb.insertAdjacentHTML('beforeend', `
                     <tr>
                         <td>${item.r.device}</td>
                         <td style="font-family:monospace; font-weight:bold; color:#d97706">${item.r.serial}</td>
-                        <td><span class="badge b-warn">${item.count}</span></td>
+                        <td><span class="badge b-crit">${item.count}</span></td>
                         <td>${item.r.site} / ${item.r.dept}</td>
                         <td>${item.r.tech}</td>
                     </tr>
