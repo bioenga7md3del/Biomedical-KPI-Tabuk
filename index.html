@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Master Dashboard (V17)</title>
+    <title>Medical Maintenance Master Dashboard (V17.1 Fixed)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -87,7 +86,7 @@
 
 <header class="header">
     <div>
-        <h1>Medical Maintenance Dashboard <span style="font-weight:400; color:#64748b; font-size:1.2rem">| V17 Ultimate</span></h1>
+        <h1>Medical Maintenance Dashboard <span style="font-weight:400; color:#64748b; font-size:1.2rem">| V17.1 Fixed</span></h1>
         <div style="font-size:0.9rem; color:#64748b; margin-top:5px">
             <i class="fas fa-check-circle" style="color:#16a34a"></i> مؤشر إنجاز
             &nbsp;|&nbsp; <i class="fas fa-bomb" style="color:#7c3aed"></i> أصول كارثية
@@ -155,7 +154,7 @@
         <div class="grid-2">
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title" id="dynamicChartTitle">الأكثر تعطلاً (المواقع)</div>
+                    <div class="panel-title" id="dynamicChartTitle">المواقع الأكثر تعطلاً</div>
                 </div>
                 <div class="chart-box"><canvas id="chartDynamic"></canvas></div>
             </div>
@@ -245,7 +244,7 @@
         </div>
         
         <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:40px">
-            Tabuk Health Cluster • Medical Maintenance Dashboard V17.0
+            Tabuk Health Cluster • Medical Maintenance Dashboard V17.1
         </footer>
     </div>
 </div>
@@ -272,10 +271,14 @@
         if (!v) return null;
         let s = String(v).trim();
         if (s==='' || s==='-' || s.toLowerCase()==='null') return null;
+        
+        // 1. Try ISO YYYY-MM-DD
         let d = new Date(s);
         if (!isNaN(d.getTime()) && s.includes('-') && s.indexOf('-')===4) return d;
-        let p = s.split(/[\/\-\.]/); 
-        if (p.length >= 3) {
+
+        // 2. Try DD-MM-YYYY or DD/MM/YYYY
+        let parts = s.split(/[\/\-\.]/); 
+        if (parts.length >= 3) {
             let day = parseInt(parts[0], 10);
             let month = parseInt(parts[1], 10) - 1; 
             let yearPart = parts[2].split(' ')[0];
@@ -402,7 +405,7 @@
             else if(age <= 30) aging['8-30 يوم']++;
             else aging['+30 يوم']++;
         });
-        drawBarChart('chartAging', Object.keys(aging), Object.values(aging), ['#22c55e','#eab308','#f97316','#ef4444']);
+        drawBarChart('chartAging', Object.keys(aging), Object.values(aging), ['#16a34a','#eab308','#f97316','#dc2626']);
 
         // --- DYNAMIC CHART (Site vs Dept) ---
         const chartTitle = document.getElementById('dynamicChartTitle');
@@ -543,7 +546,6 @@
         const ctx = document.getElementById(id).getContext('2d');
         if(charts[id]) charts[id].destroy();
         
-        // If colors is single string, make array. If array, use it.
         let bgColors = colors;
         if(typeof colors === 'string') bgColors = colors;
 
