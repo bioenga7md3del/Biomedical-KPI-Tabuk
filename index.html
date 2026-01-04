@@ -1,507 +1,519 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>لوحة الصيانة التصحيحية حسب الموقع (WO • NOV 2025)</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>لوحة القيادة الذكية للصيانة الطبية</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Chart.js & SheetJS -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb; --primary-dark: #1e40af;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --bg: #f3f4f6; --card-bg: #ffffff; --text: #1f2937; --text-light: #6b7280;
+        }
+        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 40px; }
+        
+        /* Layout */
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 24px; }
+        .header-info h1 { margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark); }
+        .header-info p { margin: 5px 0 0; color: var(--text-light); }
+        
+        /* Upload Area */
+        .upload-box { position: relative; overflow: hidden; display: inline-block; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-print { background: #fff; border: 1px solid #d1d5db; color: var(--text); }
+        .btn-print:hover { background: #f9fafb; }
+        input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-  <style>
-    *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
-    body{margin:0;background:#f5f7fa;color:#333}
-    .wrap{max-width:1400px;margin:0 auto;padding:16px}
-    header{background:#fff;border-radius:14px;padding:16px 20px;box-shadow:0 6px 16px rgba(0,0,0,.06);display:flex;gap:16px;align-items:center;margin-bottom:16px}
-    header img{height:56px}
-    .titles{flex:1}
-    h1{margin:0;font-size:1.6rem;color:#2c3e50}
-    .credit{margin-top:6px;color:#5a6b85;font-size:.95rem}
-    .tabs{display:flex;gap:8px;margin:10px 0 16px;flex-wrap:wrap}
-    .tab-btn{border:1px solid #d8dee9;background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
-    .tab-btn.active{background:#2c3e50;color:#fff;border-color:#2c3e50}
-    .card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 6px 16px rgba(0,0,0,.06);margin-bottom:16px}
-    .card h2{margin:0 0 10px;font-size:1.1rem;color:#2c3e50;border-bottom:2px solid #f0f2f5;padding-bottom:8px}
-    .uploader{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 8px}
-    .pill{display:inline-flex;align-items:center;gap:8px;background:#eef2f7;border:1px dashed #cdd6e1;border-radius:999px;padding:8px 12px;cursor:pointer}
-    .pill input{display:none}
+        /* Controls & Filters */
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .filter-card { background: var(--card-bg); padding: 16px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .filter-card label { display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px; font-weight: 700; }
+        select, input.search-input { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; outline: none; }
+        select:focus, input.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-    /* المؤشرات العامة — أفقي مع تمرير جانبي */
-    .stats{display:flex;flex-wrap:nowrap;gap:12px;overflow-x:auto;align-items:stretch;padding-bottom:8px;scroll-snap-type:x mandatory}
-    .stats::-webkit-scrollbar{height:10px}
-    .stats::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
-    .stat{min-width:230px;flex:0 0 auto;scroll-snap-align:start;background:#fff;border-radius:10px;padding:12px;border-top:4px solid #4a6491;box-shadow:0 4px 12px rgba(0,0,0,.05)}
-    .stat.good{border-top-color:#28a745}.stat.warn{border-top-color:#ffc107}.stat.bad{border-top-color:#dc3545}
-    .stat .v{font-size:1.4rem;font-weight:700}
+        /* KPI Cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: var(--card-bg); padding: 20px; border-radius: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-right: 4px solid transparent; }
+        .kpi-card.blue { border-color: var(--primary); }
+        .kpi-card.green { border-color: var(--success); }
+        .kpi-card.orange { border-color: var(--warning); }
+        .kpi-card.red { border-color: var(--danger); }
+        .kpi-title { font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; }
+        .kpi-value { font-size: 1.8rem; font-weight: 800; color: var(--text); }
+        .kpi-sub { font-size: 0.8rem; margin-top: 4px; }
+        .trend-up { color: var(--success); } .trend-down { color: var(--danger); }
 
-    .filters{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
-    .filters select{padding:10px 12px;border:1px solid #d8dee9;border-radius:10px;min-width:200px;background:#fff}
-    .row-two{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-    .chart-box{height:320px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px 12px;border-bottom:1px solid #edf0f5;text-align:right}
-    th{background:#f7f9fc;color:#2c3e50}
-    tr:hover{background:#f5f7fa}
-    .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.8rem;font-weight:700}
-    .b-ok{background:#d4edda;color:#155724}.b-warn{background:#fff3cd;color:#856404}.b-bad{background:#f8d7da;color:#721c24}
-    .progress{height:10px;background:#e9ecef;border-radius:6px;overflow:hidden}
-    .progress .fill{height:100%;background:#28a745}
-    footer{color:#6b7280;text-align:center;margin:10px 0 20px}
-    .hidden{display:none}
-    .hint{color:#6b7280;font-size:.9rem}
-    .site-pill{display:inline-block;background:#eef6ff;color:#1e40af;border:1px solid #bfdbfe;padding:6px 10px;border-radius:999px;font-size:.85rem}
-  </style>
+        /* Charts Section */
+        .charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px; }
+        .chart-container { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 350px; position: relative; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .chart-title { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+
+        /* Data Table */
+        .table-container { background: var(--card-bg); border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
+        .table-header { padding: 20px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+        .table-responsive { overflow-x: auto; max-height: 500px; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        th { background: #f9fafb; padding: 12px 16px; text-align: right; font-size: 0.9rem; font-weight: 700; color: var(--text-light); position: sticky; top: 0; z-index: 10; }
+        td { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+        tr:hover { background: #f8fafc; }
+        
+        /* Badges */
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .bg-ok { background: #d1fae5; color: #065f46; }
+        .bg-warn { background: #fef3c7; color: #92400e; }
+        .bg-bad { background: #fee2e2; color: #991b1b; }
+        .bg-blue { background: #dbeafe; color: #1e40af; }
+
+        /* Print Styles */
+        @media print {
+            body { background: #fff; padding: 0; }
+            .no-print, .upload-box, .btn, .search-input { display: none !important; }
+            .container { max-width: 100%; padding: 0; }
+            .header, .kpi-card, .chart-container, .table-container { box-shadow: none; border: 1px solid #eee; }
+            .charts-row { grid-template-columns: 1fr 1fr; page-break-inside: avoid; }
+            .table-responsive { max-height: none; overflow: visible; }
+        }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+        .empty-icon { font-size: 4rem; color: #d1d5db; margin-bottom: 20px; }
+    </style>
 </head>
 <body>
-<div class="wrap">
-  <!-- Header -->
-  <header>
-    <img src="TabukCluster.jpeg" alt="Tabuk Health Cluster"/>
-    <div class="titles">
-      <h1>لوحة الصيانة التصحيحية حسب الموقع — NOV 2025</h1>
-      <div class="credit">تم إعداد المؤشرات عن طريق قسم الصيانة الطبية بتجمع تبوك الصحي </div>
+
+<div class="container">
+    <header class="header">
+        <div class="header-info">
+            <h1 id="report-title">لوحة معلومات الصيانة الطبية</h1>
+            <p id="report-subtitle">قم برفع ملف البيانات (Excel/CSV) للبدء</p>
+        </div>
+        <div class="actions no-print" style="display:flex; gap:10px">
+            <div class="upload-box">
+                <button class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> رفع الملف</button>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
+            </div>
+            <button class="btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة / PDF</button>
+        </div>
+    </header>
+
+    <div id="dashboard-content" style="display:none;">
+        <div class="controls no-print">
+            <div class="filter-card">
+                <label><i class="fas fa-hospital"></i> الموقع (Site)</label>
+                <select id="siteFilter"><option value="All">كل المواقع</option></select>
+            </div>
+            <div class="filter-card">
+                <label><i class="fas fa-filter"></i> نوع الأمر (WO Type)</label>
+                <select id="typeFilter">
+                    <option value="All">الكل (All Types)</option>
+                    <option value="Corrective">صيانة تصحيحية (Corrective)</option>
+                    <option value="PPM">صيانة وقائية (PPM)</option>
+                </select>
+            </div>
+            <div class="filter-card">
+                <label><i class="fas fa-search"></i> بحث سريع</label>
+                <input type="text" id="searchInput" class="search-input" placeholder="رقم الأمر، الجهاز، الفني...">
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card blue">
+                <div class="kpi-title">إجمالي أوامر العمل</div>
+                <div class="kpi-value" id="kpi-total">-</div>
+                <div class="kpi-sub" id="kpi-total-sub"></div>
+            </div>
+            <div class="kpi-card green">
+                <div class="kpi-title">تم الإنجاز (Completed)</div>
+                <div class="kpi-value" id="kpi-done">-</div>
+                <div class="kpi-sub trend-up" id="kpi-rate">0% معدل إنجاز</div>
+            </div>
+            <div class="kpi-card orange">
+                <div class="kpi-title">قيد العمل (Pending)</div>
+                <div class="kpi-value" id="kpi-pending">-</div>
+                <div class="kpi-sub" id="kpi-pending-sub">أوامر نشطة</div>
+            </div>
+            <div class="kpi-card red" id="kpi-mttr-card">
+                <div class="kpi-title">متوسط وقت الإصلاح (MTTR)</div>
+                <div class="kpi-value" id="kpi-mttr">-</div>
+                <div class="kpi-sub">الهدف: < 5 أيام</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-container">
+                <div class="chart-header"><div class="chart-title">حالة الأوامر</div></div>
+                <canvas id="chartStatus"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header"><div class="chart-title">أداء الفنيين (Top 10)</div></div>
+                <canvas id="chartTech"></canvas>
+            </div>
+        </div>
+        <div class="charts-row">
+            <div class="chart-container">
+                <div class="chart-header"><div class="chart-title">أكثر الأجهزة تعطلاً / صيانة</div></div>
+                <canvas id="chartDevices"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header"><div class="chart-title">التوزيع حسب الأقسام</div></div>
+                <canvas id="chartDepts"></canvas>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h3 style="margin:0">سجل الأوامر النشطة (Pending)</h3>
+            </div>
+            <div class="table-responsive">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>رقم الأمر</th>
+                            <th>نوع الأمر</th>
+                            <th>الموقع</th>
+                            <th>الفني</th>
+                            <th>الجهاز</th>
+                            <th>التاريخ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <footer style="text-align:center; margin-top:30px; color:#9ca3af; font-size:0.8rem">
+            Generated by Medical Maintenance Dashboard v2.0
+        </footer>
     </div>
-  </header>
 
-  <!-- Dynamic Tabs (Sites) -->
-  <div id="sites-tabs" class="tabs">
-    <button class="tab-btn active" data-site="__ALL__">All Sites — كل المواقع</button>
-  </div>
-
-  <!-- Uploader / Auto loader -->
-  <div class="card">
-    <h2>البيانات (WO — NOV2025.xlsx)</h2>
-    <div class="uploader">
-      <label class="pill">📄 رفع ملف NOV 2025.xlsx
-        <input type="file" id="woFile" accept=".xlsx,.xls"/>
-      </label>
-      <span id="woHint" class="hint">💡 سيتم التحميل تلقائيًا من <code>data/NOV 2025.xlsx</code> إن وجد.</span>
+    <div id="empty-state" class="empty-state">
+        <i class="fas fa-file-excel empty-icon"></i>
+        <h2>بانتظار ملف البيانات...</h2>
+        <p>يرجى رفع ملف Excel أو CSV لعرض التحليلات.</p>
     </div>
-    <div class="hint">الموقع الحالي: <span id="current-site" class="site-pill">All Sites — كل المواقع</span></div>
-  </div>
-
-  <!-- Stats (horizontal row) -->
-  <div class="card">
-    <h2>المؤشرات العامة</h2>
-    <div class="stats">
-      <div class="stat"><div id="wo-total-label">إجمالي الأوامر</div><div id="wo-total" class="v">-</div></div>
-      <div class="stat good"><div>الأوامر المنتهية</div><div id="wo-done" class="v">-</div><div id="wo-donep" class="hint"></div></div>
-      <div class="stat warn"><div>تحت الإصلاح</div><div id="wo-pend" class="v">-</div><div id="wo-pendp" class="hint"></div></div>
-      <div class="stat"><div id="wo-count-label">عدد الفنيين</div><div id="wo-count" class="v">-</div></div>
-      <div class="stat"><div>Avg Response KPI</div><div id="wo-resp" class="v">-</div><div class="hint">الهدف &lt; 1 يوم</div></div>
-      <div class="stat"><div>Avg Repair KPI</div><div id="wo-rep" class="v">-</div><div class="hint">الهدف &lt; 5 أيام</div></div>
-      <!-- يظهر فقط في All Sites -->
-      <div class="stat" id="wo-sites-card" style="display:none"><div>عدد المواقع</div><div id="wo-sites" class="v">-</div></div>
-    </div>
-    <div class="progress" style="margin-top:8px"><div id="wo-rate" class="fill" style="width:0%"></div></div>
-    <div class="hint" style="text-align:left;margin-top:6px">نسبة الإنجاز</div>
-  </div>
-
-  <!-- Filters -->
-  <div class="card">
-    <h2>الفلاتر</h2>
-    <div class="filters">
-      <select id="wo-tech-filter"><option value="">جميع الفنيين (Assigned To)</option></select>
-      <select id="wo-status-filter">
-        <option value="">جميع الحالات</option>
-        <option value="completed">منتهي</option>
-        <option value="pending">تحت الإصلاح</option>
-      </select>
-      <select id="wo-dept-filter"><option value="">كل المراكز (Department)</option></select>
-    </div>
-  </div>
-
-  <!-- Charts Row 1 -->
-  <div class="row-two">
-    <div class="card"><h2>توزيع الأوامر (منتهي/تحت الإصلاح)</h2><div class="chart-box"><canvas id="wo-status"></canvas></div></div>
-    <div class="card"><h2>متوسط Response/Repair لكل فني</h2><div class="chart-box"><canvas id="wo-bars"></canvas></div></div>
-  </div>
-
-  <!-- Charts Row 2 -->
-  <div class="row-two">
-    <div class="card"><h2>الأجهزة الأكثر تعطّلًا</h2><div class="chart-box"><canvas id="wo-devices"></canvas></div></div>
-    <div class="card"><h2>المواقع الأكثر تعطّلًا (Site)</h2><div class="chart-box"><canvas id="wo-depts"></canvas></div></div>
-  </div>
-
-  <!-- Tables -->
-  <div class="card">
-    <h2>جدول أداء الفنيين</h2>
-    <table id="wo-tech-table">
-      <thead>
-        <tr>
-          <th>الفني</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
-          <th>Avg Response</th><th>Avg Repair</th><th>التقييم</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <h2 id="wo-pending-title">الأوامر تحت الإصلاح</h2>
-    <table id="wo-pending">
-      <thead>
-        <tr><th>رقم</th><th>Assigned To</th><th>Department</th><th>Site</th><th>الجهاز</th><th>ملاحظة</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <footer>WO Dashboard by Tabuk Health Cluster • 2025</footer>
 </div>
 
 <script>
-/* ===== Utilities & Column mapping ===== */
-const isEmptyDate = (v) => v==null || String(v).trim()==='';
-const toNum = (v)=>{ if(v==null||v==='') return null; const n=Number(String(v).replace(',','.')); return isNaN(n)? null : n; };
-const pick = (row, candidates)=>{
-  const map=Object.fromEntries(Object.keys(row).map(k=>[k.toLowerCase().trim(),k]));
-  for(const c of candidates){ const key=Object.keys(map).find(x=>x===c || x.includes(c)); if(key) return map[key]; }
-  return null;
-};
+    // --- Global State ---
+    let RAW_DATA = [];
+    let FILTERED_DATA = [];
+    let CHART_INSTANCES = {};
 
-const COL = {
-  assigned: ['assigned to','technician','الفني'],
-  respKPI:  ['respose kpi','response kpi','response','avg response'],
-  repKPI:   ['repierd kpi','repaired kpi','repair kpi','repair','avg repair'],
-  signoff:  ['sign off date','sign-off date','sign off','تاريخ الإغلاق','تاريخ الاقفال','signoff'],
-  dept:     ['department','القسم','site/department','الموقع/القسم'],
-  device:   ['device','equipment','الجهاز','ecri','equipment name','asset'],
-  site:     ['site','الموقع','center','facility']
-};
+    // --- Column Mapping Logic (Smart Detection) ---
+    // This helps if column names change slightly in future exports
+    const COL_MAP = {
+        id: ['Control No', 'Work Order No', 'رقم الأمر'],
+        type: ['Work Order Type', 'WO Type', 'نوع الأمر'],
+        site: ['Site', 'Location', 'الموقع'],
+        dept: ['Department', 'القسم'],
+        tech: ['Assigned To', 'Technician', 'الفني'],
+        device: ['ECRI Code', 'Equipment Name', 'Asset', 'Device', 'الجهاز'],
+        failDate: ['Fail Date', 'Start Date', 'تاريخ العطل'],
+        signDate: ['sign off date', 'Completion Date', 'تاريخ الإغلاق'],
+        status: ['Status', 'الحالة'],
+        mfr: ['Manufacturer', 'الشركة المصنعة']
+    };
 
-async function parseExcel(file){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=(e)=>{ resolve(parseExcelBuffer(e.target.result)); };
-    r.onerror=reject;
-    r.readAsArrayBuffer(file);
-  });
-}
+    function pickVal(row, keys) {
+        if (!row) return null;
+        // Search for key case-insensitive
+        const rowKeys = Object.keys(row);
+        for (let k of keys) {
+            const found = rowKeys.find(rk => rk.toLowerCase().trim() === k.toLowerCase().trim());
+            if (found) return row[found];
+        }
+        return null;
+    }
 
-async function parseExcelBuffer(arrayBuffer){
-  const wb=XLSX.read(new Uint8Array(arrayBuffer),{type:'array'});
-  const ws=wb.Sheets[wb.SheetNames[0]];
-  const arr=XLSX.utils.sheet_to_json(ws,{defval:''});
-  if(!arr.length) return [];
-  const c={
-    assigned: pick(arr[0], COL.assigned),
-    respKPI:  pick(arr[0], COL.respKPI),
-    repKPI:   pick(arr[0], COL.repKPI),
-    signoff:  pick(arr[0], COL.signoff),
-    dept:     pick(arr[0], COL.dept),
-    device:   pick(arr[0], COL.device),
-    site:     pick(arr[0], COL.site)
-  };
-  return arr.map((r,i)=>({
-    idx:i+1,
-    assigned:c.assigned? r[c.assigned]:'غير محدد',
-    resp:    c.respKPI ? toNum(r[c.respKPI]) : null,
-    rep:     c.repKPI  ? toNum(r[c.repKPI])  : null,
-    status:  c.signoff ? (isEmptyDate(r[c.signoff])?'pending':'completed') : (r['status']?.toLowerCase?.().includes('comp')?'completed':'pending'),
-    dept:    c.dept? r[c.dept]:'غير محدد',
-    device:  c.device? r[c.device]:'غير معروف',
-    site:    c.site? r[c.site]:'غير محدد'
-  }));
-}
+    // --- Initialization ---
+    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+    document.getElementById('siteFilter').addEventListener('change', updateDashboard);
+    document.getElementById('typeFilter').addEventListener('change', updateDashboard);
+    document.getElementById('searchInput').addEventListener('input', updateDashboard);
 
-function avg(arr){ return arr.length? +(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2) : null; }
+    async function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
 
-/* ===== Targets Coloring ===== */
-function colorByTarget(val, target){
-  if(val==null) return {text:'-', cls:''};
-  if(val < target.ok)   return {text:val, cls:'b-ok'};
-  if(val < target.warn) return {text:val, cls:'b-warn'};
-  return {text:val, cls:'b-bad'};
-}
-const TARGETS = { response:{ok:1, warn:1}, repair:{ok:5, warn:5} }; // WO فقط
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, {type: 'binary', cellDates: true});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
 
-/* ===== Aggregation ===== */
-function aggregate(rows, filters){
-  const fSite=filters.site||'', fTech=filters.tech||'', fStatus=filters.status||'', fDept=filters.dept||'';
-  const filtered=rows.filter(r=>{
-    const okSite=!fSite || String(r.site)===fSite;
-    const okT=!fTech || String(r.assigned)===fTech;
-    const okS=!fStatus || r.status===fStatus;
-    const okD=!fDept || String(r.dept)===fDept;
-    return okSite&&okT&&okS&&okD;
-  });
+            processData(json, file.name);
+        };
+        reader.readAsBinaryString(file);
+    }
 
-  const tmap=new Map();
-  filtered.forEach(r=>{
-    if(!tmap.has(r.assigned)) tmap.set(r.assigned,{name:r.assigned,total:0,done:0,pend:0,rs:[],rp:[]});
-    const t=tmap.get(r.assigned);
-    t.total++; (r.status==='completed')? t.done++ : t.pend++;
-    if(r.resp!=null) t.rs.push(r.resp);
-    if(r.rep!=null)  t.rp.push(r.rep);
-  });
-  const byTech=Array.from(tmap.values()).map(t=>({
-    name:t.name,total:t.total,done:t.done,pend:t.pend,
-    resp:avg(t.rs), rep:avg(t.rp)
-  })).sort((a,b)=> b.total-a.total);
+    // --- Data Processing ---
+    function processData(json, filename) {
+        RAW_DATA = json.map((row, index) => {
+            const failRaw = pickVal(row, COL_MAP.failDate);
+            const signRaw = pickVal(row, COL_MAP.signDate);
+            
+            // Normalize Status
+            let status = pickVal(row, COL_MAP.status) || 'Unknown';
+            // Logic: If sign off date exists, it is closed regardless of status text
+            const isClosed = (signRaw && String(signRaw).trim() !== '') || status.toLowerCase().includes('approv') || status.toLowerCase().includes('clos');
+            
+            // Normalize Type (PPM vs CM)
+            let typeRaw = pickVal(row, COL_MAP.type) || 'Corrective';
+            let isPPM = typeRaw.toLowerCase().includes('ppm') || typeRaw.toLowerCase().includes('prevent');
+            let type = isPPM ? 'PPM' : 'Corrective';
 
-  // devices
-  const devMap=new Map();
-  filtered.forEach(r=> devMap.set(r.device,(devMap.get(r.device)||0)+1));
-  const byDevice=Array.from(devMap.entries()).map(([name,count])=>({name,count}))
-                      .sort((a,b)=> b.count-a.count);
+            // Dates
+            let dFail = parseDate(failRaw);
+            let dSign = parseDate(signRaw);
+            
+            // Repair Time (Days) - Only for Corrective
+            let repairDays = null;
+            if (!isPPM && dFail && dSign) {
+                const diffTime = Math.abs(dSign - dFail);
+                repairDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            }
 
-  // sites (بدل Department)
-  const smap=new Map();
-  filtered.forEach(r=> smap.set(r.site,(smap.get(r.site)||0)+1));
-  const bySite=Array.from(smap.entries()).map(([name,count])=>({name,count}))
-                    .sort((a,b)=> b.count-a.count);
+            return {
+                id: pickVal(row, COL_MAP.id) || `ROW-${index}`,
+                type: type,
+                site: pickVal(row, COL_MAP.site) || 'غير محدد',
+                dept: pickVal(row, COL_MAP.dept) || 'غير محدد',
+                tech: pickVal(row, COL_MAP.tech) || 'Unassigned',
+                device: pickVal(row, COL_MAP.device) || 'Unknown Device',
+                failDate: dFail,
+                signDate: dSign,
+                status: isClosed ? 'Completed' : 'Pending',
+                repairDays: repairDays,
+                raw: row
+            };
+        });
 
-  const total=filtered.length, done=filtered.filter(r=>r.status==='completed').length;
-  const pend=total-done, rate= total? Math.round(done*1000/total)/10 : 0;
+        // Auto-Detect Date for Title
+        const validDateRow = RAW_DATA.find(r => r.failDate);
+        if (validDateRow) {
+            const date = validDateRow.failDate;
+            const monthNames = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+              "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+            ];
+            document.getElementById('report-title').innerText = `تقرير الصيانة - ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            document.getElementById('report-subtitle').innerText = `مصدر البيانات: ${filename}`;
+        }
 
-  const pendingRows=filtered.filter(r=>r.status==='pending');
-  const techs=Array.from(new Set(filtered.map(r=>r.assigned))).sort((a,b)=> a.localeCompare(b,'ar'));
-  const depts=Array.from(new Set(filtered.map(r=>r.dept))).sort((a,b)=> a.localeCompare(b,'ar'));
-  return {filtered,byTech,byDevice,bySite,total,done,pend,rate,pendingRows,techs,depts};
-}
+        // Populate Site Filter
+        const sites = [...new Set(RAW_DATA.map(r => r.site))].sort();
+        const siteSel = document.getElementById('siteFilter');
+        siteSel.innerHTML = '<option value="All">كل المواقع (All Sites)</option>';
+        sites.forEach(s => {
+            if(s) siteSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`);
+        });
 
-/* ===== Charts helpers ===== */
-const charts={};
-function drawDoughnut(id,labels,data){
-  if(charts[id]) charts[id].destroy();
-  charts[id]=new Chart(document.getElementById(id).getContext('2d'),{
-    type:'doughnut',
-    data:{labels,datasets:[{data,borderWidth:1,backgroundColor:['#28a745','#ffc107','#36b9cc','#4e73df','#e74a3b']}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',rtl:true}}}
-  });
-}
-function drawBars(id,labels,ds){
-  if(charts[id]) charts[id].destroy();
-  charts[id]=new Chart(document.getElementById(id).getContext('2d'),{
-    type:'bar',
-    data:{labels,datasets:ds},
-    options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}
-  });
-}
+        // Show Dashboard
+        document.getElementById('empty-state').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
 
-/* ===== State ===== */
-let ALL_ROWS=[]; // كل البيانات
-let CURRENT_SITE='__ALL__';
+        updateDashboard();
+    }
 
-function refreshAll(){
-  const filters={
-    site: CURRENT_SITE==='__ALL__' ? '' : CURRENT_SITE,
-    tech: document.getElementById('wo-tech-filter').value,
-    status: document.getElementById('wo-status-filter').value,
-    dept: document.getElementById('wo-dept-filter').value
-  };
-  const A=aggregate(ALL_ROWS, filters);
+    function parseDate(v) {
+        if (!v) return null;
+        if (v instanceof Date) return v;
+        const d = new Date(v);
+        return isNaN(d) ? null : d;
+    }
 
-  // تعبئة قوائم الفنيين/المراكز داخل التاب الحالي
-  const techSel=document.getElementById('wo-tech-filter');
-  const deptSel=document.getElementById('wo-dept-filter');
-  techSel.innerHTML='<option value="">جميع الفنيين (Assigned To)</option>' + A.techs.map(t=>`<option>${t}</option>`).join('');
-  deptSel.innerHTML='<option value="">كل المراكز (Department)</option>' + A.depts.map(d=>`<option>${d}</option>`).join('');
+    // --- Core Logic ---
+    function updateDashboard() {
+        const siteFilter = document.getElementById('siteFilter').value;
+        const typeFilter = document.getElementById('typeFilter').value;
+        const searchTxt = document.getElementById('searchInput').value.toLowerCase();
 
-  // إحصائيات
-  document.getElementById('wo-total').textContent=A.total;
-  document.getElementById('wo-done').textContent=A.done;
-  document.getElementById('wo-pend').textContent=A.pend;
-  document.getElementById('wo-donep').textContent=`${A.rate}% من الإجمالي`;
-  document.getElementById('wo-pendp').textContent=`${(100-A.rate).toFixed(1)}% من الإجمالي`;
-  document.getElementById('wo-rate').style.width=`${A.rate}%`;
+        // 1. Filter Data
+        FILTERED_DATA = RAW_DATA.filter(r => {
+            const matchSite = siteFilter === 'All' || r.site === siteFilter;
+            const matchType = typeFilter === 'All' || 
+                              (typeFilter === 'Corrective' && r.type === 'Corrective') ||
+                              (typeFilter === 'PPM' && r.type === 'PPM');
+            
+            const matchSearch = !searchTxt || 
+                                String(r.id).toLowerCase().includes(searchTxt) ||
+                                String(r.device).toLowerCase().includes(searchTxt) ||
+                                String(r.tech).toLowerCase().includes(searchTxt);
+            
+            return matchSite && matchType && matchSearch;
+        });
 
-  // عدد الفنيين أو المواقع بحسب التاب
-  const countLabelEl = document.getElementById('wo-count-label');
-  const countValueEl = document.getElementById('wo-count');
-  if (CURRENT_SITE==='__ALL__'){
-    countLabelEl.textContent='عدد المواقع';
-    countValueEl.textContent=new Set(A.filtered.map(r=>r.site)).size;
-    document.getElementById('wo-total-label').textContent='عدد أوامر العمل (جميع المواقع)';
-    document.getElementById('wo-sites-card').style.display='';
-    document.getElementById('wo-sites').textContent = new Set(A.filtered.map(r=>r.site)).size;
-  } else {
-    countLabelEl.textContent='عدد الفنيين';
-    countValueEl.textContent=new Set(A.filtered.map(r=>r.assigned)).size;
-    document.getElementById('wo-total-label').textContent='إجمالي الأوامر';
-    document.getElementById('wo-sites-card').style.display='none';
-  }
+        // 2. Calculate KPIs
+        const total = FILTERED_DATA.length;
+        const completed = FILTERED_DATA.filter(r => r.status === 'Completed').length;
+        const pending = total - completed;
+        const rate = total ? Math.round((completed / total) * 100) : 0;
 
-  const respAvg=avg(A.filtered.map(r=>r.resp).filter(x=>x!=null))||0;
-  const repAvg=avg(A.filtered.map(r=>r.rep ).filter(x=>x!=null))||0;
-  const rCol=colorByTarget(respAvg, TARGETS.response);
-  const fCol=colorByTarget(repAvg,  TARGETS.repair);
-  document.getElementById('wo-resp').innerHTML=`<span class="badge ${rCol.cls}">${rCol.text}</span>`;
-  document.getElementById('wo-rep').innerHTML =`<span class="badge ${fCol.cls}">${fCol.text}</span>`;
+        // MTTR (Only for Corrective WOs in the filtered set)
+        const closedCorrective = FILTERED_DATA.filter(r => r.type === 'Corrective' && r.status === 'Completed' && r.repairDays !== null);
+        const avgRepair = closedCorrective.length 
+            ? (closedCorrective.reduce((sum, r) => sum + r.repairDays, 0) / closedCorrective.length).toFixed(1)
+            : '-';
 
-  // Charts
-  drawDoughnut('wo-status',[`منتهي (${A.done})`,`تحت الإصلاح (${A.pend})`],[A.done,A.pend]);
+        // 3. Update DOM
+        animateValue('kpi-total', total);
+        animateValue('kpi-done', completed);
+        animateValue('kpi-pending', pending);
+        document.getElementById('kpi-rate').innerText = `${rate}% نسبة الإنجاز`;
+        
+        document.getElementById('kpi-mttr').innerText = avgRepair;
+        // Hide MTTR card if looking only at PPM
+        const mttrCard = document.getElementById('kpi-mttr-card');
+        if (typeFilter === 'PPM') {
+            mttrCard.style.opacity = '0.5';
+            document.getElementById('kpi-mttr').innerText = 'N/A';
+        } else {
+            mttrCard.style.opacity = '1';
+        }
 
-  const barsTitle = document.querySelector('#wo-bars').closest('.card').querySelector('h2');
-  if (CURRENT_SITE==='__ALL__'){
-    barsTitle.textContent='متوسط Response/Repair لكل موقع';
-    const m=new Map();
-    A.filtered.forEach(r=>{
-      const k=r.site||'غير محدد';
-      if(!m.has(k)) m.set(k,{name:k,rs:[],rp:[]});
-      if(r.resp!=null) m.get(k).rs.push(r.resp);
-      if(r.rep!=null)  m.get(k).rp.push(r.rep);
-    });
-    const perSite = Array.from(m.values()).map(s=>({name:s.name,resp:avg(s.rs)||0,rep:avg(s.rp)||0}));
-    drawBars('wo-bars', perSite.map(s=>s.name), [
-      {label:'Avg Response', data:perSite.map(s=>s.resp), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
-      {label:'Avg Repair',   data:perSite.map(s=>s.rep),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
-    ]);
-  } else {
-    barsTitle.textContent='متوسط Response/Repair لكل فني';
-    drawBars('wo-bars', A.byTech.map(t=>t.name), [
-      {label:'Avg Response', data:A.byTech.map(t=>t.resp??0), borderWidth:1, backgroundColor:'rgba(54,162,235,.7)'},
-      {label:'Avg Repair',   data:A.byTech.map(t=>t.rep??0),  borderWidth:1, backgroundColor:'rgba(255,99,132,.7)'}
-    ]);
-  }
+        // 4. Update Charts
+        updateCharts(FILTERED_DATA);
 
-  // الأجهزة الأكثر تعطّلًا — Top 10 في All Sites
-  const devList = (CURRENT_SITE==='__ALL__') ? A.byDevice.slice(0,10) : A.byDevice;
-  drawDoughnut('wo-devices', devList.map(d=>d.name), devList.map(d=>d.count));
+        // 5. Update Table (Show max 100 pending/recent items to avoid lag)
+        updateTable(FILTERED_DATA);
+    }
 
-  // المواقع الأكثر تعطّلًا (Site)
-  drawBars('wo-depts', A.bySite.map(s=>s.name), [{label:'WO count', data:A.bySite.map(s=>s.count), borderWidth:1, backgroundColor:'rgba(75,192,192,.7)'}]);
+    function animateValue(id, value) {
+        document.getElementById(id).innerText = value;
+    }
 
-  // جدول الأداء: مواقع في All Sites / فنيين داخل موقع
-  const tableCardTitle = document.querySelector('#wo-tech-table').closest('.card').querySelector('h2');
-  const thead=document.querySelector('#wo-tech-table thead');
-  const tb=document.querySelector('#wo-tech-table tbody');
-  tb.innerHTML='';
-  if (CURRENT_SITE==='__ALL__'){
-    tableCardTitle.textContent='جدول أداء المواقع';
-    thead.innerHTML=`<tr>
-      <th>Site</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
-      <th>Avg Response</th><th>Avg Repair</th><th>نسبة الإنجاز</th>
-    </tr>`;
-    const siteMap=new Map();
-    A.filtered.forEach(r=>{
-      const k=r.site||'غير محدد';
-      if(!siteMap.has(k)) siteMap.set(k,{name:k,total:0,done:0,pend:0,rs:[],rp:[]});
-      const s=siteMap.get(k);
-      s.total++; (r.status==='completed')? s.done++ : s.pend++;
-      if(r.resp!=null) s.rs.push(r.resp);
-      if(r.rep!=null)  s.rp.push(r.rep);
-    });
-    const rows = Array.from(siteMap.values()).map(s=>({
-      name:s.name,total:s.total,done:s.done,pend:s.pend,
-      resp:avg(s.rs),rep:avg(s.rp),rate: s.total? +(s.done*100/s.total).toFixed(1):0
-    })).sort((a,b)=> b.total-a.total);
-    rows.forEach(s=>{
-      const rCol=colorByTarget(s.resp, TARGETS.response);
-      const fCol=colorByTarget(s.rep,  TARGETS.repair);
-      tb.insertAdjacentHTML('beforeend',`
-        <tr>
-          <td>${s.name}</td><td>${s.total}</td><td>${s.done}</td><td>${s.pend}</td>
-          <td><span class="badge ${rCol.cls}">${rCol.text}</span></td>
-          <td><span class="badge ${fCol.cls}">${fCol.text}</span></td>
-          <td>${s.rate}%</td>
-        </tr>`);
-    });
-  } else {
-    tableCardTitle.textContent='جدول أداء الفنيين';
-    thead.innerHTML=`<tr>
-      <th>الفني</th><th>إجمالي</th><th>منتهي</th><th>تحت الإصلاح</th>
-      <th>Avg Response</th><th>Avg Repair</th><th>التقييم</th>
-    </tr>`;
-    A.byTech.forEach(t=>{
-      const rCol=colorByTarget(t.resp, TARGETS.response);
-      const fCol=colorByTarget(t.rep,  TARGETS.repair);
-      tb.insertAdjacentHTML('beforeend',`
-        <tr>
-          <td>${t.name}</td><td>${t.total}</td><td>${t.done}</td><td>${t.pend}</td>
-          <td><span class="badge ${rCol.cls}">${rCol.text}</span></td>
-          <td><span class="badge ${fCol.cls}">${fCol.text}</span></td>
-          <td>${rankBadge(t.resp,t.rep)}</td>
-        </tr>`);
-    });
-  }
+    // --- Charts Rendering ---
+    function updateCharts(data) {
+        // Prepare Aggregations
+        const statusCounts = { Completed: 0, Pending: 0 };
+        const techCounts = {};
+        const devCounts = {};
+        const deptCounts = {};
 
-  // تحت الإصلاح
-  const pb=document.querySelector('#wo-pending tbody'); pb.innerHTML='';
-  document.getElementById('wo-pending-title').textContent=`الأوامر تحت الإصلاح (${A.pend})`;
-  A.pendingRows.forEach(r=>{
-    pb.insertAdjacentHTML('beforeend',`<tr><td>${r.idx}</td><td>${r.assigned}</td><td>${r.dept}</td><td>${r.site}</td><td>${r.device}</td><td>Sign-off فارغ</td></tr>`);
-  });
+        data.forEach(r => {
+            statusCounts[r.status]++;
+            
+            // Tech
+            techCounts[r.tech] = (techCounts[r.tech] || 0) + 1;
+            
+            // Device
+            const dName = r.device.length > 20 ? r.device.substring(0,20)+'...' : r.device;
+            devCounts[dName] = (devCounts[dName] || 0) + 1;
 
-  document.getElementById('current-site').textContent = CURRENT_SITE==='__ALL__' ? 'All Sites — كل المواقع' : CURRENT_SITE;
-}
+            // Dept
+            deptCounts[r.dept] = (deptCounts[r.dept] || 0) + 1;
+        });
 
-function rankBadge(resp,rep){
-  const r=resp??9e9, f=rep??9e9;
-  if(r<1 && f<5) return '<span class="badge b-ok">ممتاز</span>';
-  if(r<2.5 && f<3.5) return '<span class="badge b-ok">جيد جداً</span>';
-  if(r<3.5 && f<5) return '<span class="badge b-warn">متوسط</span>';
-  if(r<5.5 && f<7.5) return '<span class="badge b-warn">يحتاج تحسين</span>';
-  return '<span class="badge b-bad">ضعيف</span>';
-}
+        // Helpers for ChartJS
+        const getSortedKeys = (obj, limit=10) => Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,limit);
 
-/* ===== Tabs (Sites) ===== */
-function buildSiteTabs(){
-  const cont=document.getElementById('sites-tabs');
-  cont.innerHTML='';
-  const allBtn=document.createElement('button');
-  allBtn.className='tab-btn active';
-  allBtn.dataset.site='__ALL__';
-  allBtn.textContent='All Sites — كل المواقع';
-  cont.appendChild(allBtn);
+        // 1. Status Doughnut
+        renderChart('chartStatus', 'doughnut', {
+            labels: ['منتهي (Completed)', 'قيد العمل (Pending)'],
+            datasets: [{
+                data: [statusCounts.Completed, statusCounts.Pending],
+                backgroundColor: ['#10b981', '#f59e0b']
+            }]
+        });
 
-  const sites=Array.from(new Set(ALL_ROWS.map(r=>r.site))).filter(s=>String(s).trim()!=='').sort((a,b)=> String(a).localeCompare(String(b),'ar'));
-  sites.forEach(site=>{
-    const b=document.createElement('button');
-    b.className='tab-btn';
-    b.dataset.site=site;
-    b.textContent=site;
-    cont.appendChild(b);
-  });
+        // 2. Tech Bar (Top 10)
+        const topTechs = getSortedKeys(techCounts);
+        renderChart('chartTech', 'bar', {
+            labels: topTechs.map(i => i[0]),
+            datasets: [{
+                label: 'عدد الأوامر',
+                data: topTechs.map(i => i[1]),
+                backgroundColor: '#3b82f6',
+                borderRadius: 4
+            }]
+        });
 
-  cont.querySelectorAll('.tab-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      cont.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      CURRENT_SITE=btn.dataset.site;
-      // إعادة تصفير الفلاتر عند تغيير الموقع
-      document.getElementById('wo-tech-filter').value='';
-      document.getElementById('wo-status-filter').value='';
-      document.getElementById('wo-dept-filter').value='';
-      refreshAll();
-    });
-  });
-}
+        // 3. Devices (Horizontal Bar)
+        const topDevs = getSortedKeys(devCounts);
+        renderChart('chartDevices', 'bar', {
+            labels: topDevs.map(i => i[0]),
+            datasets: [{
+                label: 'التكرار',
+                data: topDevs.map(i => i[1]),
+                backgroundColor: '#8b5cf6',
+                borderRadius: 4
+            }],
+        }, { indexAxis: 'y' });
 
-/* ===== Auto-load from repo (data/Oct2025.xlsx) ===== */
-async function tryAutoLoadExcel(path){
-  try{
-    const res = await fetch(path, { cache: 'no-store' });
-    if(!res.ok) return null;
-    const buf = await res.arrayBuffer();
-    return parseExcelBuffer(buf);
-  }catch(e){ return null; }
-}
+        // 4. Depts (Pie or Bar)
+        const topDepts = getSortedKeys(deptCounts);
+        renderChart('chartDepts', 'pie', {
+            labels: topDepts.map(i => i[0]),
+            datasets: [{
+                data: topDepts.map(i => i[1]),
+                backgroundColor: ['#ec4899', '#6366f1', '#14b8a6', '#f97316', '#64748b']
+            }]
+        });
+    }
 
-async function autoInit(){
-  const rows = await tryAutoLoadExcel('data/Oct2025.xlsx');
-  if(rows && rows.length){
-    ALL_ROWS = rows;
-    document.getElementById('woHint').textContent = '✔ تم التحميل تلقائيًا من data/Oct2025.xlsx';
-    buildSiteTabs();
-    refreshAll();
-  }
-}
+    function renderChart(canvasId, type, data, extraOptions={}) {
+        if (CHART_INSTANCES[canvasId]) {
+            CHART_INSTANCES[canvasId].destroy();
+        }
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        CHART_INSTANCES[canvasId] = new Chart(ctx, {
+            type: type,
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                ...extraOptions
+            }
+        });
+    }
 
-/* ===== Wiring ===== */
-document.getElementById('woFile').addEventListener('change', async (e)=>{
-  const f=e.target.files?.[0]; if(!f) return;
-  ALL_ROWS=await parseExcel(f);
-  document.getElementById('woHint').textContent=`✔ تم تحميل: ${f.name}`;
-  buildSiteTabs();
-  refreshAll();
-});
+    // --- Table Rendering ---
+    function updateTable(data) {
+        const tbody = document.querySelector('#dataTable tbody');
+        tbody.innerHTML = '';
+        
+        // Prioritize showing Pending items first
+        const sorted = [...data].sort((a,b) => (a.status === 'Pending' ? -1 : 1));
+        const limit = 100; // Limit rendering for speed
 
-['wo-tech-filter','wo-status-filter','wo-dept-filter'].forEach(id=> document.getElementById(id).addEventListener('change', refreshAll));
+        sorted.slice(0, limit).forEach((r, i) => {
+            const dateStr = r.failDate ? r.failDate.toLocaleDateString('en-GB') : '-';
+            const badgeClass = r.status === 'Completed' ? 'bg-ok' : 'bg-warn';
+            const typeBadge = r.type === 'PPM' ? '<span class="badge bg-blue">PPM</span>' : '<span class="badge" style="background:#eee">CM</span>';
+            
+            const rowHTML = `
+                <tr>
+                    <td>${i+1}</td>
+                    <td style="font-family:monospace; font-weight:bold">${r.id}</td>
+                    <td>${typeBadge}</td>
+                    <td>${r.site}</td>
+                    <td>${r.tech}</td>
+                    <td>${r.device}</td>
+                    <td>${dateStr}</td>
+                    <td><span class="badge ${badgeClass}">${r.status}</span></td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', rowHTML);
+        });
+    }
 
-window.addEventListener('DOMContentLoaded', autoInit);
 </script>
 </body>
 </html>
