@@ -3,66 +3,83 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Medical Maintenance Dashboard V16 (Final)</title>
+    <title>Medical Maintenance Master Dashboard (V17)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <style>
         :root { 
-            --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a; 
+            --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
             --primary: #2563eb; --secondary: #64748b;
             --success: #16a34a; --danger: #dc2626; --warning: #d97706; --purple: #7c3aed;
         }
         * { box-sizing: border-box; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
         
-        .header { background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .header h1 { margin: 0; font-size: 1.5rem; color: #1e293b; }
-        .btn-upload { background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; position: relative; overflow: hidden; transition: 0.2s; }
-        .btn-upload:hover { background: #1d4ed8; }
+        /* Layout */
+        .header { background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .header h1 { margin: 0; font-size: 1.6rem; color: #1e293b; font-weight: 800; }
+        .btn-upload { background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; position: relative; overflow: hidden; transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.2); }
+        .btn-upload:hover { background: #1d4ed8; transform: translateY(-1px); }
         .btn-upload input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
         .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
 
-        .filter-bar { background: #fff; padding: 1rem; border-radius: 0.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
-        .site-select { padding: 0.5rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: inherit; font-size: 1rem; min-width: 300px; outline: none; }
+        /* Controls */
+        .filter-bar { background: #fff; padding: 1rem; border-radius: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
+        .site-select { padding: 0.6rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: inherit; font-size: 1rem; min-width: 300px; outline: none; transition: 0.2s; }
+        .site-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; border-top: 4px solid transparent; }
+        /* KPI Grid */
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; border-top: 5px solid transparent; display: flex; flex-direction: column; justify-content: space-between; }
+        
         .kpi-card.blue { border-top-color: var(--primary); }
         .kpi-card.green { border-top-color: var(--success); }
         .kpi-card.red { border-top-color: var(--danger); }
         .kpi-card.orange { border-top-color: var(--warning); }
         .kpi-card.purple { border-top-color: var(--purple); }
         
-        .kpi-val { font-size: 2rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
-        .kpi-sub { font-size: 0.85rem; color: #94a3b8; }
+        .kpi-val { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin: 5px 0; }
+        .kpi-label { font-size: 0.9rem; color: var(--secondary); font-weight: 600; }
+        .kpi-sub { font-size: 0.8rem; color: #94a3b8; margin-top: auto; }
 
+        /* Completion Chart KPI override */
+        .kpi-chart-container { height: 100px; position: relative; display: flex; align-items: center; justify-content: center; margin-top: 10px; }
+        .completion-text { position: absolute; font-weight: bold; font-size: 1.2rem; color: #1e293b; }
+
+        /* Panels & Charts */
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .panel { background: var(--surface); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 1.5rem; height: 100%; border: 1px solid #f1f5f9; display: flex; flex-direction: column; }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; }
-        .panel-title { font-size: 1.1rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.5rem; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; }
+        .panel-title { font-size: 1.1rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.6rem; }
         
         .chart-box { height: 320px; position: relative; width: 100%; }
         .table-wrap { overflow-x: auto; flex-grow: 1; }
+        
+        /* Tables */
         table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.9rem; }
         th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
-        td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; }
-        
-        /* Badges & Indicators */
-        .badge { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
+        td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        tr:hover { background: #f8fafc; }
+
+        /* Indicators */
+        .badge { padding: 0.3rem 0.7rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
         .b-crit { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
         .b-warn { background: #ffedd5; color: #9a3412; }
-        
-        /* Custom Rating Colors */
-        .val-good { color: #166534; background: #dcfce7; font-weight: bold; padding: 3px 10px; border-radius: 6px; }
-        .val-warn { color: #b45309; background: #ffedd5; font-weight: bold; padding: 3px 10px; border-radius: 6px; }
-        .val-bad { color: #991b1b; background: #fee2e2; font-weight: bold; padding: 3px 10px; border-radius: 6px; }
+        .b-ok { background: #dcfce7; color: #166534; }
 
-        #emptyState { text-align: center; padding: 5rem 1rem; color: #94a3b8; }
+        /* Rating Cells */
+        .val-good { color: #15803d; background: #dcfce7; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
+        .val-warn { color: #b45309; background: #ffedd5; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
+        .val-bad { color: #b91c1c; background: #fee2e2; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
+
+        #emptyState { text-align: center; padding: 6rem 1rem; color: #94a3b8; }
         #dashboard { display: none; }
     </style>
 </head>
@@ -70,55 +87,66 @@
 
 <header class="header">
     <div>
-        <h1>Medical Maintenance Dashboard (V16 Final)</h1>
-        <div style="font-size:0.9rem; color:#64748b; margin-top:4px">شامل: تحليل الأعطال، الأصول الكارثية، وتوزيع التأخير</div>
+        <h1>Medical Maintenance Dashboard <span style="font-weight:400; color:#64748b; font-size:1.2rem">| V17 Ultimate</span></h1>
+        <div style="font-size:0.9rem; color:#64748b; margin-top:5px">
+            <i class="fas fa-check-circle" style="color:#16a34a"></i> مؤشر إنجاز
+            &nbsp;|&nbsp; <i class="fas fa-bomb" style="color:#7c3aed"></i> أصول كارثية
+            &nbsp;|&nbsp; <i class="fas fa-clock" style="color:#d97706"></i> تحليل تأخير
+        </div>
     </div>
     <div class="btn-upload">
-        <i class="fas fa-file-excel"></i> رفع الملف
+        <i class="fas fa-file-excel"></i> رفع البيانات
         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
     </div>
 </header>
 
 <div class="container">
     <div id="emptyState">
-        <i class="fas fa-check-circle" style="font-size:4rem; margin-bottom:1.5rem; color:#cbd5e1"></i>
-        <h2>جاهز للتحليل</h2>
-        <p>النسخة النهائية: تدعم الكشف التلقائي، التقييم الملون، وتحليل التأخير.</p>
+        <i class="fas fa-chart-pie" style="font-size:5rem; margin-bottom:1.5rem; color:#e2e8f0"></i>
+        <h2>النظام جاهز للعمل</h2>
+        <p>قم برفع ملف Excel لعرض لوحة القيادة الشاملة.</p>
     </div>
 
     <div id="dashboard">
         
         <div class="filter-bar">
-            <i class="fas fa-filter" style="color:#64748b"></i>
-            <span style="font-weight:bold; color:#64748b">تصفية حسب الموقع:</span>
+            <i class="fas fa-filter" style="color:#2563eb; font-size:1.2rem"></i>
+            <span style="font-weight:bold; color:#475569">نطاق العرض (الموقع):</span>
             <select id="siteFilter" class="site-select">
-                <option value="All">كل المواقع (All Sites)</option>
+                <option value="All">--- كل المواقع (All Sites) ---</option>
             </select>
         </div>
 
         <div class="grid-kpi">
             <div class="kpi-card blue">
-                <div>إجمالي الأوامر</div>
+                <div class="kpi-label">إجمالي الأوامر (Total WO)</div>
                 <div class="kpi-val" id="kpi-total">0</div>
-                <div class="kpi-sub">Total Orders</div>
+                <div class="kpi-sub">أمر عمل</div>
             </div>
-            <div class="kpi-card green">
-                <div>منجز (Signed Off)</div>
-                <div class="kpi-val" id="kpi-rate">0%</div>
-                <div class="kpi-sub" id="kpi-closed">0 مغلق</div>
+
+            <div class="kpi-card green" style="align-items: center; text-align: center;">
+                <div class="kpi-label" style="width:100%; text-align:right">نسبة الإنجاز (Signed Off)</div>
+                <div class="kpi-chart-container" style="width: 120px; height: 120px;">
+                    <canvas id="chartCompletion"></canvas>
+                    <div class="completion-text" id="kpi-rate-text">0%</div>
+                </div>
+                <div class="kpi-sub" id="kpi-closed-count" style="margin-top:5px">0 منجز</div>
             </div>
+
             <div class="kpi-card red">
-                <div>Avg Response</div>
+                <div class="kpi-label">متوسط الاستجابة</div>
                 <div class="kpi-val" id="kpi-resp">0</div>
-                <div class="kpi-sub">الهدف: <= 1 يوم</div>
+                <div class="kpi-sub">أيام (المعيار <= 1)</div>
             </div>
+
             <div class="kpi-card orange">
-                <div>Avg Repair</div>
+                <div class="kpi-label">متوسط الإصلاح</div>
                 <div class="kpi-val" id="kpi-fix">0</div>
-                <div class="kpi-sub">الهدف: < 5 أيام</div>
+                <div class="kpi-sub">أيام (المعيار < 5)</div>
             </div>
+
             <div class="kpi-card purple">
-                <div>الأصول "الكارثية"</div>
+                <div class="kpi-label">الأصول "الكارثية"</div>
                 <div class="kpi-val" id="kpi-lemon" style="color:#7c3aed">0</div>
                 <div class="kpi-sub">تكرار العطل > 10 مرات</div>
             </div>
@@ -127,7 +155,7 @@
         <div class="grid-2">
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title" id="dynamicChartTitle">المواقع الأكثر تعطلاً</div>
+                    <div class="panel-title" id="dynamicChartTitle">الأكثر تعطلاً (المواقع)</div>
                 </div>
                 <div class="chart-box"><canvas id="chartDynamic"></canvas></div>
             </div>
@@ -135,32 +163,32 @@
                 <div class="panel-header">
                     <div class="panel-title" style="color:#d97706">
                         <i class="fas fa-history"></i> 
-                        أعمار الأوامر المفتوحة (Backlog Aging)
+                        تحليل تأخير الأوامر المفتوحة (Backlog Aging)
                     </div>
                 </div>
                 <div class="chart-box"><canvas id="chartAging"></canvas></div>
-                <div style="font-size:0.8rem; color:#64748b; margin-top:10px; text-align:center">
-                    تحليل المدة الزمنية للأوامر التي لم تُغلق بعد
+                <div style="text-align:center; font-size:0.8rem; color:#64748b; margin-top:10px">
+                    يتم احتساب المدة من تاريخ العطل حتى اليوم للأوامر غير المغلقة
                 </div>
             </div>
         </div>
 
-        <div class="panel" style="margin-bottom: 2rem;">
+        <div class="panel" style="margin-bottom: 2rem; border-left: 5px solid #7c3aed;">
             <div class="panel-header">
                 <div class="panel-title" style="color:#7c3aed">
-                    <i class="fas fa-exclamation-circle"></i>
-                    الأجهزة عالية الخطورة (Lemon Assets - Failures > 10)
+                    <i class="fas fa-bomb"></i>
+                    الأصول الكارثية (أجهزة تعطلت أكثر من 10 مرات)
                 </div>
             </div>
-            <div class="table-wrap" style="max-height: 300px; overflow-y: auto;">
+            <div class="table-wrap" style="max-height: 350px; overflow-y: auto;">
                 <table id="lemonTable">
                     <thead>
                         <tr>
                             <th>الجهاز</th>
                             <th>السيريال (Serial)</th>
                             <th>عدد مرات العطل</th>
-                            <th>الموقع</th>
-                            <th>الفني</th>
+                            <th>الموقع / القسم</th>
+                            <th>آخر فني مسؤول</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -170,18 +198,18 @@
 
         <div class="panel" style="margin-bottom: 2rem;">
             <div class="panel-header">
-                <div class="panel-title"><i class="fas fa-users-cog"></i> جدول أداء الفنيين</div>
+                <div class="panel-title"><i class="fas fa-users-cog"></i> جدول تقييم الفنيين</div>
             </div>
             <div class="table-wrap" style="max-height: 500px; overflow-y: auto;">
                 <table id="techTable">
                     <thead>
                         <tr>
                             <th>الفني</th>
-                            <th>الإجمالي</th>
-                            <th>مغلق</th>
+                            <th>إجمالي</th>
+                            <th>منجز</th>
                             <th>مفتوح</th>
-                            <th>Avg Response (يوم)</th>
-                            <th>Avg Repair (يوم)</th>
+                            <th>Avg Response</th>
+                            <th>Avg Repair</th>
                             <th>التقييم</th>
                         </tr>
                     </thead>
@@ -194,7 +222,7 @@
             <div class="panel-header">
                 <div class="panel-title" style="color:#dc2626">
                     <i class="fas fa-list-ul"></i>
-                    تفاصيل الأوامر المفتوحة (Open Work Orders)
+                    سجل الأوامر المفتوحة (Open Work Orders Log)
                 </div>
             </div>
             <div class="table-wrap" style="max-height: 600px; overflow-y: auto;">
@@ -216,16 +244,16 @@
             </div>
         </div>
         
-        <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:30px">
-            Dashboard V16.0 • Final Release
+        <footer style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-top:40px">
+            Tabuk Health Cluster • Medical Maintenance Dashboard V17.0
         </footer>
     </div>
 </div>
 
 <script>
-    // --- Config ---
+    // --- 1. CONFIGURATION ---
     const COLS = {
-        id: ['Control No', '#'],
+        id: ['Control No', '#', 'رقم الأمر'],
         status: ['Status', 'الحالة'],
         failDate: ['Fail Date', 'تاريخ العطل'],
         startDate: ['start date', 'Start Date', 'تاريخ البدء'],
@@ -239,17 +267,15 @@
 
     let RAW_DATA = [];
 
-    // --- Helpers ---
+    // --- 2. UTILS ---
     function parseDate(v) {
         if (!v) return null;
         let s = String(v).trim();
         if (s==='' || s==='-' || s.toLowerCase()==='null') return null;
-        
         let d = new Date(s);
         if (!isNaN(d.getTime()) && s.includes('-') && s.indexOf('-')===4) return d;
-
-        let parts = s.split(/[\/\-\.]/); 
-        if (parts.length >= 3) {
+        let p = s.split(/[\/\-\.]/); 
+        if (p.length >= 3) {
             let day = parseInt(parts[0], 10);
             let month = parseInt(parts[1], 10) - 1; 
             let yearPart = parts[2].split(' ')[0];
@@ -269,26 +295,23 @@
         return '';
     }
 
-    // --- Main Process ---
+    // --- 3. EVENT LISTENERS ---
     document.getElementById('fileInput').addEventListener('change', async (e) => {
         const f = e.target.files[0];
         if(!f) return;
-        
         const buf = await f.arrayBuffer();
         const wb = XLSX.read(buf, {type:'array'});
         const ws = wb.Sheets[wb.SheetNames[0]];
-        
-        // Auto Header Detection
+        // Smart Header Detection
         const aoa = XLSX.utils.sheet_to_json(ws, {header: 1});
-        let headerRowIndex = 0;
-        for(let i=0; i < Math.min(aoa.length, 10); i++) {
+        let headerIdx = 0;
+        for(let i=0; i<Math.min(aoa.length, 10); i++) {
             const rowStr = JSON.stringify(aoa[i]).toLowerCase();
             if(rowStr.includes('fail date') || rowStr.includes('control no') || rowStr.includes('assigned to')) {
-                headerRowIndex = i;
-                break;
+                headerIdx = i; break;
             }
         }
-        const json = XLSX.utils.sheet_to_json(ws, {range: headerRowIndex, defval:''});
+        const json = XLSX.utils.sheet_to_json(ws, {range: headerIdx, defval:''});
         processData(json);
     });
 
@@ -296,6 +319,7 @@
         renderDashboard();
     });
 
+    // --- 4. DATA PROCESSING ---
     function processData(rows) {
         RAW_DATA = [];
         rows.forEach(r => {
@@ -303,6 +327,8 @@
             const dStart = parseDate(getVal(r, COLS.startDate));
             const dSign = parseDate(getVal(r, COLS.signDate));
             const statusRaw = String(getVal(r, COLS.status)).trim();
+            
+            // STRICT LOGIC: Closed = 'Signed Off'
             const isClosed = statusRaw.toLowerCase() === 'signed off';
 
             let respDays = null, fixDays = null;
@@ -330,10 +356,9 @@
             });
         });
 
-        // Populate Filter
         const sites = [...new Set(RAW_DATA.map(r => r.site))].sort();
         const siteSel = document.getElementById('siteFilter');
-        siteSel.innerHTML = '<option value="All">كل المواقع (All Sites)</option>';
+        siteSel.innerHTML = '<option value="All">--- كل المواقع (All Sites) ---</option>';
         sites.forEach(s => {
             if(s) siteSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`);
         });
@@ -343,14 +368,14 @@
         renderDashboard();
     }
 
+    // --- 5. RENDER DASHBOARD ---
     function renderDashboard() {
         const siteVal = document.getElementById('siteFilter').value;
         const data = RAW_DATA.filter(r => siteVal === 'All' || r.site === siteVal);
         
-        // 1. KPIS
+        // --- KPIS ---
         const total = data.length;
         const closed = data.filter(x => x.isClosed).length;
-        const open = total - closed;
         const rate = total ? Math.round((closed/total)*100) : 0;
         
         const rArr = data.filter(x=>x.respDays!=null).map(x=>x.respDays);
@@ -359,13 +384,15 @@
         const avgF = fArr.length ? (fArr.reduce((a,b)=>a+b,0)/fArr.length).toFixed(2) : '0';
 
         document.getElementById('kpi-total').innerText = total;
-        document.getElementById('kpi-rate').innerText = rate + '%';
-        document.getElementById('kpi-closed').innerText = `${closed} Signed Off`;
+        document.getElementById('kpi-rate-text').innerText = rate + '%';
+        document.getElementById('kpi-closed-count').innerText = `${closed} منجز`;
         document.getElementById('kpi-resp').innerText = avgR;
         document.getElementById('kpi-fix').innerText = avgF;
-        
-        // 2. BACKLOG AGING (New Indicator)
-        // Group open orders by age
+
+        // Completion Donut Chart
+        drawDonutChart('chartCompletion', rate);
+
+        // --- BACKLOG AGING ---
         const aging = { '0-3 أيام': 0, '4-7 أيام': 0, '8-30 يوم': 0, '+30 يوم': 0 };
         const now = new Date();
         data.filter(r => !r.isClosed && r.dFail).forEach(r => {
@@ -375,17 +402,9 @@
             else if(age <= 30) aging['8-30 يوم']++;
             else aging['+30 يوم']++;
         });
-        drawChart('chartAging', 'bar', {
-            labels: Object.keys(aging),
-            datasets: [{
-                label: 'عدد الأوامر المفتوحة',
-                data: Object.values(aging),
-                backgroundColor: ['#16a34a', '#facc15', '#f97316', '#dc2626'],
-                borderRadius: 6
-            }]
-        });
+        drawBarChart('chartAging', Object.keys(aging), Object.values(aging), ['#22c55e','#eab308','#f97316','#ef4444']);
 
-        // 3. DYNAMIC SITE/DEPT CHART
+        // --- DYNAMIC CHART (Site vs Dept) ---
         const chartTitle = document.getElementById('dynamicChartTitle');
         let chartDataMap = {};
         if(siteVal === 'All') {
@@ -396,16 +415,9 @@
             data.forEach(r => chartDataMap[r.dept] = (chartDataMap[r.dept]||0)+1);
         }
         const sortedChartData = Object.entries(chartDataMap).sort((a,b)=>b[1]-a[1]).slice(0, 10);
-        drawChart('chartDynamic', 'bar', {
-            labels: sortedChartData.map(x=>x[0]),
-            datasets: [{ 
-                label: 'عدد الأعطال', 
-                data: sortedChartData.map(x=>x[1]), 
-                backgroundColor: '#2563eb', borderRadius: 4
-            }]
-        });
+        drawBarChart('chartDynamic', sortedChartData.map(x=>x[0]), sortedChartData.map(x=>x[1]), '#3b82f6');
 
-        // 4. LEMON ASSETS (>10)
+        // --- LEMON ASSETS (>10) ---
         const serialMap = {};
         data.forEach(r => {
             const sn = r.serial ? String(r.serial).trim().toUpperCase() : '';
@@ -420,7 +432,7 @@
         const lemonTb = document.querySelector('#lemonTable tbody');
         lemonTb.innerHTML = '';
         if(lemons.length === 0) {
-            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999">لا توجد أجهزة تجاوزت 10 أعطال</td></tr>';
+            lemonTb.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px">لا توجد أجهزة تجاوزت 10 أعطال</td></tr>';
         } else {
             lemons.forEach(item => {
                 lemonTb.insertAdjacentHTML('beforeend', `
@@ -435,7 +447,7 @@
             });
         }
 
-        // 5. TECH TABLE (With Colors)
+        // --- TECH TABLE (With Rating Logic) ---
         const techs = {};
         data.forEach(r => { if(!techs[r.tech]) techs[r.tech] = []; techs[r.tech].push(r); });
         const techTb = document.querySelector('#techTable tbody');
@@ -444,7 +456,6 @@
         Object.entries(techs).sort((a,b)=>b[1].length - a[1].length).forEach(([name, list]) => {
             const c = list.filter(x=>x.isClosed).length;
             const o = list.length - c;
-            
             const rs = list.filter(x=>x.respDays!=null).map(x=>x.respDays);
             const fs = list.filter(x=>x.fixDays!=null).map(x=>x.fixDays);
             
@@ -466,10 +477,10 @@
                 else if(afVal <= 10) fixClass = 'val-warn';
             } else fixClass = '';
 
-            // Rank Badge
-            let rank = '<span class="badge" style="background:#dcfce7; color:#166534">ممتاز</span>';
-            if((arVal > 2) || (afVal > 10)) rank = '<span class="badge" style="background:#fee2e2; color:#991b1b">ضعيف</span>';
-            else if((arVal > 1) || (afVal >= 5)) rank = '<span class="badge" style="background:#ffedd5; color:#9a3412">متوسط</span>';
+            // Overall Rank
+            let rank = '<span class="badge b-ok">ممتاز</span>';
+            if((arVal > 2) || (afVal > 10)) rank = '<span class="badge b-crit" style="color:#b91c1c; background:#fee2e2">ضعيف</span>';
+            else if((arVal > 1) || (afVal >= 5)) rank = '<span class="badge b-warn">متوسط</span>';
 
             techTb.insertAdjacentHTML('beforeend', `
                 <tr>
@@ -482,14 +493,14 @@
             `);
         });
 
-        // 6. OPEN ORDERS
+        // --- OPEN ORDERS ---
         const openOrders = data.filter(r => !r.isClosed).sort((a,b) => (a.dFail||0) - (b.dFail||0));
         const openTb = document.querySelector('#openWOTable tbody');
         openTb.innerHTML = '';
         if(openOrders.length === 0) {
-            openTb.innerHTML = '<tr><td colspan="8" style="text-align:center">لا توجد أوامر مفتوحة.</td></tr>';
+            openTb.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px">عمل رائع! لا توجد أوامر مفتوحة.</td></tr>';
         } else {
-            openOrders.slice(0, 200).forEach(r => {
+            openOrders.slice(0, 300).forEach(r => {
                 const daysOpen = r.dFail ? Math.floor((new Date() - r.dFail)/(1000*60*60*24)) : '-';
                 const dateStr = r.dFail ? r.dFail.toLocaleDateString('en-GB') : '-';
                 openTb.insertAdjacentHTML('beforeend', `
@@ -504,17 +515,52 @@
         }
     }
 
+    // --- CHART FUNCTIONS ---
     let charts = {};
-    function drawChart(id, type, data, opts={}) {
+    
+    function drawDonutChart(id, rate) {
         const ctx = document.getElementById(id).getContext('2d');
         if(charts[id]) charts[id].destroy();
         charts[id] = new Chart(ctx, {
-            type, data,
+            type: 'doughnut',
+            data: {
+                labels: ['منجز', 'متبقي'],
+                datasets: [{
+                    data: [rate, 100-rate],
+                    backgroundColor: ['#16a34a', '#e2e8f0'],
+                    borderWidth: 0,
+                    cutout: '75%'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+    }
+
+    function drawBarChart(id, labels, data, colors) {
+        const ctx = document.getElementById(id).getContext('2d');
+        if(charts[id]) charts[id].destroy();
+        
+        // If colors is single string, make array. If array, use it.
+        let bgColors = colors;
+        if(typeof colors === 'string') bgColors = colors;
+
+        charts[id] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: bgColors,
+                    borderRadius: 4
+                }]
+            },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } },
-                ...opts
+                scales: { y: { beginAtZero: true } }
             }
         });
     }
