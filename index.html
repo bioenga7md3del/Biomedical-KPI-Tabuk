@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>مؤشرات الصيانة الطبية - يناير 2026</title>
+    <title>مؤشرات الصيانة الطبية - يناير 2026 (V5)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -59,8 +59,8 @@
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; }
         .panel-title { font-size: 1.1rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.6rem; }
         
-        .table-wrap { overflow-x: auto; max-height: 400px; }
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.9rem; }
+        .table-wrap { overflow-x: auto; max-height: 500px; } /* Increased height */
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
         th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
         td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         tr:hover { background: #f8fafc; }
@@ -69,6 +69,11 @@
         .b-ppm { background: #dcfce7; color: #166534; }
         .b-cm { background: #fee2e2; color: #991b1b; }
         .hidden { display: none !important; }
+        
+        /* Indicators */
+        .val-danger { color: #dc2626; font-weight: 800; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
+        .val-good { color: #16a34a; font-weight: bold; }
+
         #emptyState { text-align: center; padding: 6rem 1rem; color: #94a3b8; }
     </style>
 </head>
@@ -152,29 +157,19 @@
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title">حالة الأوامر</div>
+                    <div class="panel-title" style="color:#b45309">
+                        <i class="fas fa-chart-pie"></i> أكثر الأجهزة تعطلاً (Top 10 Devices)
+                    </div>
                 </div>
-                <div style="height:250px; width:250px; margin:0 auto"><canvas id="chartDonut"></canvas></div>
-            </div>
-        </div>
-
-        <div class="panel cm-kpi" style="margin-bottom:2rem">
-            <div class="panel-header">
-                <div class="panel-title" style="color:#b45309">
-                    <i class="fas fa-laptop-medical"></i> أكثر أنواع الأجهزة تعطلاً (Most Failing Device Types)
+                <div style="height:300px; display:flex; justify-content:center; align-items:center">
+                    <canvas id="chartDevices"></canvas>
                 </div>
-            </div>
-            <div class="table-wrap" style="max-height:300px">
-                <table id="deviceTypeTable">
-                    <thead><tr><th>اسم الجهاز (Equipment Name)</th><th>عدد الأعطال</th><th>متوسط الإصلاح (يوم)</th></tr></thead>
-                    <tbody></tbody>
-                </table>
             </div>
         </div>
 
         <div class="grid-2">
             <div class="panel">
-                <div class="panel-header"><div class="panel-title"><i class="fas fa-hospital"></i> تقييم المواقع</div></div>
+                <div class="panel-header"><div class="panel-title"><i class="fas fa-hospital"></i> تقييم المواقع (Sites Performance)</div></div>
                 <div class="table-wrap">
                     <table id="siteTable">
                         <thead>
@@ -184,6 +179,8 @@
                                 <th>منجز</th>
                                 <th>مفتوح</th>
                                 <th>%</th>
+                                <th class="cm-col">Avg Resp</th>
+                                <th class="cm-col">Avg Repair</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -192,13 +189,15 @@
             </div>
 
             <div class="panel">
-                <div class="panel-header"><div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين</div></div>
-                <div class="table-wrap">
+                <div class="panel-header"><div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين (Technicians)</div></div>
+                <div class="table-wrap" style="max-height: 500px;">
                     <table id="techTable">
                         <thead>
                             <tr>
                                 <th>الفني</th>
                                 <th>Total</th>
+                                <th>Done</th>
+                                <th>Open</th>
                                 <th>%</th>
                                 <th class="cm-col">Avg Resp</th>
                                 <th class="cm-col">Avg Repair</th>
@@ -287,22 +286,16 @@
         const ws = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(ws);
         return json.map(row => {
-            // Flexible Key Access
             const get = k => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
-            
             const status = String(get('Status')).trim();
             const isClosed = status.toLowerCase() === 'signed off';
 
-            // Dates
             const dFail = parseDate(get('Fail Date') || get('fail date'));
             const dStart = parseDate(get('start date') || get('Start Date'));
             const dSign = parseDate(get('sign off date') || get('Completion Date'));
 
-            // Calc
             let resp = null, fix = null;
-            // Resp: Fail -> Start
             if(dFail && dStart) resp = (dStart - dFail)/(1000*60*60*24);
-            // Fix: Fail -> SignOff (As Requested)
             if(dFail && dSign && isClosed) fix = (dSign - dFail)/(1000*60*60*24);
 
             return {
@@ -327,23 +320,11 @@
         if(v instanceof Date) return v;
         let s = String(v).trim();
         if(s === '-' || s === '') return null;
-
-        // Clean time part if confusing, but we need it for accuracy. 
-        // Excel often gives "YYYY-MM-DD HH:MM:SS" or "DD-MM-YYYY HH:MM"
-        
-        // Check ISO first
         if(s.match(/^\d{4}-\d{2}-\d{2}/)) return new Date(s);
-
-        // Check DD-MM-YYYY (with potential time)
-        // Split by space to get date part
         let datePart = s.split(' ')[0];
         let parts = datePart.split(/[\/\-\.]/);
-        
         if(parts.length >= 3) {
-            let p0 = parseInt(parts[0]);
-            let p1 = parseInt(parts[1]) - 1;
-            let p2 = parseInt(parts[2]);
-            // Heuristic: If p0 > 1900 -> YYYY-MM-DD, else DD-MM-YYYY
+            let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
             if(p0 > 1900) return new Date(p0, p1, p2);
             return new Date(p2, p1, p0);
         }
@@ -399,24 +380,15 @@
 
         // Render Functions
         renderCharts(data, rate, isPPM, siteVal);
-        renderSiteTable(data);
-        renderTechTable(data, isPPM);
-        renderDeviceTypeTable(data, isPPM); // New
+        renderDeviceChart(data, isPPM); // New Chart
+        renderSiteTable(data, isPPM);
+        renderTechTable(data, isPPM); 
         renderLemonTable(data, isPPM);
         renderLogsTable(data);
     }
 
     function renderCharts(data, rate, isPPM, siteVal) {
-        // Donut
-        const ctxD = document.getElementById('chartDonut').getContext('2d');
-        if(charts.d) charts.d.destroy();
-        charts.d = new Chart(ctxD, {
-            type: 'doughnut',
-            data: { labels: ['منجز', 'مفتوح'], datasets: [{ data: [rate, 100-rate], backgroundColor: [isPPM?'#16a34a':'#3b82f6','#e2e8f0'], borderWidth:0 }] },
-            options: { cutout: '70%', plugins:{legend:{position:'bottom'}} }
-        });
-
-        // Main Bar Chart (Logic Change: All -> Sites, Specific -> Depts)
+        // Main Bar Chart
         const ctxM = document.getElementById('chartMain').getContext('2d');
         if(charts.m) charts.m.destroy();
         
@@ -442,18 +414,76 @@
         });
     }
 
-    function renderSiteTable(data) {
+    // NEW: Device Chart (Doughnut)
+    function renderDeviceChart(data, isPPM) {
+        const ctx = document.getElementById('chartDevices').getContext('2d');
+        if(charts.dev) charts.dev.destroy();
+
+        if(isPPM) return; // Hide or show empty if PPM
+
+        const grp = {};
+        data.filter(r => r.type === 'CM').forEach(r => {
+            let name = r.device.split('(')[0].trim(); // Clean name
+            grp[name] = (grp[name] || 0) + 1;
+        });
+
+        const sorted = Object.entries(grp).sort((a,b)=>b[1]-a[1]).slice(0, 10);
+        
+        charts.dev = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: sorted.map(x=>x[0]),
+                datasets: [{
+                    data: sorted.map(x=>x[1]),
+                    backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: {size:11} } } }
+            }
+        });
+    }
+
+    function renderSiteTable(data, isPPM) {
         const tb = document.querySelector('#siteTable tbody');
         tb.innerHTML = '';
         const grp = {};
         data.forEach(r => {
-            if(!grp[r.site]) grp[r.site] = {t:0, c:0};
+            if(!grp[r.site]) grp[r.site] = {t:0, c:0, open:0, respSum:0, fixSum:0, cmCount:0};
             grp[r.site].t++;
-            if(!r.isOpen) grp[r.site].c++;
+            if(r.isOpen) grp[r.site].open++; else grp[r.site].c++;
+            
+            if(!isPPM && r.type==='CM' && !r.isOpen) {
+                grp[r.site].respSum += r.resp;
+                grp[r.site].fixSum += r.fix;
+                grp[r.site].cmCount++;
+            }
         });
-        Object.entries(grp).sort((a,b)=>b[1].t-a[1].t).forEach(([k,v]) => {
+
+        // Sort by Total
+        Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
             const p = v.t ? Math.round((v.c/v.t)*100) : 0;
-            tb.insertAdjacentHTML('beforeend', `<tr><td>${k}</td><td>${v.t}</td><td style="color:#16a34a">${v.c}</td><td style="color:${(v.t-v.c)>0?'#dc2626':'#aaa'}">${v.t-v.c}</td><td>${p}%</td></tr>`);
+            const avgR = v.cmCount ? (v.respSum/v.cmCount).toFixed(1) : '-';
+            const avgF = v.cmCount ? (v.fixSum/v.cmCount).toFixed(1) : '-';
+            
+            let html = `<tr>
+                <td>${k}</td><td>${v.t}</td>
+                <td style="color:#16a34a">${v.c}</td>
+                <td style="color:${v.open>0?'#dc2626':'#94a3b8'}">${v.open}</td>
+                <td><span class="badge ${p>85?'b-ppm':'b-cm'}">${p}%</span></td>`;
+            
+            if(!isPPM) {
+                // Formatting
+                const rClass = (avgR > 1 && avgR !== '-') ? 'val-danger' : 'val-good';
+                const fClass = (avgF > 5 && avgF !== '-') ? 'val-danger' : 'val-good';
+                html += `<td><span class="${rClass}">${avgR}</span></td><td><span class="${fClass}">${avgF}</span></td>`;
+            } else {
+                html += `<td class="hidden"></td><td class="hidden"></td>`;
+            }
+            html += `</tr>`;
+            tb.insertAdjacentHTML('beforeend', html);
         });
     }
 
@@ -461,53 +491,41 @@
         const tb = document.querySelector('#techTable tbody');
         tb.innerHTML = '';
         const grp = {};
+        
         data.forEach(r => {
             const t = r.tech;
-            if(!grp[t]) grp[t] = {t:0, c:0, respSum:0, fixSum:0, cmCount:0};
+            if(!grp[t]) grp[t] = {t:0, c:0, open:0, respSum:0, fixSum:0, cmCount:0};
             grp[t].t++;
-            if(!r.isOpen) {
-                grp[t].c++;
-                if(!isPPM && r.type==='CM') {
-                    grp[t].respSum += r.resp;
-                    grp[t].fixSum += r.fix;
-                    grp[t].cmCount++;
-                }
+            if(r.isOpen) grp[t].open++; else grp[t].c++;
+            
+            if(!isPPM && r.type==='CM' && !r.isOpen) {
+                grp[t].respSum += r.resp;
+                grp[t].fixSum += r.fix;
+                grp[t].cmCount++;
             }
         });
-        Object.entries(grp).sort((a,b)=>b[1].t-a[1].t).forEach(([k,v]) => {
+
+        Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
             const p = v.t ? Math.round((v.c/v.t)*100) : 0;
             const avgR = v.cmCount ? (v.respSum/v.cmCount).toFixed(1) : '-';
             const avgF = v.cmCount ? (v.fixSum/v.cmCount).toFixed(1) : '-';
             
-            let html = `<tr><td>${k}</td><td>${v.t}</td><td>${p}%</td>`;
-            if(!isPPM) html += `<td>${avgR}</td><td>${avgF}</td>`;
-            else html += `<td class="hidden"></td><td class="hidden"></td>`;
-            tb.insertAdjacentHTML('beforeend', html + '</tr>');
-        });
-    }
-
-    // New Function: Most Failing Device Types
-    function renderDeviceTypeTable(data, isPPM) {
-        const tb = document.querySelector('#deviceTypeTable tbody');
-        tb.innerHTML = '';
-        if(isPPM) return; // Only for CM
-
-        const grp = {};
-        data.filter(r => r.type === 'CM').forEach(r => {
-            // Clean Name: Remove content in brackets usually e.g. "Monitor (ECRI)" -> "Monitor"
-            let name = r.device.split('(')[0].trim(); 
-            if(!grp[name]) grp[name] = { count:0, fixSum:0, fixCount:0 };
-            grp[name].count++;
-            if(!r.isOpen) {
-                grp[name].fixSum += r.fix;
-                grp[name].fixCount++;
+            let html = `<tr>
+                <td>${k}</td><td><b>${v.t}</b></td>
+                <td style="color:#16a34a">${v.c}</td>
+                <td style="color:${v.open>0?'#dc2626':'#94a3b8'}">${v.open}</td>
+                <td>${p}%</td>`;
+            
+            if(!isPPM) {
+                // Red if Resp > 1, Fix > 5
+                const rClass = (avgR > 1 && avgR !== '-') ? 'val-danger' : '';
+                const fClass = (avgF > 5 && avgF !== '-') ? 'val-danger' : '';
+                html += `<td><span class="${rClass}">${avgR}</span></td><td><span class="${fClass}">${avgF}</span></td>`;
+            } else {
+                html += `<td class="hidden"></td><td class="hidden"></td>`;
             }
-        });
-
-        const sorted = Object.entries(grp).sort((a,b)=>b[1].count - a[1].count).slice(0,10);
-        sorted.forEach(([k,v]) => {
-            const mttr = v.fixCount ? (v.fixSum/v.fixCount).toFixed(1) : '-';
-            tb.insertAdjacentHTML('beforeend', `<tr><td>${k}</td><td><b>${v.count}</b></td><td>${mttr}</td></tr>`);
+            html += `</tr>`;
+            tb.insertAdjacentHTML('beforeend', html);
         });
     }
 
@@ -530,7 +548,6 @@
     function renderLogsTable(data) {
         const tb = document.querySelector('#logsTable tbody');
         tb.innerHTML = '';
-        // STRICTLY OPEN ONLY
         const openOrders = data.filter(r => r.isOpen).sort((a,b) => (b.dFail||0)-(a.dFail||0));
         
         if(openOrders.length === 0) {
