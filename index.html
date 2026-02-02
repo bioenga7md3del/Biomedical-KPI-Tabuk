@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>مؤشرات الصيانة الطبية - يناير 2026 (V5.1)</title>
+    <title>مؤشرات الصيانة الطبية - يناير 2026 (Main)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -25,6 +25,10 @@
         .header-titles h1 { margin: 0; font-size: 1.5rem; color: var(--primary); font-weight: 800; }
         .header-titles p { margin: 5px 0 0; font-size: 1.1rem; color: var(--cm-color); font-weight: 700; }
         
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-print { background: #1e3a8a; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn-print:hover { background: #172554; transform: translateY(-2px); }
+
         .status-badge { padding: 6px 12px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 6px; }
         .st-loading { background: #e0f2fe; color: #0284c7; }
         .st-success { background: #dcfce7; color: #16a34a; }
@@ -70,7 +74,6 @@
         .b-cm { background: #fee2e2; color: #991b1b; }
         .hidden { display: none !important; }
         
-        /* Indicators */
         .val-danger { color: #dc2626; font-weight: 800; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
         .val-good { color: #16a34a; font-weight: bold; }
 
@@ -87,8 +90,13 @@
             <p>تقرير شهر يناير 2026</p>
         </div>
     </div>
-    <div id="statusBadge" class="status-badge st-loading">
-        <i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...
+    <div class="header-actions">
+        <div id="statusBadge" class="status-badge st-loading">
+            <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+        </div>
+        <button class="btn-print" onclick="openReport()">
+            <i class="fas fa-print"></i> طباعة تقرير مفصل
+        </button>
     </div>
 </header>
 
@@ -350,11 +358,13 @@
             return true;
         });
 
+        // Basic KPI
         const total = data.length;
         const open = data.filter(x => x.isOpen).length;
         const closed = total - open;
         const rate = total ? Math.round((closed/total)*100) : 0;
 
+        // Averages (CM Only)
         const cmClosed = data.filter(x => x.type === 'CM' && !x.isOpen);
         const avgResp = cmClosed.length ? (cmClosed.reduce((a,b)=>a+b.resp,0)/cmClosed.length).toFixed(1) : '-';
         const avgFix = cmClosed.length ? (cmClosed.reduce((a,b)=>a+b.fix,0)/cmClosed.length).toFixed(1) : '-';
@@ -380,6 +390,8 @@
         renderLemonTable(data, isPPM);
         renderLogsTable(data);
     }
+
+    // --- RENDERERS ---
 
     function renderCharts(data, rate, isPPM, siteVal) {
         const ctxM = document.getElementById('chartMain').getContext('2d');
@@ -548,6 +560,30 @@
             const date = r.dFail ? r.dFail.toLocaleDateString('en-GB') : '-';
             tb.insertAdjacentHTML('beforeend', `<tr><td><span class="badge ${r.type==='PPM'?'b-ppm':'b-cm'}">${r.type}</span></td><td>${r.id}</td><td>${date}</td><td>${r.site}</td><td title="${r.device}">${r.device.substring(0,25)}</td><td>${r.tech}</td><td>${r.status}</td></tr>`);
         });
+    }
+
+    // --- REPORT GENERATION FUNCTION ---
+    function openReport() {
+        const siteVal = document.getElementById('siteFilter').value;
+        const mode = CURRENT_MODE;
+        
+        // Filter Data current state
+        const filteredData = RAW_DATA.filter(r => {
+            if(mode !== 'All' && r.type !== mode) return false;
+            if(siteVal !== 'All' && r.site !== siteVal) return false;
+            return true;
+        });
+
+        if(filteredData.length === 0) {
+            alert('لا توجد بيانات للطباعة');
+            return;
+        }
+
+        // Save to Session
+        sessionStorage.setItem('REPORT_DATA', JSON.stringify(filteredData));
+        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode, site: siteVal, date: 'يناير 2026' }));
+        
+        window.open('report.html', '_blank');
     }
 </script>
 </body>
