@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>لوحة مؤشرات الصيانة الطبية (V4.0)</title>
+    <title>لوحة مؤشرات الصيانة الطبية (V5 - Manual Load)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -25,18 +25,21 @@
         .header-titles h1 { margin: 0; font-size: 1.6rem; color: var(--primary); font-weight: 800; }
         .header-titles p { margin: 5px 0 0; font-size: 0.9rem; color: var(--secondary); font-weight: 600; }
         
-        .status-badge { padding: 6px 12px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; background: #e0f2fe; color: #0284c7; }
-
-        /* Container */
-        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
-
+        /* Upload Area */
+        .upload-area {
+            background: white; border: 2px dashed #cbd5e1; border-radius: 1rem;
+            padding: 3rem; text-align: center; margin: 2rem auto; max-width: 600px;
+            transition: 0.3s; cursor: pointer;
+        }
+        .upload-area:hover { border-color: var(--primary); background: #f0f9ff; }
+        .upload-btn {
+            background: var(--primary); color: white; padding: 10px 25px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 15px;
+        }
+        
         /* Controls */
         .controls-card { background: var(--surface); padding: 1rem; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; border: 1px solid #cbd5e1; }
-        .control-group { display: flex; flex-direction: column; gap: 0.4rem; }
-        .control-label { font-size: 0.85rem; font-weight: 700; color: var(--secondary); }
         .form-select { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: 'Tajawal'; min-width: 200px; }
-
-        /* Tabs */
         .mode-tabs { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; gap: 4px; }
         .mode-tab { padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 700; color: #64748b; border: 1px solid transparent; }
         .mode-tab.active { background: white; color: var(--text); border-color: #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
@@ -44,7 +47,7 @@
         .mode-tab.active[data-mode="CM"] { color: var(--cm-color); border-bottom: 3px solid var(--cm-color); }
         .mode-tab.active[data-mode="PPM"] { color: var(--ppm-color); border-bottom: 3px solid var(--ppm-color); }
 
-        /* KPIs */
+        /* KPI Cards */
         .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border-top: 4px solid #cbd5e1; display: flex; flex-direction: column; }
         .kpi-val { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
@@ -52,14 +55,15 @@
         .kpi-sub { font-size: 0.8rem; color: #94a3b8; margin-top: auto; }
 
         /* Tables & Charts */
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 1.5rem; }
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; }
         .panel-title { font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px; }
 
-        .table-wrap { overflow-x: auto; }
+        .table-wrap { overflow-x: auto; max-height: 400px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; white-space: nowrap; }
-        th { text-align: right; padding: 0.8rem; background: #f8fafc; color: #475569; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
+        th { text-align: right; padding: 0.8rem; background: #f8fafc; color: #475569; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
         td { padding: 0.7rem 0.8rem; border-bottom: 1px solid #f1f5f9; }
         tr:hover { background: #f8fafc; }
         
@@ -70,7 +74,7 @@
 
         /* Helpers */
         .hidden { display: none !important; }
-        #emptyState { text-align: center; padding: 4rem; color: #94a3b8; }
+        .file-list { margin-top: 10px; font-size: 0.9rem; color: #64748b; }
     </style>
 </head>
 <body>
@@ -80,18 +84,28 @@
         <img src="TabukCluster.jpeg" alt="Logo" class="logo-img" onerror="this.style.display='none'"/>
         <div class="header-titles">
             <h1>لوحة مؤشرات الصيانة الطبية</h1>
-            <p>متابعة الأداء الفني والتشغيلي (V4)</p>
+            <p>Tabuk Health Cluster • Medical Maintenance</p>
         </div>
     </div>
-    <div id="statusMsg" class="status-badge"><i class="fas fa-spin fa-spinner"></i> جاري التحميل...</div>
+    <div>
+        <button onclick="document.getElementById('fileInput').click()" style="background:#e2e8f0; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer">
+            <i class="fas fa-sync"></i> تغيير الملفات
+        </button>
+    </div>
 </header>
 
 <div class="container">
     
-    <div id="emptyState">
-        <i class="fas fa-folder-open" style="font-size:3rem; margin-bottom:1rem"></i>
-        <h3>جاري قراءة ملفات البيانات...</h3>
-        <p>data/PPM.xlsx & data/CM.xlsx</p>
+    <div id="uploadSection" class="upload-area">
+        <i class="fas fa-file-excel" style="font-size:3rem; color:#cbd5e1; margin-bottom:1rem"></i>
+        <h3>مرحباً! يرجى تحميل ملفات البيانات</h3>
+        <p style="color:#64748b">قم باختيار ملفي <b>PPM.xlsx</b> و <b>CM.xlsx</b> معاً</p>
+        
+        <div class="upload-btn" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-upload"></i> اختر ملفات البيانات
+        </div>
+        <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(this)">
+        <div id="fileList" class="file-list"></div>
     </div>
 
     <div id="dashboard" style="display:none">
@@ -162,7 +176,7 @@
                 <div class="panel-header">
                     <div class="panel-title"><i class="fas fa-hospital"></i> جدول مقارنة المواقع</div>
                 </div>
-                <div class="table-wrap" style="max-height:400px; overflow-y:auto">
+                <div class="table-wrap">
                     <table id="tableSites">
                         <thead>
                             <tr>
@@ -171,7 +185,7 @@
                                 <th>منجز</th>
                                 <th>مفتوح</th>
                                 <th>%</th>
-                                <th class="cm-col">MTTR (Days)</th>
+                                <th class="cm-col">MTTR</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -183,7 +197,7 @@
                 <div class="panel-header">
                     <div class="panel-title"><i class="fas fa-user-md"></i> جدول أداء الفنيين</div>
                 </div>
-                <div class="table-wrap" style="max-height:400px; overflow-y:auto">
+                <div class="table-wrap">
                     <table id="tableTechs">
                         <thead>
                             <tr>
@@ -204,7 +218,7 @@
             <div class="panel-header">
                 <div class="panel-title"><i class="fas fa-list"></i> تفاصيل الأوامر المفتوحة</div>
             </div>
-            <div class="table-wrap" style="max-height:500px; overflow-y:auto">
+            <div class="table-wrap">
                 <table id="tableDetails">
                     <thead>
                         <tr>
@@ -226,75 +240,89 @@
 </div>
 
 <script>
-    // Config
-    const FILES = [
-        { name: 'PPM', path: 'data/PPM.xlsx' },
-        { name: 'CM', path: 'data/CM.xlsx' }
-    ];
-    
     let ALL_DATA = [];
     let CURRENT_MODE = 'All';
     let CHARTS = {};
 
-    // 1. Load Data
-    window.addEventListener('DOMContentLoaded', async () => {
-        try {
-            const promises = FILES.map(f => fetch(f.path).then(res => res.arrayBuffer()).then(buf => ({ buf, type: f.name })));
-            const results = await Promise.all(promises);
-            
-            ALL_DATA = [];
-            results.forEach(res => {
-                const workbook = XLSX.read(res.buf, { type: 'array' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                // Important: header:1 reads array of arrays. We assume Row 2 is header (index 1)
-                const jsonData = XLSX.utils.sheet_to_json(sheet, { range: 1 }); // Skip first row "I-Assets..."
-                
-                const processed = jsonData.map(row => processRow(row, res.type));
-                ALL_DATA.push(...processed);
-            });
+    // 1. File Handling
+    async function handleFileSelect(input) {
+        const files = input.files;
+        if(files.length === 0) return;
 
-            initDashboard();
-            document.getElementById('statusMsg').className = 'status-badge b-good';
-            document.getElementById('statusMsg').textContent = 'تم تحميل البيانات';
-            document.getElementById('emptyState').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
+        const fileListDisplay = document.getElementById('fileList');
+        fileListDisplay.innerHTML = 'جاري المعالجة...';
+        
+        ALL_DATA = [];
+        
+        try {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                // Guess type from filename
+                let type = 'CM'; // default
+                if (file.name.toUpperCase().includes('PPM')) type = 'PPM';
+                
+                const buffer = await file.arrayBuffer();
+                const workbook = XLSX.read(buffer, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // IMPORTANT: Range:1 to skip the first row (Title row)
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { range: 1 });
+                
+                const processed = jsonData.map(row => processRow(row, type));
+                ALL_DATA.push(...processed);
+            }
+
+            if(ALL_DATA.length > 0) {
+                document.getElementById('uploadSection').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                initDashboard();
+            } else {
+                fileListDisplay.innerHTML = '<span style="color:red">لم يتم العثور على بيانات صالحة في الملفات</span>';
+            }
 
         } catch (err) {
             console.error(err);
-            document.getElementById('statusMsg').className = 'status-badge b-bad';
-            document.getElementById('statusMsg').textContent = 'خطأ في تحميل الملفات';
+            fileListDisplay.innerHTML = '<span style="color:red">حدث خطأ أثناء قراءة الملفات. تأكد أنها ملفات Excel صالحة.</span>';
         }
-    });
+    }
 
-    // 2. Process Row (Map Columns)
+    // 2. Data Processing
     function processRow(row, type) {
-        // Map based on user provided columns
-        const status = (row['Status'] || '').trim();
+        // Safe access to keys (Handle case sensitivity slightly)
+        const getK = (k) => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
+        
+        const status = String(getK('Status')).trim();
+        // Check "Signed Off" strictly
         const isClosed = status.toLowerCase() === 'signed off';
         
         // Parse Dates
-        // Fail Date: YYYY-MM-DD HH:MM:SS
-        const dFail = parseDate(row['Fail Date']); 
-        // Start Date: DD-MM-YYYY
-        const dStart = parseDate(row['start date']);
-        // End Date: DD-MM-YYYY HH:MM or similar
-        const dEnd = isClosed ? parseDate(row['sign off date']) : null;
+        // Try 'Fail Date' first, then 'fail date'
+        const dFail = parseDate(row['Fail Date'] || row['fail date']); 
+        const dStart = parseDate(row['start date'] || row['Start Date']);
+        // Only parse End Date if closed
+        const dEnd = isClosed ? parseDate(row['sign off date'] || row['Completion Date']) : null;
 
-        // Calc metrics
         let resp = null, fix = null;
-        if(dFail && dStart) resp = Math.max(0, (dStart - dFail)/(1000*60*60*24));
-        if(dStart && dEnd) fix = Math.max(0, (dEnd - dStart)/(1000*60*60*24));
+        // Calculation Logic
+        if(dFail && dStart) {
+            const diff = (dStart - dFail)/(1000*60*60*24);
+            resp = diff > 0 ? diff : 0;
+        }
+        if(dStart && dEnd) {
+            const diff = (dEnd - dStart)/(1000*60*60*24);
+            fix = diff > 0 ? diff : 0;
+        }
 
         return {
-            id: row['Control No'],
-            type: type, // PPM or CM
-            manuf: row['Manufacturer'],
-            tech: row['Assigned To'] || 'Unassigned',
-            dept: row['Department'],
-            site: row['Site'] || 'Unknown',
+            id: getK('Control No') || getK('#'),
+            type: type, 
+            manuf: getK('Manufacturer'),
+            tech: getK('Assigned To') || 'Unassigned',
+            dept: getK('Department'),
+            site: getK('Site') || 'Unknown',
             status: status,
-            device: row['ECRI Code'],
-            serial: row['Serial number'],
+            device: getK('ECRI Code') || getK('Equipment Name'),
+            serial: getK('Serial number') || getK('Serial No'),
             isClosed: isClosed,
             dFail: dFail,
             resp: resp,
@@ -302,44 +330,46 @@
         };
     }
 
-    // Helper: Flexible Date Parser
     function parseDate(val) {
         if(!val) return null;
         const str = String(val).trim();
+        if(str === '-' || str === '') return null;
         
-        // Check for YYYY-MM-DD (Excel ISO)
+        // Strategy A: ISO (YYYY-MM-DD...)
         if(str.match(/^\d{4}-\d{2}-\d{2}/)) {
             return new Date(str);
         }
         
-        // Check for DD-MM-YYYY
-        const parts = str.split(/[\/\-\s]/);
+        // Strategy B: DD-MM-YYYY (Common in regions)
+        // Check for space (timestamp) split
+        let datePart = str.split(' ')[0]; 
+        const parts = datePart.split(/[\/\-\.]/);
+        
         if(parts.length >= 3) {
-            // Assume parts[0]=DD, parts[1]=MM, parts[2]=YYYY
-            // Note: If year is first (YYYY-MM-DD), logic needs care.
-            // Based on user sample: start date is 30-01-2026 -> DD-MM-YYYY
-            const d = parseInt(parts[0]);
-            const m = parseInt(parts[1]) - 1;
-            const y = parseInt(parts[2]);
-            if(!isNaN(d) && !isNaN(m) && !isNaN(y)) {
-                // simple check if year is first
-                if (d > 2000) return new Date(d, m, y); // actually YYYY, MM, DD
-                return new Date(y, m, d);
-            }
+            // Check logic: if first part > 1900, it's YYYY-MM-DD, else DD-MM-YYYY
+            const p0 = parseInt(parts[0]);
+            const p1 = parseInt(parts[1]) - 1; // Month is 0-indexed
+            const p2 = parseInt(parts[2]);
+            
+            if(p0 > 1900) return new Date(p0, p1, p2); // YYYY, MM, DD
+            return new Date(p2, p1, p0); // YYYY, MM, DD
         }
         return null;
     }
 
-    // 3. Logic & UI
+    // 3. UI Logic
     function initDashboard() {
-        // Populate Site Filter
+        // Fill Site Filter
         const sites = [...new Set(ALL_DATA.map(d => d.site))].sort();
         const sel = document.getElementById('siteFilter');
+        sel.innerHTML = '<option value="All">-- كل المواقع --</option>';
         sites.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s;
-            opt.innerText = s;
-            sel.appendChild(opt);
+            if(s) {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.innerText = s;
+                sel.appendChild(opt);
+            }
         });
 
         sel.addEventListener('change', updateUI);
@@ -355,51 +385,56 @@
     function updateUI() {
         const siteVal = document.getElementById('siteFilter').value;
         
-        // Filter Data
+        // Filter
         const data = ALL_DATA.filter(d => {
             if(CURRENT_MODE !== 'All' && d.type !== CURRENT_MODE) return false;
             if(siteVal !== 'All' && d.site !== siteVal) return false;
             return true;
         });
 
-        // Calc KPIs
+        // KPIs
         const total = data.length;
         const closed = data.filter(d => d.isClosed).length;
         const open = total - closed;
         const rate = total ? Math.round((closed/total)*100) : 0;
         
-        // Metrics (CM Only mostly)
-        const cmData = data.filter(d => d.type === 'CM' && d.isClosed);
-        const avgResp = cmData.length ? (cmData.reduce((a,b)=>a+(b.resp||0),0)/cmData.length).toFixed(1) : '-';
-        const avgFix = cmData.length ? (cmData.reduce((a,b)=>a+(b.fix||0),0)/cmData.length).toFixed(1) : '-';
+        // Metrics (Avg)
+        const closedItems = data.filter(d => d.isClosed && d.type === 'CM');
+        let avgResp = 0, avgFix = 0;
+        if(closedItems.length > 0) {
+            const sumResp = closedItems.reduce((a,b) => a + (b.resp||0), 0);
+            const sumFix = closedItems.reduce((a,b) => a + (b.fix||0), 0);
+            avgResp = (sumResp / closedItems.length).toFixed(1);
+            avgFix = (sumFix / closedItems.length).toFixed(1);
+        }
 
-        // Update Cards
+        // DOM Update
         document.getElementById('val-total').innerText = total;
         document.getElementById('val-closed').innerText = closed;
         document.getElementById('val-open').innerText = open;
         document.getElementById('val-rate').innerText = rate + '%';
-        document.getElementById('val-resp').innerText = avgResp;
-        document.getElementById('val-fix').innerText = avgFix;
-
-        // Toggle Visibility
+        
+        // Hide CM metrics if PPM mode
         const isPPM = (CURRENT_MODE === 'PPM');
         document.querySelectorAll('.cm-metric').forEach(el => el.style.display = isPPM ? 'none' : 'flex');
         document.querySelectorAll('.cm-col').forEach(el => el.style.display = isPPM ? 'none' : 'table-cell');
+        
+        if(!isPPM) {
+            document.getElementById('val-resp').innerText = avgResp;
+            document.getElementById('val-fix').innerText = avgFix;
+        }
 
-        // Render Tables
         renderSiteTable(data, isPPM);
         renderTechTable(data);
         renderDetailsTable(data);
-        
-        // Render Charts
         renderCharts(data, rate, isPPM);
     }
 
     function renderSiteTable(data, isPPM) {
         const tb = document.querySelector('#tableSites tbody');
         tb.innerHTML = '';
-        
         const groups = {};
+        
         data.forEach(d => {
             if(!groups[d.site]) groups[d.site] = { t:0, c:0, fixSum:0, fixCnt:0 };
             groups[d.site].t++;
@@ -409,20 +444,19 @@
             }
         });
 
-        Object.entries(groups).sort((a,b) => b[1].t - a[1].t).forEach(([site, g]) => {
+        const arr = Object.entries(groups).sort((a,b) => b[1].t - a[1].t);
+        arr.forEach(([site, g]) => {
             const pct = g.t ? Math.round((g.c/g.t)*100) : 0;
             const mttr = g.fixCnt ? (g.fixSum/g.fixCnt).toFixed(1) : '-';
             
             let html = `<tr>
                 <td>${site}</td>
                 <td>${g.t}</td>
-                <td class="text-success">${g.c}</td>
-                <td class="text-danger" style="font-weight:bold">${g.t - g.c}</td>
-                <td><span class="badge ${pct>=90?'b-good':(pct>50?'b-warn':'b-bad')}">${pct}%</span></td>`;
-            
+                <td style="color:#166534">${g.c}</td>
+                <td style="color:${(g.t-g.c)>0?'#991b1b':'#64748b'}">${g.t - g.c}</td>
+                <td><span class="badge ${pct>85?'b-good':(pct>50?'b-warn':'b-bad')}">${pct}%</span></td>`;
             if(!isPPM) html += `<td>${mttr}</td>`;
             html += `</tr>`;
-            
             tb.insertAdjacentHTML('beforeend', html);
         });
     }
@@ -430,7 +464,6 @@
     function renderTechTable(data) {
         const tb = document.querySelector('#tableTechs tbody');
         tb.innerHTML = '';
-        
         const groups = {};
         data.forEach(d => {
             if(!groups[d.tech]) groups[d.tech] = { t:0, c:0 };
@@ -444,7 +477,7 @@
                 <td>${tech}</td>
                 <td>${g.t}</td>
                 <td>${g.c}</td>
-                <td style="color:${g.t-g.c > 0 ? 'red':''}">${g.t - g.c}</td>
+                <td style="color:${(g.t-g.c)>0?'#ef4444':'inherit'}">${g.t - g.c}</td>
                 <td>${pct}%</td>
             </tr>`);
         });
@@ -453,16 +486,22 @@
     function renderDetailsTable(data) {
         const tb = document.querySelector('#tableDetails tbody');
         tb.innerHTML = '';
-        // Show open orders first, then latest closed
-        const sorted = [...data].sort((a,b) => (a.isClosed === b.isClosed) ? 0 : a.isClosed ? 1 : -1);
-        
+        // Show Open items first
+        const sorted = [...data].sort((a,b) => {
+            if (a.isClosed === b.isClosed) return 0;
+            return a.isClosed ? 1 : -1;
+        });
+
         sorted.slice(0, 100).forEach(d => {
+            const dateStr = d.dFail ? d.dFail.toISOString().split('T')[0] : '-';
+            const badge = d.type==='PPM' ? 'b-good' : 'b-bad';
+            
             tb.insertAdjacentHTML('beforeend', `<tr>
                 <td>${d.id}</td>
-                <td>${d.dFail ? d.dFail.toLocaleDateString() : '-'}</td>
-                <td><span class="badge ${d.type==='PPM'?'b-good':'b-bad'}">${d.type}</span></td>
+                <td>${dateStr}</td>
+                <td><span class="badge ${badge}">${d.type}</span></td>
                 <td>${d.site}</td>
-                <td title="${d.device}">${d.device ? d.device.substring(0,30) : ''}</td>
+                <td title="${d.device}">${d.device.substring(0,25)}</td>
                 <td>${d.tech}</td>
                 <td>${d.status}</td>
             </tr>`);
@@ -470,38 +509,41 @@
     }
 
     function renderCharts(data, rate, isPPM) {
-        // 1. Status Donut
-        const ctxStat = document.getElementById('chartStatus');
+        // Donut
+        const ctxS = document.getElementById('chartStatus');
         if(CHARTS.status) CHARTS.status.destroy();
-        CHARTS.status = new Chart(ctxStat, {
+        CHARTS.status = new Chart(ctxS, {
             type: 'doughnut',
             data: {
                 labels: ['منجز', 'مفتوح'],
-                datasets: [{ data: [rate, 100-rate], backgroundColor: ['#10b981', '#f1f5f9'] }]
+                datasets: [{ 
+                    data: [rate, 100-rate], 
+                    backgroundColor: ['#10b981', '#f1f5f9'],
+                    borderWidth: 0
+                }]
             },
-            options: { cutout: '60%', plugins: { legend: { position: 'bottom' } } }
+            options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
         });
 
-        // 2. Sites Bar
-        const ctxSites = document.getElementById('chartSites');
+        // Bar (Sites)
+        const ctxB = document.getElementById('chartSites');
         if(CHARTS.sites) CHARTS.sites.destroy();
+        const counts = {};
+        data.forEach(d => counts[d.site] = (counts[d.site]||0)+1);
+        const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
         
-        const siteCounts = {};
-        data.forEach(d => siteCounts[d.site] = (siteCounts[d.site]||0)+1);
-        const sorted = Object.entries(siteCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
-
-        CHARTS.sites = new Chart(ctxSites, {
+        CHARTS.sites = new Chart(ctxB, {
             type: 'bar',
             data: {
                 labels: sorted.map(x=>x[0]),
-                datasets: [{ 
-                    label: 'عدد الأوامر', 
+                datasets: [{
+                    label: 'عدد الأوامر',
                     data: sorted.map(x=>x[1]),
                     backgroundColor: isPPM ? '#10b981' : '#3b82f6',
-                    borderRadius: 4
+                    borderRadius: 5
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { maintainAspectRatio: false }
         });
     }
 </script>
