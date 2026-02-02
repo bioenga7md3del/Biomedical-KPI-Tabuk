@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>مؤشرات الصيانة الطبية - يناير 2026 (V5)</title>
+    <title>مؤشرات الصيانة الطبية - يناير 2026 (V5.1)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -55,11 +55,11 @@
 
         /* Panels */
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 2rem; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; }
         .panel-title { font-size: 1.1rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.6rem; }
         
-        .table-wrap { overflow-x: auto; max-height: 500px; } /* Increased height */
+        .table-wrap { overflow-x: auto; max-height: 500px; } 
         table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
         th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
         td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
@@ -167,49 +167,47 @@
             </div>
         </div>
 
-        <div class="grid-2">
-            <div class="panel">
-                <div class="panel-header"><div class="panel-title"><i class="fas fa-hospital"></i> تقييم المواقع (Sites Performance)</div></div>
-                <div class="table-wrap">
-                    <table id="siteTable">
-                        <thead>
-                            <tr>
-                                <th>الموقع</th>
-                                <th>الإجمالي</th>
-                                <th>منجز</th>
-                                <th>مفتوح</th>
-                                <th>%</th>
-                                <th class="cm-col">Avg Resp</th>
-                                <th class="cm-col">Avg Repair</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header"><div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين (Technicians)</div></div>
-                <div class="table-wrap" style="max-height: 500px;">
-                    <table id="techTable">
-                        <thead>
-                            <tr>
-                                <th>الفني</th>
-                                <th>Total</th>
-                                <th>Done</th>
-                                <th>Open</th>
-                                <th>%</th>
-                                <th class="cm-col">Avg Resp</th>
-                                <th class="cm-col">Avg Repair</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+        <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="fas fa-hospital"></i> تقييم المواقع (Sites Performance)</div></div>
+            <div class="table-wrap">
+                <table id="siteTable">
+                    <thead>
+                        <tr>
+                            <th>الموقع</th>
+                            <th>الإجمالي</th>
+                            <th>منجز</th>
+                            <th>مفتوح</th>
+                            <th>%</th>
+                            <th class="cm-col">Avg Resp</th>
+                            <th class="cm-col">Avg Repair</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
 
-        <div class="panel cm-kpi" style="margin-bottom:2rem">
+        <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين (Technicians)</div></div>
+            <div class="table-wrap">
+                <table id="techTable">
+                    <thead>
+                        <tr>
+                            <th>الفني</th>
+                            <th>Total</th>
+                            <th>Done</th>
+                            <th>Open</th>
+                            <th>%</th>
+                            <th class="cm-col">Avg Resp</th>
+                            <th class="cm-col">Avg Repair</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel cm-kpi">
             <div class="panel-header">
                 <div class="panel-title" style="color:var(--cm-color)">
                     <i class="fas fa-exclamation-triangle"></i> سجل الأجهزة المتكررة (Lemons - by Serial)
@@ -352,18 +350,15 @@
             return true;
         });
 
-        // Basic KPI
         const total = data.length;
         const open = data.filter(x => x.isOpen).length;
         const closed = total - open;
         const rate = total ? Math.round((closed/total)*100) : 0;
 
-        // Averages (CM Only)
         const cmClosed = data.filter(x => x.type === 'CM' && !x.isOpen);
         const avgResp = cmClosed.length ? (cmClosed.reduce((a,b)=>a+b.resp,0)/cmClosed.length).toFixed(1) : '-';
         const avgFix = cmClosed.length ? (cmClosed.reduce((a,b)=>a+b.fix,0)/cmClosed.length).toFixed(1) : '-';
 
-        // DOM Update
         document.getElementById('kpi-total').textContent = total;
         document.getElementById('kpi-open').textContent = open;
         document.getElementById('kpi-closed-num').textContent = closed;
@@ -378,9 +373,8 @@
         }
         document.getElementById('lbl-rate').textContent = isPPM ? 'نسبة الالتزام' : 'نسبة الإنجاز';
 
-        // Render Functions
         renderCharts(data, rate, isPPM, siteVal);
-        renderDeviceChart(data, isPPM); // New Chart
+        renderDeviceChart(data, isPPM);
         renderSiteTable(data, isPPM);
         renderTechTable(data, isPPM); 
         renderLemonTable(data, isPPM);
@@ -388,7 +382,6 @@
     }
 
     function renderCharts(data, rate, isPPM, siteVal) {
-        // Main Bar Chart
         const ctxM = document.getElementById('chartMain').getContext('2d');
         if(charts.m) charts.m.destroy();
         
@@ -414,16 +407,15 @@
         });
     }
 
-    // NEW: Device Chart (Doughnut)
     function renderDeviceChart(data, isPPM) {
         const ctx = document.getElementById('chartDevices').getContext('2d');
         if(charts.dev) charts.dev.destroy();
 
-        if(isPPM) return; // Hide or show empty if PPM
+        if(isPPM) return; 
 
         const grp = {};
         data.filter(r => r.type === 'CM').forEach(r => {
-            let name = r.device.split('(')[0].trim(); // Clean name
+            let name = r.device.split('(')[0].trim(); 
             grp[name] = (grp[name] || 0) + 1;
         });
 
@@ -462,7 +454,6 @@
             }
         });
 
-        // Sort by Total
         Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
             const p = v.t ? Math.round((v.c/v.t)*100) : 0;
             const avgR = v.cmCount ? (v.respSum/v.cmCount).toFixed(1) : '-';
@@ -475,7 +466,6 @@
                 <td><span class="badge ${p>85?'b-ppm':'b-cm'}">${p}%</span></td>`;
             
             if(!isPPM) {
-                // Formatting
                 const rClass = (avgR > 1 && avgR !== '-') ? 'val-danger' : 'val-good';
                 const fClass = (avgF > 5 && avgF !== '-') ? 'val-danger' : 'val-good';
                 html += `<td><span class="${rClass}">${avgR}</span></td><td><span class="${fClass}">${avgF}</span></td>`;
@@ -517,7 +507,6 @@
                 <td>${p}%</td>`;
             
             if(!isPPM) {
-                // Red if Resp > 1, Fix > 5
                 const rClass = (avgR > 1 && avgR !== '-') ? 'val-danger' : '';
                 const fClass = (avgF > 5 && avgF !== '-') ? 'val-danger' : '';
                 html += `<td><span class="${rClass}">${avgR}</span></td><td><span class="${fClass}">${avgF}</span></td>`;
