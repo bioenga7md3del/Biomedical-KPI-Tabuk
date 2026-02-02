@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تقرير الصيانة الطبية - يناير 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #fff; color: #000; padding: 20px; }
+        .page { max-width: 210mm; margin: 0 auto; border: 1px solid #ddd; padding: 40px; min-height: 297mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; }
+        .h-logo { height: 60px; }
+        .h-title h1 { font-size: 1.8rem; margin: 0; color: #1e3a8a; }
+        .h-title p { margin: 5px 0 0; color: #666; }
+        
+        /* Summary KPIs */
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .kpi-box { border: 1px solid #ccc; padding: 15px; text-align: center; border-radius: 8px; }
+        .kpi-num { font-size: 2rem; font-weight: bold; color: #1e3a8a; display: block; }
+        .kpi-txt { font-size: 0.9rem; color: #555; }
+
+        /* Tables */
+        h2 { font-size: 1.2rem; border-right: 5px solid #1e3a8a; padding-right: 10px; margin-top: 30px; margin-bottom: 15px; background: #f8fafc; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background: #1e3a8a; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
+
+        .footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+
+        /* Print Settings */
+        @media print {
+            body { padding: 0; background: #fff; }
+            .page { border: none; box-shadow: none; margin: 0; padding: 0; width: 100%; }
+            .no-print { display: none; }
+            button { display: none; }
+            .page-break { page-break-before: always; }
+        }
+
+        .btn-print { position: fixed; top: 20px; left: 20px; padding: 10px 20px; background: #1e3a8a; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<button class="btn-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+
+<div class="page">
+    <div class="header">
+        <div class="h-title">
+            <h1>تقرير الأداء الفني</h1>
+            <p id="reportMeta">يناير 2026</p>
+        </div>
+        <img src="TabukCluster.jpeg" class="h-logo" alt="Logo">
+    </div>
+
+    <div class="summary-grid">
+        <div class="kpi-box">
+            <span class="kpi-num" id="r-total">0</span>
+            <span class="kpi-txt">إجمالي الأوامر</span>
+        </div>
+        <div class="kpi-box">
+            <span class="kpi-num" id="r-closed" style="color:#16a34a">0</span>
+            <span class="kpi-txt">تم الإنجاز</span>
+        </div>
+        <div class="kpi-box">
+            <span class="kpi-num" id="r-rate">0%</span>
+            <span class="kpi-txt">نسبة الإنجاز</span>
+        </div>
+        <div class="kpi-box">
+            <span class="kpi-num" id="r-open" style="color:#dc2626">0</span>
+            <span class="kpi-txt">أوامر مفتوحة</span>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:20px; height:250px; margin-bottom:30px">
+        <div style="flex:1; border:1px solid #eee; padding:10px">
+            <canvas id="chart1"></canvas>
+        </div>
+        <div style="flex:1; border:1px solid #eee; padding:10px; display:flex; justify-content:center">
+            <canvas id="chart2"></canvas>
+        </div>
+    </div>
+
+    <h2>أداء المواقع (Sites Performance)</h2>
+    <table id="tblSites">
+        <thead>
+            <tr>
+                <th>الموقع</th><th>الإجمالي</th><th>منجز</th><th>مفتوح</th><th>النسبة</th><th>Avg Resp</th><th>Avg Fix</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="page-break"></div> <div class="header" style="margin-top:30px">
+        <div class="h-title"><h1>تابع: تقرير الأداء الفني</h1></div>
+    </div>
+
+    <h2>أداء الفنيين (Technicians Performance)</h2>
+    <table id="tblTechs">
+        <thead>
+            <tr>
+                <th>الفني</th><th>الإجمالي</th><th>منجز</th><th>مفتوح</th><th>النسبة</th><th>Avg Resp</th><th>Avg Fix</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="footer">
+        تم إنشاء هذا التقرير آلياً بواسطة نظام لوحة مؤشرات الصيانة الطبية - تجمع تبوك الصحي
+        <br>التاريخ: <span id="printDate"></span>
+    </div>
+</div>
+
+<script>
+    window.onload = function() {
+        const rawData = sessionStorage.getItem('REPORT_DATA');
+        const metaStr = sessionStorage.getItem('REPORT_META');
+        
+        if(!rawData) {
+            document.body.innerHTML = '<h1 style="text-align:center; margin-top:50px">لا توجد بيانات للعرض. يرجى العودة للوحة الرئيسية.</h1>';
+            return;
+        }
+
+        const data = JSON.parse(rawData);
+        const meta = JSON.parse(metaStr);
+
+        // Set Headers
+        document.getElementById('reportMeta').innerText = `${meta.date} • تصنيف: ${meta.mode} • موقع: ${meta.site}`;
+        document.getElementById('printDate').innerText = new Date().toLocaleDateString('ar-SA');
+
+        // Calc KPIs
+        const total = data.length;
+        const open = data.filter(x => x.isOpen).length;
+        const closed = total - open;
+        const rate = total ? Math.round((closed/total)*100) : 0;
+
+        document.getElementById('r-total').innerText = total;
+        document.getElementById('r-closed').innerText = closed;
+        document.getElementById('r-open').innerText = open;
+        document.getElementById('r-rate').innerText = rate + '%';
+
+        // Render Tables
+        renderSiteTable(data, meta.mode === 'PPM');
+        renderTechTable(data, meta.mode === 'PPM');
+
+        // Render Charts
+        renderCharts(data, rate);
+    };
+
+    function renderSiteTable(data, isPPM) {
+        const tb = document.querySelector('#tblSites tbody');
+        const grp = {};
+        data.forEach(r => {
+            if(!grp[r.site]) grp[r.site] = {t:0, c:0, o:0, rS:0, fS:0, cnt:0};
+            grp[r.site].t++;
+            if(r.isOpen) grp[r.site].o++; else grp[r.site].c++;
+            if(!isPPM && r.type==='CM' && !r.isOpen) {
+                grp[r.site].rS += r.resp; grp[r.site].fS += r.fix; grp[r.site].cnt++;
+            }
+        });
+
+        Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
+            const p = v.t ? Math.round((v.c/v.t)*100) : 0;
+            const ar = v.cnt ? (v.rS/v.cnt).toFixed(1) : '-';
+            const af = v.cnt ? (v.fS/v.cnt).toFixed(1) : '-';
+            tb.insertAdjacentHTML('beforeend', `<tr><td>${k}</td><td>${v.t}</td><td>${v.c}</td><td>${v.o}</td><td>${p}%</td><td>${ar}</td><td>${af}</td></tr>`);
+        });
+    }
+
+    function renderTechTable(data, isPPM) {
+        const tb = document.querySelector('#tblTechs tbody');
+        const grp = {};
+        data.forEach(r => {
+            const t = r.tech;
+            if(!grp[t]) grp[t] = {t:0, c:0, o:0, rS:0, fS:0, cnt:0};
+            grp[t].t++;
+            if(r.isOpen) grp[t].o++; else grp[t].c++;
+            if(!isPPM && r.type==='CM' && !r.isOpen) {
+                grp[t].rS += r.resp; grp[t].fS += r.fix; grp[t].cnt++;
+            }
+        });
+
+        Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
+            const p = v.t ? Math.round((v.c/v.t)*100) : 0;
+            const ar = v.cnt ? (v.rS/v.cnt).toFixed(1) : '-';
+            const af = v.cnt ? (v.fS/v.cnt).toFixed(1) : '-';
+            tb.insertAdjacentHTML('beforeend', `<tr><td>${k}</td><td>${v.t}</td><td>${v.c}</td><td>${v.o}</td><td>${p}%</td><td>${ar}</td><td>${af}</td></tr>`);
+        });
+    }
+
+    function renderCharts(data, rate) {
+        // Chart 1: Status
+        new Chart(document.getElementById('chart2'), {
+            type: 'doughnut',
+            data: { labels: ['منجز', 'مفتوح'], datasets: [{ data: [rate, 100-rate], backgroundColor: ['#16a34a', '#ddd'] }] },
+            options: { plugins: { legend: { position: 'bottom' } } }
+        });
+
+        // Chart 2: Top Sites
+        const counts = {};
+        data.forEach(r => counts[r.site] = (counts[r.site]||0)+1);
+        const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0, 10);
+        
+        new Chart(document.getElementById('chart1'), {
+            type: 'bar',
+            data: { labels: sorted.map(x=>x[0]), datasets: [{ label: 'الأكثر طلباً', data: sorted.map(x=>x[1]), backgroundColor: '#1e3a8a' }] },
+            options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+        });
+    }
+</script>
+
+</body>
+</html>
