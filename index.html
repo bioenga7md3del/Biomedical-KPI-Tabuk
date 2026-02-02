@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>لوحة مؤشرات الصيانة الطبية (V5 - Manual Load)</title>
+    <title>لوحة مؤشرات الصيانة الطبية (V6 - GitHub Sync)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -21,31 +21,18 @@
         
         /* Header */
         .header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-        .logo-img { height: 70px; object-fit: contain; } 
+        .logo-img { height: 75px; object-fit: contain; } 
         .header-titles h1 { margin: 0; font-size: 1.6rem; color: var(--primary); font-weight: 800; }
         .header-titles p { margin: 5px 0 0; font-size: 0.9rem; color: var(--secondary); font-weight: 600; }
         
-        /* Upload Area */
-        .upload-area {
-            background: white; border: 2px dashed #cbd5e1; border-radius: 1rem;
-            padding: 3rem; text-align: center; margin: 2rem auto; max-width: 600px;
-            transition: 0.3s; cursor: pointer;
-        }
-        .upload-area:hover { border-color: var(--primary); background: #f0f9ff; }
-        .upload-btn {
-            background: var(--primary); color: white; padding: 10px 25px; 
-            border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 15px;
-        }
-        
-        /* Controls */
-        .controls-card { background: var(--surface); padding: 1rem; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; border: 1px solid #cbd5e1; }
-        .form-select { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: 'Tajawal'; min-width: 200px; }
-        .mode-tabs { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; gap: 4px; }
-        .mode-tab { padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 700; color: #64748b; border: 1px solid transparent; }
-        .mode-tab.active { background: white; color: var(--text); border-color: #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .mode-tab.active[data-mode="All"] { color: var(--all-color); border-bottom: 3px solid var(--all-color); }
-        .mode-tab.active[data-mode="CM"] { color: var(--cm-color); border-bottom: 3px solid var(--cm-color); }
-        .mode-tab.active[data-mode="PPM"] { color: var(--ppm-color); border-bottom: 3px solid var(--ppm-color); }
+        /* Status Badge */
+        .status-badge { padding: 8px 16px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .st-load { background: #e0f2fe; color: #0284c7; }
+        .st-ok { background: #dcfce7; color: #166534; }
+        .st-err { background: #fee2e2; color: #991b1b; }
+
+        /* Container */
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
 
         /* KPI Cards */
         .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -54,27 +41,34 @@
         .kpi-label { font-size: 0.9rem; color: var(--secondary); font-weight: 700; }
         .kpi-sub { font-size: 0.8rem; color: #94a3b8; margin-top: auto; }
 
-        /* Tables & Charts */
-        .container { max-width: 1400px; margin: 0 auto; padding: 0 1.5rem; }
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; }
-        .panel-title { font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px; }
+        /* Controls */
+        .controls-card { background: var(--surface); padding: 1rem; border-radius: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; border: 1px solid #cbd5e1; align-items: flex-end; }
+        .control-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .form-select { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: 'Tajawal'; min-width: 200px; }
+        
+        .mode-tabs { display: flex; background: #f1f5f9; padding: 4px; border-radius: 8px; gap: 4px; }
+        .mode-tab { padding: 0.5rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 700; color: #64748b; border: 1px solid transparent; }
+        .mode-tab.active { background: white; color: var(--text); border-color: #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .mode-tab.active[data-mode="All"] { color: var(--all-color); border-bottom: 3px solid var(--all-color); }
+        .mode-tab.active[data-mode="CM"] { color: var(--cm-color); border-bottom: 3px solid var(--cm-color); }
+        .mode-tab.active[data-mode="PPM"] { color: var(--ppm-color); border-bottom: 3px solid var(--ppm-color); }
 
+        /* Tables & Layout */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; height: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; flex-direction: column; }
+        .panel-header { margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px; }
+        
         .table-wrap { overflow-x: auto; max-height: 400px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; white-space: nowrap; }
-        th { text-align: right; padding: 0.8rem; background: #f8fafc; color: #475569; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
+        th { text-align: right; padding: 0.8rem; background: #f8fafc; color: #475569; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #e2e8f0; }
         td { padding: 0.7rem 0.8rem; border-bottom: 1px solid #f1f5f9; }
         tr:hover { background: #f8fafc; }
-        
+
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
         .b-good { background: #dcfce7; color: #166534; }
         .b-bad { background: #fee2e2; color: #991b1b; }
         .b-warn { background: #ffedd5; color: #9a3412; }
-
-        /* Helpers */
         .hidden { display: none !important; }
-        .file-list { margin-top: 10px; font-size: 0.9rem; color: #64748b; }
     </style>
 </head>
 <body>
@@ -84,30 +78,15 @@
         <img src="TabukCluster.jpeg" alt="Logo" class="logo-img" onerror="this.style.display='none'"/>
         <div class="header-titles">
             <h1>لوحة مؤشرات الصيانة الطبية</h1>
-            <p>Tabuk Health Cluster • Medical Maintenance</p>
+            <p>GitHub Auto-Sync Dashboard • Tabuk Cluster</p>
         </div>
     </div>
-    <div>
-        <button onclick="document.getElementById('fileInput').click()" style="background:#e2e8f0; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer">
-            <i class="fas fa-sync"></i> تغيير الملفات
-        </button>
+    <div id="statusBadge" class="status-badge st-load">
+        <i class="fas fa-satellite-dish fa-spin"></i> جاري الاتصال بـ GitHub...
     </div>
 </header>
 
 <div class="container">
-    
-    <div id="uploadSection" class="upload-area">
-        <i class="fas fa-file-excel" style="font-size:3rem; color:#cbd5e1; margin-bottom:1rem"></i>
-        <h3>مرحباً! يرجى تحميل ملفات البيانات</h3>
-        <p style="color:#64748b">قم باختيار ملفي <b>PPM.xlsx</b> و <b>CM.xlsx</b> معاً</p>
-        
-        <div class="upload-btn" onclick="document.getElementById('fileInput').click()">
-            <i class="fas fa-upload"></i> اختر ملفات البيانات
-        </div>
-        <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(this)">
-        <div id="fileList" class="file-list"></div>
-    </div>
-
     <div id="dashboard" style="display:none">
         
         <div class="controls-card">
@@ -158,24 +137,18 @@
 
         <div class="grid-2">
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title"><i class="fas fa-chart-bar"></i> تحليل الأوامر حسب الموقع</div>
-                </div>
+                <div class="panel-header"><i class="fas fa-chart-bar"></i> تحليل الأوامر حسب الموقع</div>
                 <div style="height:300px"><canvas id="chartSites"></canvas></div>
             </div>
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title"><i class="fas fa-chart-pie"></i> حالة الأوامر</div>
-                </div>
+                <div class="panel-header"><i class="fas fa-chart-pie"></i> حالة الأوامر</div>
                 <div style="height:300px; display:flex; justify-content:center"><canvas id="chartStatus"></canvas></div>
             </div>
         </div>
 
         <div class="grid-2">
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title"><i class="fas fa-hospital"></i> جدول مقارنة المواقع</div>
-                </div>
+                <div class="panel-header"><i class="fas fa-hospital"></i> جدول مقارنة المواقع</div>
                 <div class="table-wrap">
                     <table id="tableSites">
                         <thead>
@@ -194,9 +167,7 @@
             </div>
 
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title"><i class="fas fa-user-md"></i> جدول أداء الفنيين</div>
-                </div>
+                <div class="panel-header"><i class="fas fa-user-md"></i> جدول أداء الفنيين</div>
                 <div class="table-wrap">
                     <table id="tableTechs">
                         <thead>
@@ -215,9 +186,7 @@
         </div>
 
         <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title"><i class="fas fa-list"></i> تفاصيل الأوامر المفتوحة</div>
-            </div>
+            <div class="panel-header"><i class="fas fa-list"></i> سجل الأوامر (آخر 100)</div>
             <div class="table-wrap">
                 <table id="tableDetails">
                     <thead>
@@ -235,94 +204,98 @@
                 </table>
             </div>
         </div>
-
     </div>
 </div>
 
 <script>
+    // ==========================================
+    //  CONFIGURATION (ضع روابط الملفات هنا)
+    // ==========================================
+    const CONFIG = {
+        // انسخ رابط Raw من جيت هاب وضعه هنا
+        // مثال: 'https://raw.githubusercontent.com/YourUser/RepoName/main/data/PPM.xlsx'
+        
+        PPM_URL: 'YOUR_PPM_RAW_LINK_HERE', 
+        CM_URL:  'YOUR_CM_RAW_LINK_HERE'
+    };
+
     let ALL_DATA = [];
     let CURRENT_MODE = 'All';
     let CHARTS = {};
 
-    // 1. File Handling
-    async function handleFileSelect(input) {
-        const files = input.files;
-        if(files.length === 0) return;
+    // 1. STARTUP SEQUENCE
+    window.addEventListener('DOMContentLoaded', async () => {
+        const badge = document.getElementById('statusBadge');
+        
+        // التحقق من استبدال الروابط
+        if(CONFIG.PPM_URL.includes('YOUR_') || CONFIG.CM_URL.includes('YOUR_')) {
+            badge.className = 'status-badge st-err';
+            badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> الرجاء تحديث الروابط في الكود';
+            alert("تنبيه: \nيجب عليك نسخ روابط الـ Raw من GitHub ووضعها في قسم CONFIG داخل الكود ليعمل بشكل صحيح.");
+            return;
+        }
 
-        const fileListDisplay = document.getElementById('fileList');
-        fileListDisplay.innerHTML = 'جاري المعالجة...';
-        
-        ALL_DATA = [];
-        
         try {
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                // Guess type from filename
-                let type = 'CM'; // default
-                if (file.name.toUpperCase().includes('PPM')) type = 'PPM';
-                
-                const buffer = await file.arrayBuffer();
-                const workbook = XLSX.read(buffer, { type: 'array' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                
-                // IMPORTANT: Range:1 to skip the first row (Title row)
-                const jsonData = XLSX.utils.sheet_to_json(sheet, { range: 1 });
-                
-                const processed = jsonData.map(row => processRow(row, type));
-                ALL_DATA.push(...processed);
-            }
-
-            if(ALL_DATA.length > 0) {
-                document.getElementById('uploadSection').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                initDashboard();
-            } else {
-                fileListDisplay.innerHTML = '<span style="color:red">لم يتم العثور على بيانات صالحة في الملفات</span>';
-            }
+            // جلب الملفين في نفس الوقت
+            const [ppmData, cmData] = await Promise.all([
+                fetchAndParse(CONFIG.PPM_URL, 'PPM'),
+                fetchAndParse(CONFIG.CM_URL, 'CM')
+            ]);
+            
+            ALL_DATA = [...ppmData, ...cmData];
+            
+            badge.className = 'status-badge st-ok';
+            badge.innerHTML = `<i class="fas fa-check-circle"></i> متصل (تم تحميل ${ALL_DATA.length} سجل)`;
+            
+            document.getElementById('dashboard').style.display = 'block';
+            initDashboard();
 
         } catch (err) {
             console.error(err);
-            fileListDisplay.innerHTML = '<span style="color:red">حدث خطأ أثناء قراءة الملفات. تأكد أنها ملفات Excel صالحة.</span>';
+            badge.className = 'status-badge st-err';
+            badge.innerHTML = '<i class="fas fa-wifi"></i> خطأ في الاتصال أو الملفات';
+            alert("فشل في تحميل البيانات.\nتأكد من:\n1. الروابط صحيحة (Raw Link).\n2. المستودع عام (Public).\n3. الإنترنت متصل.");
         }
+    });
+
+    // 2. DATA FETCHING & PARSING
+    async function fetchAndParse(url, type) {
+        const response = await fetch(url);
+        if(!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        // Skip Header Row (range:1)
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { range: 1 });
+        
+        return jsonData.map(row => processRow(row, type));
     }
 
-    // 2. Data Processing
     function processRow(row, type) {
-        // Safe access to keys (Handle case sensitivity slightly)
+        // Safe Key Access
         const getK = (k) => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
         
         const status = String(getK('Status')).trim();
-        // Check "Signed Off" strictly
         const isClosed = status.toLowerCase() === 'signed off';
         
-        // Parse Dates
-        // Try 'Fail Date' first, then 'fail date'
+        // Date Parsing Strategy
         const dFail = parseDate(row['Fail Date'] || row['fail date']); 
         const dStart = parseDate(row['start date'] || row['Start Date']);
-        // Only parse End Date if closed
         const dEnd = isClosed ? parseDate(row['sign off date'] || row['Completion Date']) : null;
 
+        // Metrics Calc
         let resp = null, fix = null;
-        // Calculation Logic
-        if(dFail && dStart) {
-            const diff = (dStart - dFail)/(1000*60*60*24);
-            resp = diff > 0 ? diff : 0;
-        }
-        if(dStart && dEnd) {
-            const diff = (dEnd - dStart)/(1000*60*60*24);
-            fix = diff > 0 ? diff : 0;
-        }
+        if(dFail && dStart) resp = Math.max(0, (dStart - dFail)/(1000*60*60*24));
+        if(dStart && dEnd) fix = Math.max(0, (dEnd - dStart)/(1000*60*60*24));
 
         return {
             id: getK('Control No') || getK('#'),
             type: type, 
-            manuf: getK('Manufacturer'),
             tech: getK('Assigned To') || 'Unassigned',
-            dept: getK('Department'),
             site: getK('Site') || 'Unknown',
             status: status,
             device: getK('ECRI Code') || getK('Equipment Name'),
-            serial: getK('Serial number') || getK('Serial No'),
             isClosed: isClosed,
             dFail: dFail,
             resp: resp,
@@ -333,220 +306,141 @@
     function parseDate(val) {
         if(!val) return null;
         const str = String(val).trim();
-        if(str === '-' || str === '') return null;
+        if(str==='-' || str==='') return null;
         
-        // Strategy A: ISO (YYYY-MM-DD...)
-        if(str.match(/^\d{4}-\d{2}-\d{2}/)) {
-            return new Date(str);
-        }
+        // ISO Format Check
+        if(str.match(/^\d{4}-\d{2}-\d{2}/)) return new Date(str);
         
-        // Strategy B: DD-MM-YYYY (Common in regions)
-        // Check for space (timestamp) split
-        let datePart = str.split(' ')[0]; 
-        const parts = datePart.split(/[\/\-\.]/);
-        
+        // DD-MM-YYYY Check
+        let dPart = str.split(' ')[0]; // Handle timestamp part if exists
+        const parts = dPart.split(/[\/\-\.]/);
         if(parts.length >= 3) {
-            // Check logic: if first part > 1900, it's YYYY-MM-DD, else DD-MM-YYYY
-            const p0 = parseInt(parts[0]);
-            const p1 = parseInt(parts[1]) - 1; // Month is 0-indexed
-            const p2 = parseInt(parts[2]);
-            
-            if(p0 > 1900) return new Date(p0, p1, p2); // YYYY, MM, DD
-            return new Date(p2, p1, p0); // YYYY, MM, DD
+            const p0=parseInt(parts[0]), p1=parseInt(parts[1])-1, p2=parseInt(parts[2]);
+            // Heuristic: If first part > 1900 -> YYYY-MM-DD, else DD-MM-YYYY
+            if(p0>1900) return new Date(p0,p1,p2);
+            return new Date(p2,p1,p0);
         }
         return null;
     }
 
-    // 3. UI Logic
+    // 3. UI LOGIC (KPIs & Charts)
     function initDashboard() {
-        // Fill Site Filter
         const sites = [...new Set(ALL_DATA.map(d => d.site))].sort();
         const sel = document.getElementById('siteFilter');
         sel.innerHTML = '<option value="All">-- كل المواقع --</option>';
         sites.forEach(s => {
-            if(s) {
-                const opt = document.createElement('option');
-                opt.value = s;
-                opt.innerText = s;
-                sel.appendChild(opt);
-            }
+            if(s) sel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`);
         });
-
         sel.addEventListener('change', updateUI);
         updateUI();
     }
 
-    function setMode(mode) {
-        CURRENT_MODE = mode;
-        document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    function setMode(m) {
+        CURRENT_MODE = m;
+        document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === m));
         updateUI();
     }
 
     function updateUI() {
         const siteVal = document.getElementById('siteFilter').value;
-        
-        // Filter
         const data = ALL_DATA.filter(d => {
-            if(CURRENT_MODE !== 'All' && d.type !== CURRENT_MODE) return false;
-            if(siteVal !== 'All' && d.site !== siteVal) return false;
+            if(CURRENT_MODE!=='All' && d.type!==CURRENT_MODE) return false;
+            if(siteVal!=='All' && d.site!==siteVal) return false;
             return true;
         });
 
-        // KPIs
+        // KPIs Logic
         const total = data.length;
         const closed = data.filter(d => d.isClosed).length;
         const open = total - closed;
         const rate = total ? Math.round((closed/total)*100) : 0;
         
-        // Metrics (Avg)
-        const closedItems = data.filter(d => d.isClosed && d.type === 'CM');
-        let avgResp = 0, avgFix = 0;
-        if(closedItems.length > 0) {
-            const sumResp = closedItems.reduce((a,b) => a + (b.resp||0), 0);
-            const sumFix = closedItems.reduce((a,b) => a + (b.fix||0), 0);
-            avgResp = (sumResp / closedItems.length).toFixed(1);
-            avgFix = (sumFix / closedItems.length).toFixed(1);
-        }
+        const cmClosed = data.filter(d => d.type==='CM' && d.isClosed);
+        const avgResp = cmClosed.length ? (cmClosed.reduce((a,b)=>a+(b.resp||0),0)/cmClosed.length).toFixed(1) : '-';
+        const avgFix = cmClosed.length ? (cmClosed.reduce((a,b)=>a+(b.fix||0),0)/cmClosed.length).toFixed(1) : '-';
 
-        // DOM Update
+        // Update DOM
         document.getElementById('val-total').innerText = total;
         document.getElementById('val-closed').innerText = closed;
         document.getElementById('val-open').innerText = open;
         document.getElementById('val-rate').innerText = rate + '%';
         
-        // Hide CM metrics if PPM mode
-        const isPPM = (CURRENT_MODE === 'PPM');
+        const isPPM = CURRENT_MODE==='PPM';
         document.querySelectorAll('.cm-metric').forEach(el => el.style.display = isPPM ? 'none' : 'flex');
         document.querySelectorAll('.cm-col').forEach(el => el.style.display = isPPM ? 'none' : 'table-cell');
-        
+
         if(!isPPM) {
             document.getElementById('val-resp').innerText = avgResp;
             document.getElementById('val-fix').innerText = avgFix;
         }
 
-        renderSiteTable(data, isPPM);
-        renderTechTable(data);
-        renderDetailsTable(data);
+        renderTables(data, isPPM);
         renderCharts(data, rate, isPPM);
     }
 
-    function renderSiteTable(data, isPPM) {
-        const tb = document.querySelector('#tableSites tbody');
-        tb.innerHTML = '';
-        const groups = {};
-        
+    function renderTables(data, isPPM) {
+        // Sites Table
+        const tbSite = document.querySelector('#tableSites tbody');
+        tbSite.innerHTML = '';
+        const grpS = {};
         data.forEach(d => {
-            if(!groups[d.site]) groups[d.site] = { t:0, c:0, fixSum:0, fixCnt:0 };
-            groups[d.site].t++;
+            if(!grpS[d.site]) grpS[d.site]={t:0,c:0,fixSum:0,fixCnt:0};
+            grpS[d.site].t++;
             if(d.isClosed) {
-                groups[d.site].c++;
-                if(d.fix !== null) { groups[d.site].fixSum += d.fix; groups[d.site].fixCnt++; }
+                grpS[d.site].c++;
+                if(d.fix!=null) { grpS[d.site].fixSum+=d.fix; grpS[d.site].fixCnt++; }
             }
         });
-
-        const arr = Object.entries(groups).sort((a,b) => b[1].t - a[1].t);
-        arr.forEach(([site, g]) => {
-            const pct = g.t ? Math.round((g.c/g.t)*100) : 0;
-            const mttr = g.fixCnt ? (g.fixSum/g.fixCnt).toFixed(1) : '-';
-            
-            let html = `<tr>
-                <td>${site}</td>
-                <td>${g.t}</td>
-                <td style="color:#166534">${g.c}</td>
-                <td style="color:${(g.t-g.c)>0?'#991b1b':'#64748b'}">${g.t - g.c}</td>
-                <td><span class="badge ${pct>85?'b-good':(pct>50?'b-warn':'b-bad')}">${pct}%</span></td>`;
-            if(!isPPM) html += `<td>${mttr}</td>`;
-            html += `</tr>`;
-            tb.insertAdjacentHTML('beforeend', html);
+        Object.entries(grpS).sort((a,b)=>b[1].t-a[1].t).forEach(([k,v])=>{
+            const p = v.t ? Math.round((v.c/v.t)*100) : 0;
+            const mttr = v.fixCnt ? (v.fixSum/v.fixCnt).toFixed(1) : '-';
+            let html = `<tr><td>${k}</td><td>${v.t}</td><td style="color:#166534">${v.c}</td><td style="color:${(v.t-v.c)>0?'#991b1b':'#64748b'}">${v.t-v.c}</td><td><span class="badge ${p>85?'b-good':(p>50?'b-warn':'b-bad')}">${p}%</span></td>`;
+            if(!isPPM) html+=`<td>${mttr}</td>`;
+            tbSite.insertAdjacentHTML('beforeend', html+'</tr>');
         });
-    }
 
-    function renderTechTable(data) {
-        const tb = document.querySelector('#tableTechs tbody');
-        tb.innerHTML = '';
-        const groups = {};
+        // Techs Table
+        const tbTech = document.querySelector('#tableTechs tbody');
+        tbTech.innerHTML = '';
+        const grpT = {};
         data.forEach(d => {
-            if(!groups[d.tech]) groups[d.tech] = { t:0, c:0 };
-            groups[d.tech].t++;
-            if(d.isClosed) groups[d.tech].c++;
+            if(!grpT[d.tech]) grpT[d.tech]={t:0,c:0};
+            grpT[d.tech].t++;
+            if(d.isClosed) grpT[d.tech].c++;
+        });
+        Object.entries(grpT).sort((a,b)=>b[1].t-a[1].t).forEach(([k,v])=>{
+            const p = v.t ? Math.round((v.c/v.t)*100) : 0;
+            tbTech.insertAdjacentHTML('beforeend', `<tr><td>${k}</td><td>${v.t}</td><td>${v.c}</td><td style="color:${(v.t-v.c)>0?'#ef4444':'inherit'}">${v.t-v.c}</td><td>${p}%</td></tr>`);
         });
 
-        Object.entries(groups).sort((a,b) => b[1].t - a[1].t).forEach(([tech, g]) => {
-            const pct = g.t ? Math.round((g.c/g.t)*100) : 0;
-            tb.insertAdjacentHTML('beforeend', `<tr>
-                <td>${tech}</td>
-                <td>${g.t}</td>
-                <td>${g.c}</td>
-                <td style="color:${(g.t-g.c)>0?'#ef4444':'inherit'}">${g.t - g.c}</td>
-                <td>${pct}%</td>
-            </tr>`);
-        });
-    }
-
-    function renderDetailsTable(data) {
-        const tb = document.querySelector('#tableDetails tbody');
-        tb.innerHTML = '';
-        // Show Open items first
-        const sorted = [...data].sort((a,b) => {
-            if (a.isClosed === b.isClosed) return 0;
-            return a.isClosed ? 1 : -1;
-        });
-
-        sorted.slice(0, 100).forEach(d => {
-            const dateStr = d.dFail ? d.dFail.toISOString().split('T')[0] : '-';
-            const badge = d.type==='PPM' ? 'b-good' : 'b-bad';
-            
-            tb.insertAdjacentHTML('beforeend', `<tr>
-                <td>${d.id}</td>
-                <td>${dateStr}</td>
-                <td><span class="badge ${badge}">${d.type}</span></td>
-                <td>${d.site}</td>
-                <td title="${d.device}">${d.device.substring(0,25)}</td>
-                <td>${d.tech}</td>
-                <td>${d.status}</td>
-            </tr>`);
+        // Details Log
+        const tbLog = document.querySelector('#tableDetails tbody');
+        tbLog.innerHTML = '';
+        data.slice(0,100).forEach(d => {
+            const date = d.dFail ? d.dFail.toISOString().split('T')[0] : '-';
+            tbLog.insertAdjacentHTML('beforeend', `<tr><td>${d.id}</td><td>${date}</td><td><span class="badge ${d.type==='PPM'?'b-good':'b-bad'}">${d.type}</span></td><td>${d.site}</td><td title="${d.device}">${d.device.substring(0,20)}</td><td>${d.tech}</td><td>${d.status}</td></tr>`);
         });
     }
 
     function renderCharts(data, rate, isPPM) {
-        // Donut
-        const ctxS = document.getElementById('chartStatus');
-        if(CHARTS.status) CHARTS.status.destroy();
-        CHARTS.status = new Chart(ctxS, {
+        if(CHARTS.s) CHARTS.s.destroy();
+        if(CHARTS.b) CHARTS.b.destroy();
+
+        CHARTS.s = new Chart(document.getElementById('chartStatus'), {
             type: 'doughnut',
-            data: {
-                labels: ['منجز', 'مفتوح'],
-                datasets: [{ 
-                    data: [rate, 100-rate], 
-                    backgroundColor: ['#10b981', '#f1f5f9'],
-                    borderWidth: 0
-                }]
-            },
-            options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            data: { labels:['منجز','مفتوح'], datasets:[{data:[rate,100-rate], backgroundColor:['#10b981','#f1f5f9'], borderWidth:0}] },
+            options: { cutout:'75%', plugins:{legend:{position:'bottom'}} }
         });
 
-        // Bar (Sites)
-        const ctxB = document.getElementById('chartSites');
-        if(CHARTS.sites) CHARTS.sites.destroy();
         const counts = {};
-        data.forEach(d => counts[d.site] = (counts[d.site]||0)+1);
+        data.forEach(d => counts[d.site]=(counts[d.site]||0)+1);
         const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
-        
-        CHARTS.sites = new Chart(ctxB, {
+        CHARTS.b = new Chart(document.getElementById('chartSites'), {
             type: 'bar',
-            data: {
-                labels: sorted.map(x=>x[0]),
-                datasets: [{
-                    label: 'عدد الأوامر',
-                    data: sorted.map(x=>x[1]),
-                    backgroundColor: isPPM ? '#10b981' : '#3b82f6',
-                    borderRadius: 5
-                }]
-            },
-            options: { maintainAspectRatio: false }
+            data: { labels:sorted.map(x=>x[0]), datasets:[{label:'Count', data:sorted.map(x=>x[1]), backgroundColor:isPPM?'#10b981':'#3b82f6', borderRadius:4}] },
+            options: { maintainAspectRatio:false, plugins:{legend:{display:false}} }
         });
     }
 </script>
-
 </body>
 </html>
