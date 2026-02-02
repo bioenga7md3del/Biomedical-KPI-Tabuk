@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>مؤشرات الصيانة الطبية - يناير 2026 (Main)</title>
+    <title>مؤشرات الصيانة الطبية - يناير 2026 (V5.2)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -74,6 +74,7 @@
         .b-cm { background: #fee2e2; color: #991b1b; }
         .hidden { display: none !important; }
         
+        /* Indicators */
         .val-danger { color: #dc2626; font-weight: 800; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
         .val-good { color: #16a34a; font-weight: bold; }
 
@@ -306,7 +307,8 @@
 
             return {
                 type: type,
-                id: get('Control No') || get('#'),
+                // HERE IS THE FIX: Prioritize '#' column
+                id: get('#') || get('Control No') || '-',
                 site: get('Site') || 'Unknown',
                 dept: get('Department') || '-',
                 device: get('ECRI Code') || get('Equipment Name') || 'Device',
@@ -358,13 +360,11 @@
             return true;
         });
 
-        // Basic KPI
         const total = data.length;
         const open = data.filter(x => x.isOpen).length;
         const closed = total - open;
         const rate = total ? Math.round((closed/total)*100) : 0;
 
-        // Averages (CM Only)
         const cmClosed = data.filter(x => x.type === 'CM' && !x.isOpen);
         const avgResp = cmClosed.length ? (cmClosed.reduce((a,b)=>a+b.resp,0)/cmClosed.length).toFixed(1) : '-';
         const avgFix = cmClosed.length ? (cmClosed.reduce((a,b)=>a+b.fix,0)/cmClosed.length).toFixed(1) : '-';
@@ -390,8 +390,6 @@
         renderLemonTable(data, isPPM);
         renderLogsTable(data);
     }
-
-    // --- RENDERERS ---
 
     function renderCharts(data, rate, isPPM, siteVal) {
         const ctxM = document.getElementById('chartMain').getContext('2d');
@@ -562,12 +560,9 @@
         });
     }
 
-    // --- REPORT GENERATION FUNCTION ---
     function openReport() {
         const siteVal = document.getElementById('siteFilter').value;
         const mode = CURRENT_MODE;
-        
-        // Filter Data current state
         const filteredData = RAW_DATA.filter(r => {
             if(mode !== 'All' && r.type !== mode) return false;
             if(siteVal !== 'All' && r.site !== siteVal) return false;
@@ -579,10 +574,8 @@
             return;
         }
 
-        // Save to Session
         sessionStorage.setItem('REPORT_DATA', JSON.stringify(filteredData));
         sessionStorage.setItem('REPORT_META', JSON.stringify({ mode, site: siteVal, date: 'يناير 2026' }));
-        
         window.open('report.html', '_blank');
     }
 </script>
