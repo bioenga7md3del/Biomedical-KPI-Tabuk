@@ -14,7 +14,7 @@
         :root { 
             --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
             --primary: #1e3a8a; --secondary: #64748b;
-            --ppm-color: #16a34a; 
+            --ppm-color: #16a34a; --warn-color: #eab308; --danger-color: #dc2626;
         }
         * { box-sizing: border-box; outline: none; text-decoration: none; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
@@ -45,7 +45,10 @@
         .form-input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: 'Tajawal'; font-size: 1rem; width: 100%; }
 
         /* KPIs */
-        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .grid-kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        @media(max-width: 1024px) { .grid-kpi { grid-template-columns: repeat(2, 1fr); } }
+        @media(max-width: 600px) { .grid-kpi { grid-template-columns: 1fr; } }
+        
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; }
         .kpi-val { font-size: 2.8rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
         .kpi-label { font-size: 1rem; color: var(--secondary); font-weight: 700; }
@@ -64,9 +67,6 @@
         tr:hover { background: #f8fafc; }
 
         .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; }
-        .b-ppm { background: #dcfce7; color: #166534; }
-        
-        /* Search Box for Table */
         .table-search { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; width: 250px; outline: none; }
         .table-search:focus { border-color: var(--primary); }
 
@@ -97,8 +97,8 @@
 
     <div class="controls-card" id="controlsArea" style="display:none">
         <div class="control-group">
-            <div class="control-label">شهر التقرير (يستثني أوامر الشهور القادمة)</div>
-            <input type="month" id="monthFilter" class="form-input" value="2026-03">
+            <div class="control-label">شهر التقرير (يستثني الشهور القادمة تلقائياً)</div>
+            <input type="month" id="monthFilter" class="form-input">
         </div>
         <div class="control-group">
             <div class="control-label">تصفية حسب الموقع</div>
@@ -118,32 +118,37 @@
         
         <div class="grid-kpi">
             <div class="kpi-card" style="border-top-color: #3b82f6;">
-                <div class="kpi-label">إجمالي الأوامر المستحقة</div>
+                <div class="kpi-label">الإجمالي المستحق</div>
                 <div class="kpi-val" id="kpi-total">0</div>
-                <div class="kpi-sub">Total Scheduled PPMs</div>
+                <div class="kpi-sub">Total Scheduled</div>
             </div>
             <div class="kpi-card" style="border-top-color: #16a34a;">
-                <div class="kpi-label">تم الإنجاز (Signed Off)</div>
-                <div class="kpi-val" id="kpi-rate" style="color:#16a34a">0%</div>
-                <div class="kpi-sub"><span id="kpi-closed-num">0</span> منجز</div>
+                <div class="kpi-label">تم الإنجاز (Done)</div>
+                <div class="kpi-val" id="kpi-closed" style="color:#16a34a">0</div>
+                <div class="kpi-sub"><span id="kpi-rate">0%</span> نسبة الإنجاز</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #eab308;">
+                <div class="kpi-label">تحت الإجراء (In Progress)</div>
+                <div class="kpi-val" id="kpi-prog" style="color:#ca8a04">0</div>
+                <div class="kpi-sub">أقل من 30 يوم من البداية</div>
             </div>
             <div class="kpi-card" style="border-top-color: #ef4444;">
-                <div class="kpi-label">متأخر / جاري العمل</div>
-                <div class="kpi-val" id="kpi-open" style="color:#dc2626">0</div>
-                <div class="kpi-sub">Delayed or In Progress</div>
+                <div class="kpi-label">متأخر / معلق (Delayed)</div>
+                <div class="kpi-val" id="kpi-delayed" style="color:#dc2626">0</div>
+                <div class="kpi-sub">تجاوز 30 يوم أو غير مستلم</div>
             </div>
         </div>
 
         <div class="grid-2">
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title" id="mainChartTitle">نسبة الالتزام حسب الموقع</div>
+                    <div class="panel-title" id="mainChartTitle">نسبة الالتزام بالخطة حسب الموقع</div>
                 </div>
                 <div style="height:300px"><canvas id="chartMain"></canvas></div>
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title">حالة أوامر الصيانة الوقائية</div>
+                    <div class="panel-title">تصنيف حالات أوامر الصيانة</div>
                 </div>
                 <div style="height:250px; width:250px; margin:0 auto"><canvas id="chartDonut"></canvas></div>
             </div>
@@ -156,9 +161,10 @@
                     <thead>
                         <tr>
                             <th>الموقع</th>
-                            <th>الأوامر المستحقة</th>
-                            <th>المنجز</th>
-                            <th>المتأخر</th>
+                            <th>الإجمالي</th>
+                            <th>المنجز ✅</th>
+                            <th>تحت الإجراء ⏳</th>
+                            <th>متأخر ❌</th>
                             <th>نسبة الإنجاز %</th>
                         </tr>
                     </thead>
@@ -177,9 +183,10 @@
                     <thead>
                         <tr>
                             <th>الفني</th>
-                            <th>الأوامر المستحقة</th>
-                            <th>المنجز</th>
-                            <th>المتأخر</th>
+                            <th>الإجمالي</th>
+                            <th>المنجز ✅</th>
+                            <th>تحت الإجراء ⏳</th>
+                            <th>متأخر ❌</th>
                             <th>نسبة الإنجاز %</th>
                         </tr>
                     </thead>
@@ -190,18 +197,18 @@
 
         <div class="panel">
             <div class="panel-header">
-                <div class="panel-title" style="color:#b91c1c"><i class="fas fa-clock"></i> أوامر وقائية متأخرة (Delayed PPMs)</div>
+                <div class="panel-title" style="color:#b91c1c"><i class="fas fa-list-ul"></i> سجل الأوامر غير المنجزة (In Progress & Delayed)</div>
             </div>
             <div class="table-wrap">
                 <table id="logsTable">
                     <thead>
                         <tr>
                             <th>رقم الأمر</th>
-                            <th>تاريخ الاستحقاق (Start Date)</th>
+                            <th>الاستحقاق (Start Date)</th>
                             <th>الموقع</th>
                             <th>الجهاز</th>
                             <th>الفني</th>
-                            <th>الحالة</th>
+                            <th>تحديث الحالة</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -218,8 +225,13 @@
     let charts = {};
 
     window.addEventListener('DOMContentLoaded', async () => {
+        // Set default month to current month
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        document.getElementById('monthFilter').value = `${yyyy}-${mm}`;
+
         const badge = document.getElementById('statusBadge');
-        
         try {
             const res = await fetch(FILE_URL);
             if(!res.ok) throw new Error("File not found");
@@ -251,19 +263,14 @@
         return json.map(row => {
             const get = k => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
             const status = String(get('Status')).trim();
-            const isClosed = status.toLowerCase() === 'signed off';
-
-            // في الصيانة الوقائية، تاريخ البدء (start date) هو الأهم لأنه يحدد شهر الاستحقاق
             const dStart = parseDate(get('start date') || get('Start Date'));
 
             return {
                 id: get('#') || get('Control No') || '-',
                 site: get('Site') || 'Unknown',
-                dept: get('Department') || '-',
                 device: get('ECRI Code') || get('Equipment Name') || 'Device',
                 tech: get('Assigned To') || 'Unknown',
-                status: status,
-                isOpen: !isClosed,
+                rawStatus: status,
                 dStart: dStart
             };
         });
@@ -294,62 +301,87 @@
         document.getElementById('monthFilter').addEventListener('change', updateDashboard);
     }
 
-    // فلتر المهام الأساسي (تاريخ الاستحقاق)
+    function getCategory(row) {
+        // Logic 3 Categories
+        const statusLower = row.rawStatus.toLowerCase();
+        const isDone = statusLower === 'signed off';
+        const isAssigned = statusLower === 'assigned';
+        
+        if (isDone) return 'done';
+        
+        if (!row.dStart) return 'delayed'; // If no date, consider it delayed/bad data
+
+        const today = Date.now();
+        const diffTime = today - row.dStart.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (isAssigned) return 'delayed';
+        if (!isAssigned && diffDays <= 30) return 'progress';
+        return 'delayed'; // Changed status but passed 30 days
+    }
+
     function updateDashboard() {
         const siteVal = document.getElementById('siteFilter').value;
-        const monthVal = document.getElementById('monthFilter').value; // format: "YYYY-MM"
+        const monthVal = document.getElementById('monthFilter').value; 
         
         let targetYear = null, targetMonth = null;
         if(monthVal) {
             targetYear = parseInt(monthVal.split('-')[0]);
-            targetMonth = parseInt(monthVal.split('-')[1]) - 1; // 0-indexed month
+            targetMonth = parseInt(monthVal.split('-')[1]) - 1;
         }
 
         const data = RAW_DATA.filter(r => {
-            // 1. Site Filter
             if(siteVal !== 'All' && r.site !== siteVal) return false;
             
-            // 2. Month Logic (Crucial PPM Rule)
+            // Exclude Future logic
             if(targetYear !== null && r.dStart) {
                 const startY = r.dStart.getFullYear();
                 const startM = r.dStart.getMonth();
-                
-                // استبعاد ما هو بعد شهر التقرير المختار (أوامر مستقبلية لا تدخل في الحساب)
                 if(startY > targetYear || (startY === targetYear && startM > targetMonth)) {
                     return false; 
                 }
             }
             return true;
+        }).map(r => {
+            r.category = getCategory(r);
+            return r;
         });
 
         // KPIs
         const total = data.length;
-        const open = data.filter(x => x.isOpen).length; // اللي حالته Assigned مثلا
-        const closed = total - open;
-        const rate = total ? Math.round((closed/total)*100) : 0;
+        const doneCount = data.filter(x => x.category === 'done').length;
+        const progCount = data.filter(x => x.category === 'progress').length;
+        const delayCount = data.filter(x => x.category === 'delayed').length;
+        const rate = total ? Math.round((doneCount/total)*100) : 0;
 
         document.getElementById('kpi-total').textContent = total;
-        document.getElementById('kpi-open').textContent = open;
-        document.getElementById('kpi-closed-num').textContent = closed;
+        document.getElementById('kpi-closed').textContent = doneCount;
+        document.getElementById('kpi-prog').textContent = progCount;
+        document.getElementById('kpi-delayed').textContent = delayCount;
         document.getElementById('kpi-rate').textContent = rate + '%';
 
-        renderCharts(data, rate);
+        renderCharts(data, doneCount, progCount, delayCount);
         renderSiteTable(data);
         renderTechTable(data); 
         renderLogsTable(data);
     }
 
-    function renderCharts(data, rate) {
-        // Donut Chart
+    function renderCharts(data, done, prog, delay) {
         const ctxD = document.getElementById('chartDonut').getContext('2d');
         if(charts.d) charts.d.destroy();
         charts.d = new Chart(ctxD, {
             type: 'doughnut',
-            data: { labels: ['منجز', 'متأخر'], datasets: [{ data: [rate, 100-rate], backgroundColor: ['#16a34a', '#e2e8f0'], borderWidth:0 }] },
-            options: { cutout: '70%', plugins:{legend:{position:'bottom'}} }
+            data: { 
+                labels: ['منجز', 'تحت الإجراء', 'متأخر'], 
+                datasets: [{ 
+                    data: [done, prog, delay], 
+                    backgroundColor: ['#16a34a', '#eab308', '#dc2626'], 
+                    borderWidth: 0 
+                }] 
+            },
+            options: { cutout: '65%', plugins:{legend:{position:'bottom'}} }
         });
 
-        // Main Bar Chart (Sites Adherence)
         const ctxM = document.getElementById('chartMain').getContext('2d');
         if(charts.m) charts.m.destroy();
         
@@ -357,7 +389,7 @@
         data.forEach(r => {
             if(!grp[r.site]) grp[r.site] = { t:0, c:0 };
             grp[r.site].t++;
-            if(!r.isOpen) grp[r.site].c++;
+            if(r.category === 'done') grp[r.site].c++;
         });
 
         const sorted = Object.entries(grp).map(([k,v]) => ({ site: k, rate: Math.round((v.c/v.t)*100) })).sort((a,b) => b.rate - a.rate).slice(0, 10);
@@ -377,18 +409,21 @@
         tb.innerHTML = '';
         const grp = {};
         data.forEach(r => {
-            if(!grp[r.site]) grp[r.site] = {t:0, c:0, open:0};
+            if(!grp[r.site]) grp[r.site] = {t:0, d:0, p:0, l:0};
             grp[r.site].t++;
-            if(r.isOpen) grp[r.site].open++; else grp[r.site].c++;
+            if(r.category === 'done') grp[r.site].d++;
+            else if(r.category === 'progress') grp[r.site].p++;
+            else grp[r.site].l++;
         });
 
         Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
-            const p = v.t ? Math.round((v.c/v.t)*100) : 0;
+            const pct = v.t ? Math.round((v.d/v.t)*100) : 0;
             tb.insertAdjacentHTML('beforeend', `<tr>
-                <td>${k}</td><td>${v.t}</td>
-                <td style="color:#16a34a; font-weight:bold">${v.c}</td>
-                <td style="color:${v.open>0?'#dc2626':'#94a3b8'}; font-weight:bold">${v.open}</td>
-                <td><span class="badge" style="background:${p>=90?'#dcfce7':(p>=50?'#fef08a':'#fee2e2')}; color:${p>=90?'#166534':(p>=50?'#854d0e':'#991b1b')}">${p}%</span></td>
+                <td>${k}</td><td><b>${v.t}</b></td>
+                <td style="color:#16a34a; font-weight:bold">${v.d}</td>
+                <td style="color:#ca8a04; font-weight:bold">${v.p}</td>
+                <td style="color:#dc2626; font-weight:bold">${v.l}</td>
+                <td><span class="badge" style="background:${pct>=90?'#dcfce7':(pct>=50?'#fef08a':'#fee2e2')}; color:${pct>=90?'#166534':(pct>=50?'#854d0e':'#991b1b')}">${pct}%</span></td>
             </tr>`);
         });
     }
@@ -397,26 +432,27 @@
         const tb = document.querySelector('#techTable tbody');
         tb.innerHTML = '';
         const grp = {};
-        
         data.forEach(r => {
             const t = r.tech;
-            if(!grp[t]) grp[t] = {t:0, c:0, open:0};
+            if(!grp[t]) grp[t] = {t:0, d:0, p:0, l:0};
             grp[t].t++;
-            if(r.isOpen) grp[t].open++; else grp[t].c++;
+            if(r.category === 'done') grp[t].d++;
+            else if(r.category === 'progress') grp[t].p++;
+            else grp[t].l++;
         });
 
         Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
-            const p = v.t ? Math.round((v.c/v.t)*100) : 0;
+            const pct = v.t ? Math.round((v.d/v.t)*100) : 0;
             tb.insertAdjacentHTML('beforeend', `<tr>
                 <td class="tech-name">${k}</td><td><b>${v.t}</b></td>
-                <td style="color:#16a34a">${v.c}</td>
-                <td style="color:${v.open>0?'#dc2626':'#94a3b8'}">${v.open}</td>
-                <td>${p}%</td>
+                <td style="color:#16a34a; font-weight:bold">${v.d}</td>
+                <td style="color:#ca8a04; font-weight:bold">${v.p}</td>
+                <td style="color:#dc2626; font-weight:bold">${v.l}</td>
+                <td>${pct}%</td>
             </tr>`);
         });
     }
 
-    // دالة البحث السريع للفنيين (تعمل مباشرة على الـ HTML)
     function filterTechTable() {
         const input = document.getElementById("techSearchInput");
         const filter = input.value.toUpperCase();
@@ -440,8 +476,8 @@
         const tb = document.querySelector('#logsTable tbody');
         tb.innerHTML = '';
         
-        // جلب الأوامر المفتوحة (المتأخرة) فقط وترتيبها من الأقدم للأحدث
-        const openOrders = data.filter(r => r.isOpen).sort((a,b) => (a.dStart||0)-(b.dStart||0));
+        // جلب الأوامر المفتوحة (progress + delayed)
+        const openOrders = data.filter(r => r.category !== 'done').sort((a,b) => (a.dStart||0)-(b.dStart||0));
         
         if(openOrders.length === 0) {
             tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#16a34a;font-weight:bold">جميع أوامر الصيانة الوقائية منجزة!</td></tr>';
@@ -450,13 +486,18 @@
 
         openOrders.forEach(r => {
             const date = r.dStart ? r.dStart.toLocaleDateString('en-GB') : '-';
+            const badgeStyle = r.category === 'progress' 
+                ? 'background:#fef08a; color:#854d0e' // Yellow
+                : 'background:#fee2e2; color:#991b1b'; // Red
+            const label = r.category === 'progress' ? `تحت الإجراء (${r.rawStatus})` : `متأخر (${r.rawStatus})`;
+
             tb.insertAdjacentHTML('beforeend', `<tr>
                 <td><b>${r.id}</b></td>
-                <td style="color:#dc2626; font-weight:bold">${date}</td>
+                <td style="font-weight:bold">${date}</td>
                 <td>${r.site}</td>
                 <td title="${r.device}">${r.device.substring(0,35)}</td>
                 <td>${r.tech}</td>
-                <td><span class="badge" style="background:#fee2e2; color:#991b1b">${r.status}</span></td>
+                <td><span class="badge" style="${badgeStyle}">${label}</span></td>
             </tr>`);
         });
     }
