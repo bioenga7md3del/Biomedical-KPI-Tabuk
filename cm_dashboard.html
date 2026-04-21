@@ -33,9 +33,9 @@
         .btn-primary:hover { background: #b91c1c; color: white; }
 
         .status-badge { padding: 6px 12px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; }
-        .st-loading { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
-        .st-success { background: #dcfce7; color: #16a34a; border-color: #bbf7d0; }
-        .st-error { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
+        .st-loading { background: #e0f2fe; color: #0284c7; }
+        .st-success { background: #dcfce7; color: #16a34a; }
+        .st-error { background: #fee2e2; color: #dc2626; }
 
         /* Container */
         .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
@@ -68,8 +68,13 @@
         .badge { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; }
         .b-cm { background: #fee2e2; color: #991b1b; }
         
+        /* Indicators */
         .val-danger { color: #dc2626; font-weight: 800; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
         .val-good { color: #16a34a; font-weight: bold; }
+
+        /* Search Box */
+        .table-search { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; width: 250px; outline: none; font-size: 0.9rem; }
+        .table-search:focus { border-color: var(--primary); }
 
         #emptyState { text-align: center; padding: 6rem 1rem; color: #94a3b8; }
     </style>
@@ -185,7 +190,10 @@
         </div>
 
         <div class="panel">
-            <div class="panel-header"><div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين (Technicians)</div></div>
+            <div class="panel-header">
+                <div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين (Technicians)</div>
+                <input type="text" id="techSearchInput" class="table-search" placeholder="بحث باسم الفني..." onkeyup="filterTechTable()">
+            </div>
             <div class="table-wrap">
                 <table id="techTable">
                     <thead>
@@ -433,7 +441,7 @@
             
             tb.insertAdjacentHTML('beforeend', `<tr>
                 <td>${k}</td><td>${v.t}</td><td style="color:#16a34a">${v.c}</td><td style="color:${v.open>0?'#dc2626':'#94a3b8'}">${v.open}</td>
-                <td><span class="badge ${p>85?'b-cm':'b-cm'}" style="background:${p>85?'#dcfce7':''}; color:${p>85?'#166534':''}">${p}%</span></td>
+                <td><span class="badge" style="background:${p>85?'#dcfce7':''}; color:${p>85?'#166534':''}">${p}%</span></td>
                 <td><span class="${rClass}">${avgR}</span></td><td><span class="${fClass}">${avgF}</span></td>
             </tr>`);
         });
@@ -459,17 +467,31 @@
             const fClass = (avgF > 5 && avgF !== '-') ? 'val-danger' : '';
             
             tb.insertAdjacentHTML('beforeend', `<tr>
-                <td>${k}</td><td><b>${v.t}</b></td><td style="color:#16a34a">${v.c}</td><td style="color:${v.open>0?'#dc2626':'#94a3b8'}">${v.open}</td><td>${p}%</td>
+                <td class="tech-name">${k}</td><td><b>${v.t}</b></td><td style="color:#16a34a">${v.c}</td><td style="color:${v.open>0?'#dc2626':'#94a3b8'}">${v.open}</td><td>${p}%</td>
                 <td><span class="${rClass}">${avgR}</span></td><td><span class="${fClass}">${avgF}</span></td>
             </tr>`);
         });
+    }
+
+    function filterTechTable() {
+        const input = document.getElementById("techSearchInput");
+        const filter = input.value.toUpperCase();
+        const table = document.getElementById("techTable");
+        const tr = table.getElementsByTagName("tr");
+        for (let i = 1; i < tr.length; i++) {
+            const td = tr[i].getElementsByClassName("tech-name")[0];
+            if (td) {
+                const txtValue = td.textContent || td.innerText;
+                tr[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1) ? "" : "none";
+            }       
+        }
     }
 
     function renderLemonTable(data) {
         const tb = document.querySelector('#lemonTable tbody');
         tb.innerHTML = '';
         const grp = {};
-        data.filter(r => r.serial.length > 3).forEach(r => {
+        data.filter(r => r.serial && r.serial.length > 3).forEach(r => {
             if(!grp[r.serial]) grp[r.serial] = { r:r, c:0 };
             grp[r.serial].c++;
         });
@@ -504,9 +526,7 @@
     function openReport() {
         const siteVal = document.getElementById('siteFilter').value;
         const filteredData = RAW_DATA.filter(r => siteVal === 'All' || r.site === siteVal);
-
         if(filteredData.length === 0) { alert('لا توجد بيانات للطباعة'); return; }
-
         sessionStorage.setItem('REPORT_DATA', JSON.stringify(filteredData));
         sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'CM', site: siteVal, date: 'يناير 2026' }));
         window.open('report.html', '_blank');
