@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>نظام إدارة مؤشرات الصيانة الطبية - تجمع تبوك</title>
+    <title>النظام الموحد لمؤشرات الصيانة الطبية الشهري - تجمع تبوك</title>
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -14,57 +15,60 @@
             --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
             --primary: #1e3a8a; --secondary: #64748b;
             --cm-color: #dc2626; --ppm-color: #16a34a; --accent: #3b82f6;
+            --warn: #eab308;
         }
         * { box-sizing: border-box; outline: none; text-decoration: none; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; display: flex; flex-direction: column; min-height: 100vh; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
         
-        /* Navbar */
-        .navbar { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        /* Header */
+        .navbar { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;}
         .nav-brand { display: flex; align-items: center; gap: 15px; }
         .logo-img { height: 70px; object-fit: contain; } 
         .brand-titles h1 { margin: 0; font-size: 1.5rem; color: var(--primary); font-weight: 800; }
         .brand-titles p { margin: 5px 0 0; font-size: 0.95rem; color: var(--secondary); font-weight: 600; }
         
-        /* Main Content */
-        .container { max-width: 1200px; margin: 3rem auto; padding: 0 1.5rem; flex: 1; }
-        
-        .welcome-section { text-align: center; margin-bottom: 3rem; }
-        .welcome-section h2 { font-size: 2.2rem; color: #1e293b; margin-bottom: 10px; }
-        .welcome-section p { font-size: 1.1rem; color: var(--secondary); }
+        .status-badge { padding: 6px 15px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .st-loading { background: #e0f2fe; color: #0284c7; }
+        .st-success { background: #dcfce7; color: #16a34a; }
+        .st-error { background: #fee2e2; color: #dc2626; }
 
-        /* Quick Stats */
-        .quick-stats { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 3rem; flex-wrap: wrap; }
-        .stat-card { background: var(--surface); padding: 1.5rem 2rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); text-align: center; min-width: 200px; position: relative; overflow: hidden; }
-        .stat-card::before { content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 4px; background: var(--accent); }
-        .stat-card:nth-child(2)::before { background: var(--cm-color); }
-        .stat-card:nth-child(3)::before { background: var(--ppm-color); }
-        .stat-val { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
-        .stat-label { font-size: 0.9rem; font-weight: 700; color: var(--secondary); }
-        .loader-icon { color: #cbd5e1; font-size: 1.5rem; }
+        /* Container */
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
+        
+        .section-title { font-size: 1.4rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; border-right: 5px solid var(--primary); padding-right: 10px;}
 
-        /* Portal Grid (The Buttons) */
-        .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
-        
-        .portal-card { background: var(--surface); border-radius: 1.2rem; padding: 2.5rem; text-align: center; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer; display: block; position: relative; overflow: hidden; }
-        .portal-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-color: #cbd5e1; }
-        
-        .portal-icon { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem; transition: 0.3s; }
+        /* Portals */
+        .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .portal-card { background: var(--surface); border-radius: 1rem; padding: 2rem; display: flex; align-items: center; gap: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; }
+        .portal-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        .portal-icon { width: 70px; height: 70px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; }
+        .pc-cm { border-right: 5px solid var(--cm-color); }
         .pc-cm .portal-icon { background: #fee2e2; color: var(--cm-color); }
+        .pc-ppm { border-right: 5px solid var(--ppm-color); }
         .pc-ppm .portal-icon { background: #dcfce7; color: var(--ppm-color); }
         
-        .portal-card:hover .portal-icon { transform: scale(1.1); }
-        
-        .portal-title { font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 10px; }
-        .portal-desc { font-size: 0.95rem; color: var(--secondary); line-height: 1.6; margin-bottom: 20px; }
-        
-        .btn-enter { display: inline-block; padding: 10px 25px; border-radius: 8px; font-weight: bold; transition: 0.2s; }
-        .pc-cm .btn-enter { background: var(--cm-color); color: white; }
-        .pc-ppm .btn-enter { background: var(--ppm-color); color: white; }
-        
-        .pc-cm:hover .btn-enter { background: #b91c1c; }
-        .pc-ppm:hover .btn-enter { background: #15803d; }
+        .portal-info h3 { margin: 0 0 5px 0; font-size: 1.3rem; color: #1e293b; }
+        .portal-info p { margin: 0 0 15px 0; font-size: 0.9rem; color: var(--secondary); line-height: 1.5; }
+        .btn-enter { padding: 6px 15px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block; transition: 0.2s; }
+        .pc-cm .btn-enter { background: #fef2f2; color: var(--cm-color); border: 1px solid #fecaca; }
+        .pc-cm .btn-enter:hover { background: var(--cm-color); color: white; }
+        .pc-ppm .btn-enter { background: #f0fdf4; color: var(--ppm-color); border: 1px solid #bbf7d0; }
+        .pc-ppm .btn-enter:hover { background: var(--ppm-color); color: white; }
 
-        footer { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.9rem; margin-top: auto; }
+        /* Executive KPIs */
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .kpi-val { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
+        .kpi-label { font-size: 0.95rem; font-weight: 700; color: var(--secondary); }
+        .kpi-trend { font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 0 auto; margin-top: 10px; }
+        
+        /* Charts Area */
+        .grid-charts { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 3rem; }
+        @media(max-width: 900px) { .grid-charts { grid-template-columns: 1fr; } }
+        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .panel-header { font-size: 1.1rem; font-weight: 700; color: #334155; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; display: flex; justify-content: space-between;}
+        
+        footer { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.9rem; margin-top: 2rem; border-top: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -73,60 +77,90 @@
         <div class="nav-brand">
             <img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
             <div class="brand-titles">
-                <h1>الإدارة الهندسية - الأجهزة الطبية</h1>
+                <h1>إدارة الصيانة - قسم الأجهزة الطبية</h1>
                 <p>تجمع تبوك الصحي (Tabuk Health Cluster)</p>
             </div>
+        </div>
+        <div id="statusBadge" class="status-badge st-loading">
+            <i class="fas fa-circle-notch fa-spin"></i> جاري مزامنة البيانات...
         </div>
     </header>
 
     <div class="container">
         
-        <div class="welcome-section">
-            <h2>نظام إدارة مؤشرات الصيانة الطبية</h2>
-            <p>مرحباً بك. يرجى اختيار لوحة المؤشرات المطلوبة للمتابعة</p>
-        </div>
-
-        <div class="quick-stats">
-            <div class="stat-card">
-                <div class="stat-label">إجمالي أوامر العمل</div>
-                <div class="stat-val" id="qs-total"><i class="fas fa-circle-notch fa-spin loader-icon"></i></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">أعطال مفتوحة حالياً (CM)</div>
-                <div class="stat-val" id="qs-open-cm" style="color: var(--cm-color)"><i class="fas fa-circle-notch fa-spin loader-icon"></i></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">إنجاز الوقائية (PPM)</div>
-                <div class="stat-val" id="qs-rate-ppm" style="color: var(--ppm-color)"><i class="fas fa-circle-notch fa-spin loader-icon"></i></div>
-            </div>
-        </div>
-
         <div class="portal-grid">
-            
             <a href="cm_dashboard.html" class="portal-card pc-cm">
                 <div class="portal-icon"><i class="fas fa-tools"></i></div>
-                <div class="portal-title">مؤشرات الصيانة التصحيحية</div>
-                <div class="portal-desc">
-                    متابعة بلاغات الأعطال اليومية، سرعة الاستجابة، متوسط وقت الإصلاح (MTTR)، وتتبع الأجهزة كثيرة التعطل (Lemons).
+                <div class="portal-info">
+                    <h3>الصيانة التصحيحية (CM)</h3>
+                    <p>متابعة بلاغات الأعطال، متوسط الاستجابة، وسجل الأجهزة كثيرة التعطل (Lemons).</p>
+                    <div class="btn-enter">عرض اللوحة التفصيلية <i class="fas fa-arrow-left"></i></div>
                 </div>
-                <div class="btn-enter">دخول للوحة التصحيحية <i class="fas fa-arrow-left" style="margin-right:5px"></i></div>
             </a>
-
             <a href="ppm_dashboard.html" class="portal-card pc-ppm">
                 <div class="portal-icon"><i class="fas fa-calendar-check"></i></div>
-                <div class="portal-title">مؤشرات الصيانة الوقائية</div>
-                <div class="portal-desc">
-                    متابعة خطة الصيانة المجدولة، نسب إنجاز المستشفيات والفنيين، والتأكد من تغطية الأجهزة حسب التواريخ المحددة.
+                <div class="portal-info">
+                    <h3>الصيانة الوقائية (PPM)</h3>
+                    <p>متابعة خطط الصيانة المجدولة، نسب الإنجاز، والأوامر المتأخرة عن موعدها.</p>
+                    <div class="btn-enter">عرض اللوحة التفصيلية <i class="fas fa-arrow-left"></i></div>
                 </div>
-                <div class="btn-enter">دخول للوحة الوقائية <i class="fas fa-arrow-left" style="margin-right:5px"></i></div>
             </a>
+        </div>
 
+        <div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي الموحد (Executive Summary)</div>
+
+        <div class="grid-kpi">
+            <div class="kpi-card">
+                <div class="kpi-label">حجم العمل الكلي</div>
+                <div class="kpi-val" id="ex-total">0</div>
+                <div class="kpi-trend" style="background:#e0f2fe; color:#0369a1;">أوامر CM و PPM</div>
+            </div>
+            <div class="kpi-card" style="border-color: #bbf7d0;">
+                <div class="kpi-label">الإنجاز العام (Total Done)</div>
+                <div class="kpi-val" id="ex-rate" style="color:var(--ppm-color)">0%</div>
+                <div class="kpi-trend" style="background:#dcfce7; color:#15803d;">كفاءة الإغلاق</div>
+            </div>
+            <div class="kpi-card" style="border-color: #fecaca;">
+                <div class="kpi-label">أعطال طبية مفتوحة</div>
+                <div class="kpi-val" id="ex-open-cm" style="color:var(--cm-color)">0</div>
+                <div class="kpi-trend" style="background:#fee2e2; color:#b91c1c;">تحتاج تدخل سريع</div>
+            </div>
+            <div class="kpi-card" style="border-color: #fef08a;">
+                <div class="kpi-label">وقائية متأخرة/معلقة</div>
+                <div class="kpi-val" id="ex-delayed-ppm" style="color:#ca8a04">0</div>
+                <div class="kpi-trend" style="background:#fef08a; color:#854d0e;">تجاوزت شهر الاستحقاق</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">متوسط الاستجابة للأعطال</div>
+                <div class="kpi-val" id="ex-resp">0</div>
+                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">يوم (الهدف < 1)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">متوسط الإصلاح العام</div>
+                <div class="kpi-val" id="ex-fix">0</div>
+                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">يوم (الهدف < 5)</div>
+            </div>
+        </div>
+
+        <div class="grid-charts">
+            <div class="panel">
+                <div class="panel-header">توزيع عبء العمل (Workload)</div>
+                <div style="height: 250px; display:flex; justify-content:center;">
+                    <canvas id="chartWorkload"></canvas>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">أفضل 5 مواقع في الإنجاز العام (Top Sites)</div>
+                <div style="height: 250px;">
+                    <canvas id="chartTopSites"></canvas>
+                </div>
+            </div>
         </div>
 
     </div>
 
     <footer>
-        &copy; 2026 الإدارة الهندسية للصيانة الطبية - تجمع تبوك الصحي. جميع الحقوق محفوظة.
+        &copy; 2026 الإدارة الهندسية للصيانة الطبية - تجمع تبوك الصحي. صُمم لدعم اتخاذ القرار.
     </footer>
 
     <script>
@@ -135,49 +169,192 @@
             { url: 'data/CM.xlsx', type: 'CM' }
         ];
 
+        let charts = {};
+
         window.addEventListener('DOMContentLoaded', async () => {
-            let total = 0;
-            let openCm = 0;
-            let ppmTotal = 0;
-            let ppmClosed = 0;
+            const badge = document.getElementById('statusBadge');
+            let combinedData = [];
 
             const promises = SOURCES.map(src => fetch(src.url).then(r => r.ok ? r.arrayBuffer().then(b => ({b, t:src.type})) : null).catch(e=>null));
             
             try {
                 const results = await Promise.all(promises);
                 results.forEach(res => {
-                    if(!res) return;
-                    const wb = XLSX.read(res.b, {type:'array'});
-                    const ws = wb.Sheets[wb.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(ws);
-
-                    json.forEach(row => {
-                        total++;
-                        const status = String(row['Status'] || row['status'] || '').trim().toLowerCase();
-                        const isClosed = status === 'signed off';
-                        
-                        if(res.t === 'CM' && !isClosed) openCm++;
-                        if(res.t === 'PPM') {
-                            ppmTotal++;
-                            if(isClosed) ppmClosed++;
-                        }
-                    });
+                    if(res) combinedData = [...combinedData, ...parseExcel(res.b, res.t)];
                 });
 
-                // Update UI
-                const ppmRate = ppmTotal ? Math.round((ppmClosed/ppmTotal)*100) : 0;
-                
-                document.getElementById('qs-total').innerText = total;
-                document.getElementById('qs-open-cm').innerText = openCm;
-                document.getElementById('qs-rate-ppm').innerText = ppmRate + '%';
+                if(combinedData.length > 0) {
+                    badge.className = 'status-badge st-success';
+                    badge.innerHTML = `<i class="fas fa-check-circle"></i> متصل (البيانات محدثة)`;
+                    processExecutiveData(combinedData);
+                } else {
+                    badge.className = 'status-badge st-error';
+                    badge.innerHTML = `<i class="fas fa-times-circle"></i> لا توجد بيانات`;
+                }
 
             } catch(e) {
-                console.error("Error loading quick stats:", e);
-                document.getElementById('qs-total').innerText = '-';
-                document.getElementById('qs-open-cm').innerText = '-';
-                document.getElementById('qs-rate-ppm').innerText = '-';
+                console.error(e);
+                badge.className = 'status-badge st-error';
+                badge.innerHTML = `<i class="fas fa-wifi"></i> خطأ في الاتصال`;
             }
         });
+
+        function parseExcel(buf, type) {
+            const wb = XLSX.read(buf, {type:'array'});
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(ws);
+            
+            return json.map(row => {
+                const get = k => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
+                const status = String(get('Status')).trim();
+                const isClosed = status.toLowerCase() === 'signed off';
+                
+                // Dates
+                const dFail = parseDate(get('Fail Date') || get('fail date'));
+                const dStart = parseDate(get('start date') || get('Start Date'));
+                const dSign = parseDate(get('sign off date') || get('Completion Date'));
+
+                let resp = null, fix = null;
+                if(type === 'CM') {
+                    if(dFail && dStart) resp = (dStart - dFail)/(1000*60*60*24);
+                    if(dFail && dSign && isClosed) fix = (dSign - dFail)/(1000*60*60*24);
+                }
+
+                // For PPM Logic
+                let isDelayed = false;
+                if(type === 'PPM') {
+                    const statusLower = status.toLowerCase();
+                    const isAssigned = statusLower === 'assigned';
+                    if(!isClosed) {
+                        if(isAssigned) {
+                            isDelayed = true;
+                        } else if (dStart) {
+                            const diffDays = Math.ceil((Date.now() - dStart.getTime()) / (1000 * 60 * 60 * 24));
+                            if(diffDays > 30) isDelayed = true;
+                        }
+                    }
+                }
+
+                return {
+                    type: type,
+                    site: get('Site') || 'Unknown',
+                    isClosed: isClosed,
+                    isDelayed: isDelayed,
+                    resp: resp > 0 ? resp : 0,
+                    fix: fix > 0 ? fix : 0
+                };
+            });
+        }
+
+        function parseDate(v) {
+            if(!v) return null;
+            if(v instanceof Date) return v;
+            let s = String(v).trim();
+            if(s === '-' || s === '') return null;
+            if(s.match(/^\d{4}-\d{2}-\d{2}/)) return new Date(s);
+            let datePart = s.split(' ')[0];
+            let parts = datePart.split(/[\/\-\.]/);
+            if(parts.length >= 3) {
+                let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
+                if(p0 > 1900) return new Date(p0, p1, p2);
+                return new Date(p2, p1, p0);
+            }
+            return null;
+        }
+
+        function processExecutiveData(data) {
+            let totalCM = 0, closedCM = 0, openCM = 0;
+            let totalPPM = 0, closedPPM = 0, delayedPPM = 0;
+            let sumResp = 0, cntResp = 0;
+            let sumFix = 0, cntFix = 0;
+
+            const siteStats = {};
+
+            data.forEach(r => {
+                // Collect for Sites Chart
+                if(!siteStats[r.site]) siteStats[r.site] = { t:0, c:0 };
+                siteStats[r.site].t++;
+                if(r.isClosed) siteStats[r.site].c++;
+
+                // Collect KPIs
+                if(r.type === 'CM') {
+                    totalCM++;
+                    if(r.isClosed) {
+                        closedCM++;
+                        if(r.resp !== null) { sumResp += r.resp; cntResp++; }
+                        if(r.fix !== null) { sumFix += r.fix; cntFix++; }
+                    } else {
+                        openCM++;
+                    }
+                } else if(r.type === 'PPM') {
+                    totalPPM++;
+                    if(r.isClosed) closedPPM++;
+                    if(r.isDelayed) delayedPPM++;
+                }
+            });
+
+            // Calculate Aggregates
+            const grandTotal = totalCM + totalPPM;
+            const grandClosed = closedCM + closedPPM;
+            const overallRate = grandTotal ? Math.round((grandClosed/grandTotal)*100) : 0;
+            const avgResp = cntResp ? (sumResp/cntResp).toFixed(1) : '0';
+            const avgFix = cntFix ? (sumFix/cntFix).toFixed(1) : '0';
+
+            // Update DOM
+            document.getElementById('ex-total').textContent = grandTotal;
+            document.getElementById('ex-rate').textContent = overallRate + '%';
+            document.getElementById('ex-open-cm').textContent = openCM;
+            document.getElementById('ex-delayed-ppm').textContent = delayedPPM;
+            document.getElementById('ex-resp').textContent = avgResp;
+            document.getElementById('ex-fix').textContent = avgFix;
+
+            // Render Charts
+            renderCharts(totalCM, totalPPM, siteStats);
+        }
+
+        function renderCharts(cmCount, ppmCount, siteStats) {
+            // Chart 1: Workload Donut
+            const ctxW = document.getElementById('chartWorkload').getContext('2d');
+            charts.w = new Chart(ctxW, {
+                type: 'doughnut',
+                data: {
+                    labels: ['أعطال طبية (CM)', 'صيانة مجدولة (PPM)'],
+                    datasets: [{
+                        data: [cmCount, ppmCount],
+                        backgroundColor: ['#dc2626', '#16a34a'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '65%', plugins:{legend:{position:'bottom'}} }
+            });
+
+            // Chart 2: Top Sites
+            const ctxS = document.getElementById('chartTopSites').getContext('2d');
+            // Calculate rate per site, sort descending, get top 5
+            const sortedSites = Object.entries(siteStats)
+                .map(([k,v]) => ({ site: k, rate: Math.round((v.c/v.t)*100) }))
+                .filter(s => s.site !== 'Unknown' && s.site !== '')
+                .sort((a,b) => b.rate - a.rate)
+                .slice(0, 5);
+
+            charts.s = new Chart(ctxS, {
+                type: 'bar',
+                data: {
+                    labels: sortedSites.map(s => s.site.substring(0, 20)), // shorten long names
+                    datasets: [{
+                        label: 'نسبة الإنجاز %',
+                        data: sortedSites.map(s => s.rate),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins:{legend:{display:false}},
+                    scales: { y: { max: 100 } }
+                }
+            });
+        }
     </script>
 </body>
 </html>
