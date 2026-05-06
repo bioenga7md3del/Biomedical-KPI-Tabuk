@@ -17,7 +17,7 @@
             --ppm-color: #16a34a; --warn-color: #eab308; --danger-color: #dc2626;
         }
         * { box-sizing: border-box; outline: none; text-decoration: none; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; scroll-behavior: smooth; }
         
         /* Header */
         .header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
@@ -29,6 +29,10 @@
         .header-actions { display: flex; gap: 10px; align-items: center; }
         .btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 6px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
         .btn-action:hover { background: #e2e8f0; }
+        
+        /* Excel Export Button */
+        .btn-excel { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+        .btn-excel:hover { background: #dcfce7; }
 
         .status-badge { padding: 6px 12px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; }
         .st-loading { background: #e0f2fe; color: #0284c7; }
@@ -49,10 +53,15 @@
         @media(max-width: 1024px) { .grid-kpi { grid-template-columns: repeat(2, 1fr); } }
         @media(max-width: 600px) { .grid-kpi { grid-template-columns: 1fr; } }
         
-        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; }
+        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; transition: 0.3s; }
         .kpi-val { font-size: 2.8rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
-        .kpi-label { font-size: 1rem; color: var(--secondary); font-weight: 700; }
+        .kpi-label { font-size: 1rem; color: var(--secondary); font-weight: 700; display: flex; justify-content: space-between; }
         .kpi-sub { font-size: 0.85rem; color: #94a3b8; margin-top: auto; }
+        
+        /* Interactive Card Hover */
+        .interactive-card { cursor: pointer; position: relative; }
+        .interactive-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .interactive-card:hover::after { content: 'اضغط للفلترة والنزول للجدول \f063'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; bottom: 10px; left: 15px; font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; }
 
         /* Panels */
         .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
@@ -116,6 +125,7 @@
 
     <div id="dashboard" style="display:none">
         
+        <!-- 4 KPIs Layout -->
         <div class="grid-kpi">
             <div class="kpi-card" style="border-top-color: #3b82f6;">
                 <div class="kpi-label">الإجمالي المستحق</div>
@@ -127,18 +137,20 @@
                 <div class="kpi-val" id="kpi-closed" style="color:#16a34a">0</div>
                 <div class="kpi-sub"><span id="kpi-rate">0%</span> نسبة الإنجاز</div>
             </div>
-            <div class="kpi-card" style="border-top-color: #eab308;">
-                <div class="kpi-label">تحت الإجراء (In Progress)</div>
+            <!-- Interactive Cards -->
+            <div class="kpi-card interactive-card" style="border-top-color: #eab308;" onclick="filterLogs('progress')">
+                <div class="kpi-label">تحت الإجراء <i class="fas fa-hand-pointer" style="color:#cbd5e1"></i></div>
                 <div class="kpi-val" id="kpi-prog" style="color:#ca8a04">0</div>
                 <div class="kpi-sub">أقل من 30 يوم من البداية</div>
             </div>
-            <div class="kpi-card" style="border-top-color: #ef4444;">
-                <div class="kpi-label">متأخر / معلق (Delayed)</div>
+            <div class="kpi-card interactive-card" style="border-top-color: #ef4444;" onclick="filterLogs('delayed')">
+                <div class="kpi-label">متأخر / معلق <i class="fas fa-hand-pointer" style="color:#cbd5e1"></i></div>
                 <div class="kpi-val" id="kpi-delayed" style="color:#dc2626">0</div>
                 <div class="kpi-sub">تجاوز 30 يوم أو غير مستلم</div>
             </div>
         </div>
 
+        <!-- Charts -->
         <div class="grid-2">
             <div class="panel">
                 <div class="panel-header">
@@ -154,6 +166,7 @@
             </div>
         </div>
 
+        <!-- Sites Table -->
         <div class="panel">
             <div class="panel-header"><div class="panel-title"><i class="fas fa-hospital"></i> تقييم المواقع (Sites Performance)</div></div>
             <div class="table-wrap">
@@ -173,6 +186,7 @@
             </div>
         </div>
 
+        <!-- Techs Table -->
         <div class="panel">
             <div class="panel-header">
                 <div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين (Technicians)</div>
@@ -195,9 +209,21 @@
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title" style="color:#b91c1c"><i class="fas fa-list-ul"></i> سجل الأوامر غير المنجزة (In Progress & Delayed)</div>
+        <!-- Open Logs -->
+        <div class="panel" id="logsPanel">
+            <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
+                <div class="panel-title" style="color:#1e293b">
+                    <i class="fas fa-list-ul" style="color:#b91c1c"></i> سجل الأوامر 
+                    <span id="logsFilterLabel" style="color:#b91c1c; margin-right:5px">(غير المنجزة)</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btnShowAllLogs" class="btn-action" style="display:none; color:#dc2626; border-color:#fca5a5" onclick="filterLogs('all')">
+                        <i class="fas fa-times"></i> إلغاء الفلتر
+                    </button>
+                    <button class="btn-action btn-excel" onclick="exportLogsToExcel()">
+                        <i class="fas fa-file-excel"></i> تنزيل إكسل
+                    </button>
+                </div>
             </div>
             <div class="table-wrap">
                 <table id="logsTable">
@@ -222,6 +248,8 @@
 <script>
     const FILE_URL = 'data/PPM.xlsx';
     let RAW_DATA = [];
+    let CURRENT_DASHBOARD_DATA = []; // To store data after month/site filters
+    let CURRENT_LOG_FILTER = 'all'; // Default: show all non-done
     let charts = {};
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -297,19 +325,17 @@
         const sel = document.getElementById('siteFilter');
         sites.forEach(s => { if(s) sel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`); });
         
-        document.getElementById('siteFilter').addEventListener('change', updateDashboard);
-        document.getElementById('monthFilter').addEventListener('change', updateDashboard);
+        document.getElementById('siteFilter').addEventListener('change', () => { CURRENT_LOG_FILTER = 'all'; updateDashboard(); });
+        document.getElementById('monthFilter').addEventListener('change', () => { CURRENT_LOG_FILTER = 'all'; updateDashboard(); });
     }
 
     function getCategory(row) {
-        // Logic 3 Categories
         const statusLower = row.rawStatus.toLowerCase();
         const isDone = statusLower === 'signed off';
         const isAssigned = statusLower === 'assigned';
         
         if (isDone) return 'done';
-        
-        if (!row.dStart) return 'delayed'; // If no date, consider it delayed/bad data
+        if (!row.dStart) return 'delayed'; 
 
         const today = Date.now();
         const diffTime = today - row.dStart.getTime();
@@ -317,7 +343,7 @@
 
         if (isAssigned) return 'delayed';
         if (!isAssigned && diffDays <= 30) return 'progress';
-        return 'delayed'; // Changed status but passed 30 days
+        return 'delayed'; 
     }
 
     function updateDashboard() {
@@ -330,10 +356,8 @@
             targetMonth = parseInt(monthVal.split('-')[1]) - 1;
         }
 
-        const data = RAW_DATA.filter(r => {
+        CURRENT_DASHBOARD_DATA = RAW_DATA.filter(r => {
             if(siteVal !== 'All' && r.site !== siteVal) return false;
-            
-            // Exclude Future logic
             if(targetYear !== null && r.dStart) {
                 const startY = r.dStart.getFullYear();
                 const startM = r.dStart.getMonth();
@@ -347,11 +371,10 @@
             return r;
         });
 
-        // KPIs
-        const total = data.length;
-        const doneCount = data.filter(x => x.category === 'done').length;
-        const progCount = data.filter(x => x.category === 'progress').length;
-        const delayCount = data.filter(x => x.category === 'delayed').length;
+        const total = CURRENT_DASHBOARD_DATA.length;
+        const doneCount = CURRENT_DASHBOARD_DATA.filter(x => x.category === 'done').length;
+        const progCount = CURRENT_DASHBOARD_DATA.filter(x => x.category === 'progress').length;
+        const delayCount = CURRENT_DASHBOARD_DATA.filter(x => x.category === 'delayed').length;
         const rate = total ? Math.round((doneCount/total)*100) : 0;
 
         document.getElementById('kpi-total').textContent = total;
@@ -360,11 +383,113 @@
         document.getElementById('kpi-delayed').textContent = delayCount;
         document.getElementById('kpi-rate').textContent = rate + '%';
 
-        renderCharts(data, doneCount, progCount, delayCount);
-        renderSiteTable(data);
-        renderTechTable(data); 
-        renderLogsTable(data);
+        renderCharts(CURRENT_DASHBOARD_DATA, doneCount, progCount, delayCount);
+        renderSiteTable(CURRENT_DASHBOARD_DATA);
+        renderTechTable(CURRENT_DASHBOARD_DATA); 
+        renderLogsTable(); // Uses CURRENT_LOG_FILTER
     }
+
+    // --- New Interactivity Functions ---
+    function filterLogs(type) {
+        CURRENT_LOG_FILTER = type;
+        
+        // Update Labels and Buttons
+        const labelEl = document.getElementById('logsFilterLabel');
+        const btnAll = document.getElementById('btnShowAllLogs');
+        
+        if (type === 'all') {
+            labelEl.textContent = '(غير المنجزة)';
+            labelEl.style.color = '#b91c1c';
+            btnAll.style.display = 'none';
+        } else if (type === 'progress') {
+            labelEl.textContent = 'المفلترة: (تحت الإجراء فقط)';
+            labelEl.style.color = '#ca8a04';
+            btnAll.style.display = 'flex';
+        } else if (type === 'delayed') {
+            labelEl.textContent = 'المفلترة: (متأخرة / معلقة فقط)';
+            labelEl.style.color = '#dc2626';
+            btnAll.style.display = 'flex';
+        }
+
+        renderLogsTable();
+        
+        // Smooth scroll to the table
+        document.getElementById('logsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderLogsTable() {
+        const tb = document.querySelector('#logsTable tbody');
+        tb.innerHTML = '';
+        
+        let openOrders = CURRENT_DASHBOARD_DATA.filter(r => r.category !== 'done');
+        
+        // Apply Drill-down filter
+        if (CURRENT_LOG_FILTER !== 'all') {
+            openOrders = openOrders.filter(r => r.category === CURRENT_LOG_FILTER);
+        }
+
+        openOrders.sort((a,b) => (a.dStart||0)-(b.dStart||0));
+        
+        if(openOrders.length === 0) {
+            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:#64748b;font-weight:bold">لا توجد بيانات مطابقة للفلتر الحالي</td></tr>';
+            return;
+        }
+
+        openOrders.forEach(r => {
+            const date = r.dStart ? r.dStart.toLocaleDateString('en-GB') : '-';
+            const badgeStyle = r.category === 'progress' 
+                ? 'background:#fef08a; color:#854d0e' 
+                : 'background:#fee2e2; color:#991b1b'; 
+            const label = r.category === 'progress' ? `تحت الإجراء (${r.rawStatus})` : `متأخر (${r.rawStatus})`;
+
+            tb.insertAdjacentHTML('beforeend', `<tr>
+                <td><b>${r.id}</b></td>
+                <td style="font-weight:bold">${date}</td>
+                <td>${r.site}</td>
+                <td title="${r.device}">${r.device.substring(0,35)}</td>
+                <td>${r.tech}</td>
+                <td><span class="badge" style="${badgeStyle}">${label}</span></td>
+            </tr>`);
+        });
+    }
+
+    function exportLogsToExcel() {
+        let openOrders = CURRENT_DASHBOARD_DATA.filter(r => r.category !== 'done');
+        if (CURRENT_LOG_FILTER !== 'all') {
+            openOrders = openOrders.filter(r => r.category === CURRENT_LOG_FILTER);
+        }
+
+        if(openOrders.length === 0) {
+            alert('لا توجد بيانات لتصديرها!');
+            return;
+        }
+
+        // Prepare data for Excel
+        const exportData = openOrders.map(r => ({
+            "رقم الأمر (Work Order)": r.id,
+            "تاريخ الاستحقاق (Start Date)": r.dStart ? r.dStart.toLocaleDateString('en-GB') : '-',
+            "الموقع (Site)": r.site,
+            "الجهاز (Device)": r.device,
+            "الفني (Technician)": r.tech,
+            "التصنيف الحالي": r.category === 'progress' ? 'تحت الإجراء' : 'متأخر',
+            "حالة النظام (System Status)": r.rawStatus
+        }));
+
+        // Create Sheet and Download
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        
+        // Auto-size columns (optional simple logic)
+        const colWidths = [{wch: 20}, {wch: 15}, {wch: 25}, {wch: 40}, {wch: 25}, {wch: 15}, {wch: 25}];
+        ws['!cols'] = colWidths;
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "PPM Logs");
+        
+        // Generate filename based on filter
+        const fName = CURRENT_LOG_FILTER === 'progress' ? 'In_Progress_PPM' : (CURRENT_LOG_FILTER === 'delayed' ? 'Delayed_PPM' : 'Open_PPM');
+        XLSX.writeFile(wb, `${fName}_Tabuk.xlsx`);
+    }
+    // ------------------------------------
 
     function renderCharts(data, done, prog, delay) {
         const ctxD = document.getElementById('chartDonut').getContext('2d');
@@ -470,36 +595,6 @@
                 }
             }       
         }
-    }
-
-    function renderLogsTable(data) {
-        const tb = document.querySelector('#logsTable tbody');
-        tb.innerHTML = '';
-        
-        // جلب الأوامر المفتوحة (progress + delayed)
-        const openOrders = data.filter(r => r.category !== 'done').sort((a,b) => (a.dStart||0)-(b.dStart||0));
-        
-        if(openOrders.length === 0) {
-            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1rem;color:#16a34a;font-weight:bold">جميع أوامر الصيانة الوقائية منجزة!</td></tr>';
-            return;
-        }
-
-        openOrders.forEach(r => {
-            const date = r.dStart ? r.dStart.toLocaleDateString('en-GB') : '-';
-            const badgeStyle = r.category === 'progress' 
-                ? 'background:#fef08a; color:#854d0e' // Yellow
-                : 'background:#fee2e2; color:#991b1b'; // Red
-            const label = r.category === 'progress' ? `تحت الإجراء (${r.rawStatus})` : `متأخر (${r.rawStatus})`;
-
-            tb.insertAdjacentHTML('beforeend', `<tr>
-                <td><b>${r.id}</b></td>
-                <td style="font-weight:bold">${date}</td>
-                <td>${r.site}</td>
-                <td title="${r.device}">${r.device.substring(0,35)}</td>
-                <td>${r.tech}</td>
-                <td><span class="badge" style="${badgeStyle}">${label}</span></td>
-            </tr>`);
-        });
     }
 </script>
 </body>
