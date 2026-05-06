@@ -83,6 +83,7 @@
 
     <div class="container">
         
+        <!-- Portals -->
         <div class="portal-grid">
             <a href="cm_dashboard.html" class="portal-card pc-cm">
                 <div class="portal-icon"><i class="fas fa-tools"></i></div>
@@ -104,6 +105,7 @@
 
         <div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي الموحد</div>
 
+        <!-- KPIs -->
         <div class="grid-kpi">
             <div class="kpi-card">
                 <div class="kpi-label">إجمالي الأوامر</div>
@@ -137,6 +139,7 @@
             </div>
         </div>
 
+        <!-- Charts -->
         <div class="grid-charts">
             <div class="panel">
                 <div class="panel-header">توزيع حجم العمل</div>
@@ -196,9 +199,17 @@
                 const dSign = parseDate(get('sign off date') || get('Completion Date'));
 
                 let resp = null, fix = null;
+                
+                // التعديل الجديد والدقيق لحساب التواريخ
                 if(type === 'CM') {
-                    if(dFail && dStart) resp = (dStart - dFail)/(1000*60*60*24);
-                    if(dFail && dSign && isClosed) fix = (dSign - dFail)/(1000*60*60*24);
+                    if(dFail && dStart) {
+                        let rDiff = (dStart - dFail)/(1000*60*60*24);
+                        resp = rDiff >= 0 ? rDiff : 0; 
+                    }
+                    if(dFail && dSign && isClosed) {
+                        let fDiff = (dSign - dFail)/(1000*60*60*24);
+                        fix = fDiff >= 0 ? fDiff : 0;
+                    }
                 }
 
                 let isPpmDelayed = false;
@@ -249,6 +260,7 @@
                     totalCM++;
                     if(r.isClosed) {
                         closedCM++;
+                        // التعديل: تجميع الأرقام فقط إذا كانت القيمة موجودة (وليست Null)
                         if(r.resp !== null) { sumResp += r.resp; cntResp++; s.rSum += r.resp; s.rCnt++; }
                         if(r.fix !== null) { sumFix += r.fix; cntFix++; s.fSum += r.fix; s.fCnt++; }
                     } else openCM++;
@@ -280,9 +292,7 @@
                 options: { cutout: '70%', plugins:{legend:{position:'bottom'}} }
             });
 
-            // ------------------------------------------------------------------
             // إضافة حد أدنى للمنافسة (Threshold >= 20)
-            // ------------------------------------------------------------------
             const sortedSites = Object.entries(siteStats)
                 .map(([name, v]) => ({
                     name: name,
@@ -291,7 +301,7 @@
                     avgFix: v.fCnt ? (v.fSum/v.fCnt) : 999, 
                     avgResp: v.rCnt ? (v.rSum/v.rCnt) : 999
                 }))
-                .filter(s => s.name !== 'Unknown' && s.total >= 20) // THRESHOLD >= 20
+                .filter(s => s.name !== 'Unknown' && s.total >= 20) // THRESHOLD
                 .sort((a,b) => {
                     if (b.rate !== a.rate) return b.rate - a.rate; 
                     return a.avgFix - b.avgFix; 
@@ -312,7 +322,7 @@
                             callbacks: {
                                 afterLabel: function(ctx) {
                                     const s = sortedSites[ctx.dataIndex];
-                                    return [`إجمالي الأعمال: ${s.total}`, `متوسط الإصلاح: ${s.avgFix.toFixed(1)} يوم`];
+                                    return [`إجمالي الأعمال: ${s.total}`, `متوسط الإصلاح: ${s.avgFix === 999 ? 'N/A' : s.avgFix.toFixed(1)} يوم`];
                                 }
                             }
                         }
