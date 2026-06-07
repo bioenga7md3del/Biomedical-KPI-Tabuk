@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>مؤشرات الصيانة التصحيحية (CM) - مارس 2026</title>
+    <title>مؤشرات الصيانة التصحيحية (CM) - مايو 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -86,7 +86,7 @@
         <img src="TabukCluster.jpeg" alt="شعار تجمع تبوك" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
         <div>
             <h1>مؤشرات الصيانة التصحيحية (CM)</h1>
-            <p>تقرير شهر يناير 2026</p>
+            <p>تقرير شهر مايو 2026</p>
         </div>
     </div>
     <div class="header-actions">
@@ -528,7 +528,7 @@
         const filteredData = RAW_DATA.filter(r => siteVal === 'All' || r.site === siteVal);
         if(filteredData.length === 0) { alert('لا توجد بيانات للطباعة'); return; }
         sessionStorage.setItem('REPORT_DATA', JSON.stringify(filteredData));
-        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'CM', site: siteVal, date: 'يناير 2026' }));
+        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'CM', site: siteVal, date: 'مايو 2026' }));
         window.open('report.html', '_blank');
     }
 </script>
