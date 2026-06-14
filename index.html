@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>النظام الموحد لمؤشرات الصيانة الطبية (شهر مايو 2026)- تجمع تبوك</title>
+    <title>النظام الموحد لمؤشرات الصيانة الطبية - تجمع تبوك</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -72,7 +72,7 @@
         <div class="nav-brand">
             <img src="TabukCluster.jpeg" alt="Logo" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
             <div class="brand-titles">
-                <h1>        إدارة الصيانة - قسم الصيانة الطبية     </h1>
+                <h1>الإدارة الهندسية - الأجهزة الطبية</h1>
                 <p>تجمع تبوك الصحي (Tabuk Health Cluster)</p>
             </div>
         </div>
@@ -83,7 +83,6 @@
 
     <div class="container">
         
-        <!-- Portals -->
         <div class="portal-grid">
             <a href="cm_dashboard.html" class="portal-card pc-cm">
                 <div class="portal-icon"><i class="fas fa-tools"></i></div>
@@ -103,9 +102,8 @@
             </a>
         </div>
 
-        <div class="section-title"><i class="fas fa-chart-line"></i>الملخص التنفيذي الموحد (شهر مايو 2026) </div>
+        <div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي الموحد</div>
 
-        <!-- KPIs -->
         <div class="grid-kpi">
             <div class="kpi-card">
                 <div class="kpi-label">إجمالي الأوامر</div>
@@ -125,21 +123,20 @@
             <div class="kpi-card">
                 <div class="kpi-label">وقائية متأخرة</div>
                 <div class="kpi-val" id="ex-delayed-ppm" style="color:#ca8a04">0</div>
-                <div class="kpi-trend" style="background:#fef08a; color:#854d0e;">معلق PPM</div>
+                <div class="kpi-trend" style="background:#fef08a; color:#854d0e;">تجاوز الاستحقاق (PPM)</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label">Avg Response</div>
                 <div class="kpi-val" id="ex-resp">0</div>
-                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">يوم</div>
+                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">يوم (الأعطال)</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label">Avg Repair</div>
                 <div class="kpi-val" id="ex-fix">0</div>
-                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">يوم</div>
+                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">يوم (الأعطال)</div>
             </div>
         </div>
 
-        <!-- Charts -->
         <div class="grid-charts">
             <div class="panel">
                 <div class="panel-header">توزيع حجم العمل</div>
@@ -200,7 +197,6 @@
 
                 let resp = null, fix = null;
                 
-                // التعديل الجديد والدقيق لحساب التواريخ
                 if(type === 'CM') {
                     if(dFail && dStart) {
                         let rDiff = (dStart - dFail)/(1000*60*60*24);
@@ -213,10 +209,17 @@
                 }
 
                 let isPpmDelayed = false;
-                if(type === 'PPM' && !isClosed) {
-                    if(status.toLowerCase() === 'assigned') isPpmDelayed = true;
-                    else if (dStart) {
-                        if((Date.now() - dStart.getTime()) / (1000*60*60*24) > 30) isPpmDelayed = true;
+                if(type === 'PPM' && !isClosed && dStart) {
+                    // التعديل الذكي للتاريخ المستقبلي
+                    const today = Date.now();
+                    const diffDays = Math.ceil((today - dStart.getTime()) / (1000 * 60 * 60 * 24));
+
+                    if (diffDays >= 0) { // يعني تاريخ الاستحقاق مر أو جاء اليوم
+                        if(status.toLowerCase() === 'assigned') {
+                            isPpmDelayed = true; // متأخر لأنه لم يستلم حتى الآن
+                        } else if (diffDays > 30) {
+                            isPpmDelayed = true; // متأخر لتجاوز الـ 30 يوم
+                        }
                     }
                 }
 
@@ -260,7 +263,6 @@
                     totalCM++;
                     if(r.isClosed) {
                         closedCM++;
-                        // التعديل: تجميع الأرقام فقط إذا كانت القيمة موجودة (وليست Null)
                         if(r.resp !== null) { sumResp += r.resp; cntResp++; s.rSum += r.resp; s.rCnt++; }
                         if(r.fix !== null) { sumFix += r.fix; cntFix++; s.fSum += r.fix; s.fCnt++; }
                     } else openCM++;
@@ -292,7 +294,6 @@
                 options: { cutout: '70%', plugins:{legend:{position:'bottom'}} }
             });
 
-            // إضافة حد أدنى للمنافسة (Threshold >= 20)
             const sortedSites = Object.entries(siteStats)
                 .map(([name, v]) => ({
                     name: name,
@@ -301,7 +302,7 @@
                     avgFix: v.fCnt ? (v.fSum/v.fCnt) : 999, 
                     avgResp: v.rCnt ? (v.rSum/v.rCnt) : 999
                 }))
-                .filter(s => s.name !== 'Unknown' && s.total >= 20) // THRESHOLD
+                .filter(s => s.name !== 'Unknown' && s.total >= 20) 
                 .sort((a,b) => {
                     if (b.rate !== a.rate) return b.rate - a.rate; 
                     return a.avgFix - b.avgFix; 
