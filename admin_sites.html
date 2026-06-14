@@ -27,7 +27,6 @@
         .card { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; border-top: 5px solid var(--primary); margin-bottom: 20px; }
         h1 { margin-top: 0; color: #0f172a; }
 
-        /* نموذج الإضافة */
         .add-form { display: flex; gap: 15px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; align-items: flex-end; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 250px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #475569; }
@@ -35,14 +34,16 @@
         .btn-add { background: #16a34a; color: white; border: none; padding: 11px 25px; border-radius: 6px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 1rem; }
         .btn-add:hover { background: #15803d; }
 
-        /* جدول المواقع */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 15px; border-bottom: 1px solid #e2e8f0; text-align: right; }
         th { background: #f8fafc; color: #0f172a; font-weight: 800; }
         tr:hover { background: #f8fafc; }
         
-        .btn-delete { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; }
+        .action-btns { display: flex; gap: 8px; }
+        .btn-delete { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 5px;}
         .btn-delete:hover { background: #fca5a5; }
+        .btn-edit { background: #e0f2fe; color: #0284c7; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 5px;}
+        .btn-edit:hover { background: #bae6fd; }
         
         #statusMsg { font-weight: bold; margin-top: 15px; display: block; }
     </style>
@@ -95,7 +96,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        // التعديل: قمنا بإضافة updateDoc للاستخدام في زر التعديل
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
@@ -115,10 +117,8 @@
         const sitesTableBody = document.getElementById('sitesTableBody');
         const siteNameSelect = document.getElementById('siteNameSelect');
 
-        // 1. دالة جلب المواقع الفريدة من كوليكشن الأوامر المفتوحة لملء القائمة المنسدلة
         async function loadUniqueSitesFromDB() {
             try {
-                // جلب الأوامر المفتوحة لاستخراج أسماء المستشفيات منها
                 const q = query(collection(db, "pending_orders"), where("isCompleted", "==", false));
                 const querySnapshot = await getDocs(q);
                 
@@ -135,7 +135,6 @@
                     return;
                 }
 
-                // ترتيب المواقع أبجدياً وإضافتها للقائمة
                 [...uniqueSites].sort().forEach(site => {
                     siteNameSelect.insertAdjacentHTML('beforeend', `<option value="${site}">${site}</option>`);
                 });
@@ -146,7 +145,6 @@
             }
         }
 
-        // 2. دالة حفظ الصلاحية وبثها للسيرفر
         btnAddSite.addEventListener('click', async () => {
             const name = siteNameSelect.value;
             const pass = document.getElementById('sitePass').value.trim();
@@ -156,11 +154,10 @@
                 return;
             }
 
-            // التحقق من أن الموقع لم يتم إضافة باسورد له من قبل لمنع التكرار
             const checkQ = query(collection(db, "sites_auth"), where("siteName", "==", name));
             const checkSnapshot = await getDocs(checkQ);
             if(!checkSnapshot.empty) {
-                statusMsg.innerHTML = '<span style="color:#dc2626">❌ هذا الموقع مضاف بالفعل في القائمة بالأسفل، يمكنك حذفه وإعادة إضافته لتغيير الباسورد</span>';
+                statusMsg.innerHTML = '<span style="color:#dc2626">❌ هذا الموقع مضاف بالفعل في القائمة بالأسفل!</span>';
                 return;
             }
 
@@ -187,7 +184,6 @@
             btnAddSite.disabled = false;
         });
 
-        // 3. دالة جلب وعرض قائمة الحسابات المفعلة
         async function loadSitesList() {
             try {
                 const q = query(collection(db, "sites_auth"), orderBy("createdAt", "desc"));
@@ -202,13 +198,17 @@
 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
+                    // التعديل: تمت إضافة زر التعديل بجانب زر الإلغاء
                     sitesTableBody.insertAdjacentHTML('beforeend', `
                         <tr>
                             <td style="font-weight:700; color:#1e3a8a;">${data.siteName}</td>
                             <td style="font-family:monospace; font-size:1.1rem; background:#f1f5f9; padding:5px 10px; border-radius:4px; display:inline-block; margin-top:10px; font-weight:bold; color:#0f172a;">${data.password}</td>
                             <td><span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;"><i class="fas fa-check"></i> جاهز للدخول</span></td>
                             <td>
-                                <button class="btn-delete" onclick="window.deleteSite('${docSnap.id}')"><i class="fas fa-trash"></i> إلغاء الصلاحية</button>
+                                <div class="action-btns">
+                                    <button class="btn-edit" onclick="window.editSite('${docSnap.id}', '${data.password}')"><i class="fas fa-edit"></i> تعديل</button>
+                                    <button class="btn-delete" onclick="window.deleteSite('${docSnap.id}')"><i class="fas fa-trash"></i> إلغاء الصلاحية</button>
+                                </div>
                             </td>
                         </tr>
                     `);
@@ -219,7 +219,24 @@
             }
         }
 
-        // 4. دالة حذف الحساب
+        // دالة التعديل الجديدة (تغيير كلمة المرور)
+        window.editSite = async function(docId, currentPass) {
+            const newPass = prompt("أدخل كلمة المرور الجديدة لهذا الموقع:", currentPass);
+            
+            // التأكد من أن المستخدم أدخل قيمة جديدة ولم يضغط Cancel
+            if(newPass !== null && newPass.trim() !== "" && newPass !== currentPass) {
+                try {
+                    await updateDoc(doc(db, "sites_auth", docId), {
+                        password: newPass.trim()
+                    });
+                    loadSitesList(); // تحديث الجدول فوراً لإظهار الباسورد الجديد
+                } catch(e) {
+                    alert('حدث خطأ أثناء محاولة تعديل كلمة المرور!');
+                    console.error(e);
+                }
+            }
+        }
+
         window.deleteSite = async function(docId) {
             if(confirm('هل أنت متأكد من إلغاء صلاحية هذا الموقع؟ لن يتمكن المدير من تسجيل الدخول.')) {
                 try {
@@ -232,7 +249,6 @@
             }
         }
 
-        // تشغيل الدوال عند فتح الشاشة تلقائياً
         window.onload = function() {
             loadUniqueSitesFromDB();
             loadSitesList();
