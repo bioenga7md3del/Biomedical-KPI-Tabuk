@@ -137,21 +137,51 @@
         let currentEditingOrder = "";
 
         // --- نظام تسجيل الدخول المبسط ---
-        document.getElementById('btnLogin').addEventListener('click', () => {
+        // --- نظام تسجيل الدخول المربوط بالفايربيز ---
+        document.getElementById('btnLogin').addEventListener('click', async () => {
             const site = document.getElementById('loginSite').value;
-            const pass = document.getElementById('loginPass').value;
+            const pass = document.getElementById('loginPass').value.trim();
+            const btn = document.getElementById('btnLogin');
+            const errorMsg = document.getElementById('loginError');
             
-            if (!site) { alert("اختر الموقع أولاً"); return; }
+            if (!site) { alert("اختر الموقع أولاً من القائمة"); return; }
+            if (!pass) { errorMsg.style.display = 'block'; errorMsg.textContent = "الرجاء إدخال كلمة المرور"; return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+            errorMsg.style.display = 'none';
             
-            // كلمة المرور الموحدة (1234)
-            if (pass === "1234") {
-                currentSite = site;
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                document.getElementById('lblSiteName').textContent = site;
-                loadSiteOrders();
-            } else {
-                document.getElementById('loginError').style.display = 'block';
+            try {
+                // البحث في الفايربيز عن المستشفى المختار
+                const q = query(collection(db, "sites_auth"), where("siteName", "==", site));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    errorMsg.style.display = 'block';
+                    errorMsg.textContent = "هذا الموقع غير مسجل في النظام، راجع الإدارة.";
+                } else {
+                    // الموقع موجود، لنتحقق من كلمة المرور
+                    const siteData = snapshot.docs[0].data();
+                    if (siteData.password === pass) {
+                        // الدخول ناجح!
+                        currentSite = site;
+                        document.getElementById('loginScreen').style.display = 'none';
+                        document.getElementById('appScreen').style.display = 'block';
+                        document.getElementById('lblSiteName').textContent = site;
+                        loadSiteOrders(); // تحميل أوامر الموقع
+                    } else {
+                        // الباسورد غلط
+                        errorMsg.style.display = 'block';
+                        errorMsg.textContent = "كلمة المرور غير صحيحة!";
+                    }
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                errorMsg.style.display = 'block';
+                errorMsg.textContent = "حدث خطأ في الاتصال بالسيرفر.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'دخول';
             }
         });
 
