@@ -2,115 +2,92 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تقرير الصيانة الطبية - مارس 2026</title>
+    <title>تقرير الصيانة الطبية - تجمع تبوك</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Tajawal', sans-serif; background: #fff; color: #000; padding: 20px; }
-        .page { max-width: 210mm; margin: 0 auto; border: 1px solid #ddd; padding: 40px; min-height: 297mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        body { font-family: 'Tajawal', sans-serif; background: #f1f5f9; color: #0f172a; padding: 20px; }
+        .page { background: #fff; max-width: 210mm; margin: 0 auto; border: 1px solid #ddd; padding: 40px; min-height: 297mm; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-radius: 8px; }
         
         /* Header */
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; }
-        .h-logo { height: 60px; }
-        .h-title h1 { font-size: 1.8rem; margin: 0; color: #1e3a8a; }
-        .h-title p { margin: 5px 0 0; color: #666; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; }
+        .h-logo { height: 70px; object-fit: contain; }
+        .h-title h1 { font-size: 1.8rem; margin: 0; color: #1e3a8a; font-weight: 800; }
+        .h-title p { margin: 5px 0 0; color: #64748b; font-weight: 600; font-size: 1.1rem; }
         
         /* Summary KPIs */
         .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .kpi-box { border: 1px solid #ccc; padding: 15px; text-align: center; border-radius: 8px; }
-        .kpi-num { font-size: 2rem; font-weight: bold; color: #1e3a8a; display: block; }
-        .kpi-txt { font-size: 0.9rem; color: #555; }
+        .kpi-box { border: 1px solid #e2e8f0; padding: 15px; text-align: center; border-radius: 8px; background: #f8fafc; }
+        .kpi-num { font-size: 2.2rem; font-weight: 800; color: #1e293b; display: block; margin-bottom: 5px; }
+        .kpi-txt { font-size: 0.95rem; color: #475569; font-weight: 700; }
 
         /* Tables */
-        h2 { font-size: 1.2rem; border-right: 5px solid #1e3a8a; padding-right: 10px; margin-top: 30px; margin-bottom: 15px; background: #f8fafc; padding: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background: #1e3a8a; color: white; }
-        tr:nth-child(even) { background: #f9f9f9; }
+        h2 { font-size: 1.2rem; border-right: 5px solid #1e3a8a; padding-right: 10px; margin-top: 30px; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 4px; color: #1e293b; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 20px; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: center; }
+        th { background: #1e3a8a; color: white; font-weight: 700; }
+        tr:nth-child(even) { background: #f8fafc; }
 
-        .footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+        .footer { margin-top: 50px; text-align: center; font-size: 0.85rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 15px; font-weight: 600; }
 
         /* Print Settings */
         @media print {
             body { padding: 0; background: #fff; }
-            .page { border: none; box-shadow: none; margin: 0; padding: 0; width: 100%; }
-            .no-print { display: none; }
-            button { display: none; }
+            .page { border: none; box-shadow: none; margin: 0; padding: 0; width: 100%; border-radius: 0; }
+            .btn-print { display: none; }
             .page-break { page-break-before: always; }
         }
 
-        .btn-print { position: fixed; top: 20px; left: 20px; padding: 10px 20px; background: #1e3a8a; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        .btn-print { position: fixed; top: 20px; left: 20px; padding: 12px 25px; background: #16a34a; color: white; border: none; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; font-size: 1rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
+        .btn-print:hover { background: #15803d; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
-<button class="btn-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+<button class="btn-print" onclick="window.print()">🖨️ طباعة أو حفظ كـ PDF</button>
 
 <div class="page">
     <div class="header">
         <div class="h-title">
-            <h1>تقرير الأداء الفني</h1>
-            <p id="reportMeta">مارس 2026</p>
+            <h1 id="reportTitle">تقرير الأداء الفني</h1>
+            <p id="reportMeta">جاري تحميل البيانات...</p>
         </div>
-        <img src="TabukCluster.jpeg" class="h-logo" alt="Logo">
+        <img src="TabukCluster.jpeg" class="h-logo" alt="Logo" onerror="this.style.display='none'">
     </div>
 
-    <div class="summary-grid">
-        <div class="kpi-box">
-            <span class="kpi-num" id="r-total">0</span>
-            <span class="kpi-txt">إجمالي الأوامر</span>
-        </div>
-        <div class="kpi-box">
-            <span class="kpi-num" id="r-closed" style="color:#16a34a">0</span>
-            <span class="kpi-txt">تم الإنجاز</span>
-        </div>
-        <div class="kpi-box">
-            <span class="kpi-num" id="r-rate">0%</span>
-            <span class="kpi-txt">نسبة الإنجاز</span>
-        </div>
-        <div class="kpi-box">
-            <span class="kpi-num" id="r-open" style="color:#dc2626">0</span>
-            <span class="kpi-txt">أوامر مفتوحة</span>
-        </div>
-    </div>
+    <div class="summary-grid" id="kpiGrid"></div>
 
     <div style="display:flex; gap:20px; height:250px; margin-bottom:30px">
-        <div style="flex:1; border:1px solid #eee; padding:10px">
-            <canvas id="chart1"></canvas>
+        <div style="flex:1; border:1px solid #e2e8f0; border-radius:8px; padding:15px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <div style="font-weight:bold; color:#475569; margin-bottom:10px;" id="chart1Title">توزيع الحالات</div>
+            <div style="height:100%; width:100%; display:flex; justify-content:center;"><canvas id="chartDonut"></canvas></div>
         </div>
-        <div style="flex:1; border:1px solid #eee; padding:10px; display:flex; justify-content:center">
-            <canvas id="chart2"></canvas>
+        <div style="flex:2; border:1px solid #e2e8f0; border-radius:8px; padding:15px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <div style="font-weight:bold; color:#475569; margin-bottom:10px;">أداء المواقع (النسبة %)</div>
+            <div style="height:100%; width:100%;"><canvas id="chartBar"></canvas></div>
         </div>
     </div>
 
     <h2>أداء المواقع (Sites Performance)</h2>
     <table id="tblSites">
-        <thead>
-            <tr>
-                <th>الموقع</th><th>الإجمالي</th><th>منجز</th><th>مفتوح</th><th>النسبة</th><th>Avg Resp</th><th>Avg Fix</th>
-            </tr>
-        </thead>
+        <thead id="headSites"></thead>
         <tbody></tbody>
     </table>
 
-    <div class="page-break"></div> <div class="header" style="margin-top:30px">
-        <div class="h-title"><h1>تابع: تقرير الأداء الفني</h1></div>
+    <div class="page-break"></div> <div class="header" style="margin-top:30px; border-bottom:none;">
+        <div class="h-title"><h1 style="font-size:1.4rem;">تابع: تقرير الأداء الفني</h1></div>
     </div>
 
     <h2>أداء الفنيين (Technicians Performance)</h2>
     <table id="tblTechs">
-        <thead>
-            <tr>
-                <th>الفني</th><th>الإجمالي</th><th>منجز</th><th>مفتوح</th><th>النسبة</th><th>Avg Resp</th><th>Avg Fix</th>
-            </tr>
-        </thead>
+        <thead id="headTechs"></thead>
         <tbody></tbody>
     </table>
 
     <div class="footer">
-        تم إنشاء هذا التقرير آلياً بواسطة نظام لوحة مؤشرات الصيانة الطبية - تجمع تبوك الصحي
-        <br>التاريخ: <span id="printDate"></span>
+        إدارة الصيانة - قسم الصيانة الطبية | تجمع تبوك الصحي
+        <br>تاريخ الطباعة: <span id="printDate" style="direction:ltr; display:inline-block;"></span>
     </div>
 </div>
 
@@ -119,95 +96,176 @@
         const rawData = sessionStorage.getItem('REPORT_DATA');
         const metaStr = sessionStorage.getItem('REPORT_META');
         
-        if(!rawData) {
-            document.body.innerHTML = '<h1 style="text-align:center; margin-top:50px">لا توجد بيانات للعرض. يرجى العودة للوحة الرئيسية.</h1>';
+        if(!rawData || !metaStr) {
+            document.body.innerHTML = '<h1 style="text-align:center; margin-top:50px; color:#dc2626;">لا توجد بيانات للعرض. يرجى فتح التقرير من اللوحة الرئيسية.</h1>';
             return;
         }
 
         const data = JSON.parse(rawData);
         const meta = JSON.parse(metaStr);
+        const isPPM = meta.mode === 'PPM';
 
-        // Set Headers
-        document.getElementById('reportMeta').innerText = `${meta.date} • تصنيف: ${meta.mode} • موقع: ${meta.site}`;
-        document.getElementById('printDate').innerText = new Date().toLocaleDateString('ar-SA');
+        // Set Headers dynamically
+        document.getElementById('reportTitle').innerText = isPPM ? 'تقرير الصيانة الوقائية (PPM)' : 'تقرير الصيانة التصحيحية (CM)';
+        document.getElementById('reportMeta').innerText = `الشهر: ${meta.date} • النطاق: ${meta.site}`;
+        
+        const now = new Date();
+        document.getElementById('printDate').innerText = now.toLocaleString('en-GB');
 
-        // Calc KPIs
-        const total = data.length;
-        const open = data.filter(x => x.isOpen).length;
-        const closed = total - open;
-        const rate = total ? Math.round((closed/total)*100) : 0;
-
-        document.getElementById('r-total').innerText = total;
-        document.getElementById('r-closed').innerText = closed;
-        document.getElementById('r-open').innerText = open;
-        document.getElementById('r-rate').innerText = rate + '%';
-
-        // Render Tables
-        renderSiteTable(data, meta.mode === 'PPM');
-        renderTechTable(data, meta.mode === 'PPM');
-
-        // Render Charts
-        renderCharts(data, rate);
+        // Logic & Rendering based on Mode
+        if(isPPM) {
+            renderPPM(data);
+        } else {
+            renderCM(data);
+        }
     };
 
-    function renderSiteTable(data, isPPM) {
-        const tb = document.querySelector('#tblSites tbody');
+    // ==========================================
+    // 1. منطق الصيانة الوقائية (PPM)
+    // ==========================================
+    function renderPPM(data) {
+        const total = data.length;
+        const done = data.filter(d => d.category === 'done').length;
+        const prog = data.filter(d => d.category === 'progress').length;
+        const delayed = data.filter(d => d.category === 'delayed').length;
+        const rate = total ? Math.round((done/total)*100) : 0;
+
+        // KPI Grid
+        document.getElementById('kpiGrid').innerHTML = `
+            <div class="kpi-box"><span class="kpi-num" style="color:#1e3a8a">${total}</span><span class="kpi-txt">المستحق</span></div>
+            <div class="kpi-box"><span class="kpi-num" style="color:#16a34a">${done}</span><span class="kpi-txt">تم الإنجاز</span></div>
+            <div class="kpi-box"><span class="kpi-num" style="color:#ca8a04">${prog}</span><span class="kpi-txt">تحت الإجراء</span></div>
+            <div class="kpi-box"><span class="kpi-num" style="color:#dc2626">${delayed}</span><span class="kpi-txt">متأخر</span></div>
+        `;
+
+        // Table Headers
+        const th = `<tr><th>الاسم</th><th>الإجمالي</th><th>منجز ✅</th><th>تحت الإجراء ⏳</th><th>متأخر ❌</th><th>النسبة %</th></tr>`;
+        document.getElementById('headSites').innerHTML = th;
+        document.getElementById('headTechs').innerHTML = th;
+
+        // Render Tables
+        populateTable(data, 'tblSites', 'site', true);
+        populateTable(data, 'tblTechs', 'tech', true);
+
+        // Render Charts
+        drawDonutChart(['منجز', 'تحت الإجراء', 'متأخر'], [done, prog, delayed], ['#16a34a', '#eab308', '#dc2626']);
+        drawBarChart(data, 'site', true);
+    }
+
+    // ==========================================
+    // 2. منطق الصيانة التصحيحية الأعطال (CM)
+    // ==========================================
+    function renderCM(data) {
+        const total = data.length;
+        const open = data.filter(d => d.isOpen).length;
+        const done = total - open;
+        const rate = total ? Math.round((done/total)*100) : 0;
+
+        // KPI Grid
+        document.getElementById('kpiGrid').innerHTML = `
+            <div class="kpi-box"><span class="kpi-num" style="color:#1e3a8a">${total}</span><span class="kpi-txt">إجمالي الأعطال</span></div>
+            <div class="kpi-box"><span class="kpi-num" style="color:#16a34a">${done}</span><span class="kpi-txt">تم الإصلاح</span></div>
+            <div class="kpi-box"><span class="kpi-num" style="color:#dc2626">${open}</span><span class="kpi-txt">مفتوح حالياً</span></div>
+            <div class="kpi-box"><span class="kpi-num" style="color:#1e293b">${rate}%</span><span class="kpi-txt">نسبة الإنجاز</span></div>
+        `;
+
+        // Table Headers
+        const th = `<tr><th>الاسم</th><th>الإجمالي</th><th>تم الإصلاح</th><th>مفتوح</th><th>النسبة %</th><th>Avg Resp</th><th>Avg Fix</th></tr>`;
+        document.getElementById('headSites').innerHTML = th;
+        document.getElementById('headTechs').innerHTML = th;
+
+        // Render Tables
+        populateTable(data, 'tblSites', 'site', false);
+        populateTable(data, 'tblTechs', 'tech', false);
+
+        // Render Charts
+        drawDonutChart(['تم الإصلاح', 'أعطال مفتوحة'], [done, open], ['#16a34a', '#dc2626']);
+        drawBarChart(data, 'site', false);
+    }
+
+    // ==========================================
+    // دوال تعبئة الجداول المشتركة
+    // ==========================================
+    function populateTable(data, tableId, groupByKey, isPPM) {
+        const tb = document.querySelector(`#${tableId} tbody`);
         const grp = {};
+
         data.forEach(r => {
-            if(!grp[r.site]) grp[r.site] = {t:0, c:0, o:0, rS:0, fS:0, cnt:0};
-            grp[r.site].t++;
-            if(r.isOpen) grp[r.site].o++; else grp[r.site].c++;
-            if(!isPPM && r.type==='CM' && !r.isOpen) {
-                grp[r.site].rS += r.resp; grp[r.site].fS += r.fix; grp[r.site].cnt++;
+            const key = r[groupByKey];
+            if(!grp[key]) {
+                if(isPPM) grp[key] = {t:0, d:0, p:0, l:0};
+                else grp[key] = {t:0, c:0, o:0, rSum:0, rCnt:0, fSum:0, fCnt:0};
+            }
+            
+            grp[key].t++;
+            
+            if(isPPM) {
+                if(r.category === 'done') grp[key].d++;
+                else if(r.category === 'progress') grp[key].p++;
+                else grp[key].l++;
+            } else {
+                if(r.isOpen) grp[key].o++; else grp[key].c++;
+                if(!r.isOpen) {
+                    if(r.resp !== null) { grp[key].rSum += r.resp; grp[key].rCnt++; }
+                    if(r.fix !== null) { grp[key].fSum += r.fix; grp[key].fCnt++; }
+                }
             }
         });
 
         Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
-            const p = v.t ? Math.round((v.c/v.t)*100) : 0;
-            const ar = v.cnt ? (v.rS/v.cnt).toFixed(1) : '-';
-            const af = v.cnt ? (v.fS/v.cnt).toFixed(1) : '-';
-            tb.insertAdjacentHTML('beforeend', `<tr><td>${k}</td><td>${v.t}</td><td>${v.c}</td><td>${v.o}</td><td>${p}%</td><td>${ar}</td><td>${af}</td></tr>`);
-        });
-    }
-
-    function renderTechTable(data, isPPM) {
-        const tb = document.querySelector('#tblTechs tbody');
-        const grp = {};
-        data.forEach(r => {
-            const t = r.tech;
-            if(!grp[t]) grp[t] = {t:0, c:0, o:0, rS:0, fS:0, cnt:0};
-            grp[t].t++;
-            if(r.isOpen) grp[t].o++; else grp[t].c++;
-            if(!isPPM && r.type==='CM' && !r.isOpen) {
-                grp[t].rS += r.resp; grp[t].fS += r.fix; grp[t].cnt++;
+            let tr = `<tr><td style="font-weight:bold;">${k}</td><td>${v.t}</td>`;
+            if(isPPM) {
+                const pct = v.t ? Math.round((v.d/v.t)*100) : 0;
+                tr += `<td style="color:#16a34a; font-weight:bold">${v.d}</td>
+                       <td style="color:#ca8a04; font-weight:bold">${v.p}</td>
+                       <td style="color:#dc2626; font-weight:bold">${v.l}</td>
+                       <td style="font-weight:bold">${pct}%</td></tr>`;
+            } else {
+                const pct = v.t ? Math.round((v.c/v.t)*100) : 0;
+                const avgR = v.rCnt ? (v.rSum/v.rCnt).toFixed(1) : '-';
+                const avgF = v.fCnt ? (v.fSum/v.fCnt).toFixed(1) : '-';
+                tr += `<td style="color:#16a34a; font-weight:bold">${v.c}</td>
+                       <td style="color:#dc2626; font-weight:bold">${v.o}</td>
+                       <td style="font-weight:bold">${pct}%</td>
+                       <td>${avgR}</td><td>${avgF}</td></tr>`;
             }
-        });
-
-        Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
-            const p = v.t ? Math.round((v.c/v.t)*100) : 0;
-            const ar = v.cnt ? (v.rS/v.cnt).toFixed(1) : '-';
-            const af = v.cnt ? (v.fS/v.cnt).toFixed(1) : '-';
-            tb.insertAdjacentHTML('beforeend', `<tr><td>${k}</td><td>${v.t}</td><td>${v.c}</td><td>${v.o}</td><td>${p}%</td><td>${ar}</td><td>${af}</td></tr>`);
+            tb.insertAdjacentHTML('beforeend', tr);
         });
     }
 
-    function renderCharts(data, rate) {
-        // Chart 1: Status
-        new Chart(document.getElementById('chart2'), {
+    // ==========================================
+    // دوال رسم المخططات (Charts)
+    // ==========================================
+    function drawDonutChart(labelsArr, dataArr, colorsArr) {
+        new Chart(document.getElementById('chartDonut').getContext('2d'), {
             type: 'doughnut',
-            data: { labels: ['منجز', 'مفتوح'], datasets: [{ data: [rate, 100-rate], backgroundColor: ['#16a34a', '#ddd'] }] },
-            options: { plugins: { legend: { position: 'bottom' } } }
+            data: { labels: labelsArr, datasets: [{ data: dataArr, backgroundColor: colorsArr, borderWidth: 0 }] },
+            options: { maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    function drawBarChart(data, groupByKey, isPPM) {
+        const grp = {};
+        data.forEach(r => {
+            const k = r[groupByKey];
+            if(!grp[k]) grp[k] = {t:0, c:0};
+            grp[k].t++;
+            if(isPPM) { if(r.category === 'done') grp[k].c++; } 
+            else { if(!r.isOpen) grp[k].c++; }
         });
 
-        // Chart 2: Top Sites
-        const counts = {};
-        data.forEach(r => counts[r.site] = (counts[r.site]||0)+1);
-        const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0, 10);
-        
-        new Chart(document.getElementById('chart1'), {
+        const sorted = Object.entries(grp)
+            .map(([k,v]) => ({ name: k, rate: Math.round((v.c/v.t)*100) }))
+            .sort((a,b) => b.rate - a.rate)
+            .slice(0, 10);
+
+        new Chart(document.getElementById('chartBar').getContext('2d'), {
             type: 'bar',
-            data: { labels: sorted.map(x=>x[0]), datasets: [{ label: 'الأكثر طلباً', data: sorted.map(x=>x[1]), backgroundColor: '#1e3a8a' }] },
-            options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+            data: {
+                labels: sorted.map(x=>x.name.substring(0, 15)),
+                datasets: [{ label: 'نسبة الإنجاز %', data: sorted.map(x=>x.rate), backgroundColor: isPPM ? '#16a34a' : '#1e3a8a', borderRadius: 4 }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100 } } }
         });
     }
 </script>
