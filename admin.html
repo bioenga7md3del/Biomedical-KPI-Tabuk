@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الإدارة - مزامنة البيانات</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #f8fafc; padding: 40px; text-align: center; }
+        .admin-card { background: white; padding: 30px; border-radius: 10px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { color: #1e3a8a; margin-bottom: 20px; }
+        .upload-section { margin-top: 20px; padding: 20px; border: 2px dashed #cbd5e1; border-radius: 8px; }
+        input[type="file"] { margin-bottom: 15px; }
+        .btn-sync { background: #16a34a; color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; }
+        .btn-sync:hover { background: #15803d; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-card">
+        <h1>⚙️ لوحة تحكم مدير النظام</h1>
+        <p>رفع ملفات الإكسل ومزامنتها مع قاعدة البيانات (Firebase)</p>
+        
+        <div class="upload-section">
+            <h3>مزامنة أوامر الصيانة (PPM / CM)</h3>
+            <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
+            <br>
+            <button class="btn-sync" id="btnUpload">بدء رفع البيانات</button>
+        </div>
+        
+        <p id="statusMsg" style="margin-top:20px; font-weight:bold; color:#0284c7;"></p>
+    </div>
+
+    <script type="module">
+        // 1. استدعاء دوال Firebase من الـ CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // 2. إعداداتك التي قمت بنسخها
+        const firebaseConfig = {
+            apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
+            authDomain: "tabuk-medical-cmms.firebaseapp.com",
+            projectId: "tabuk-medical-cmms",
+            storageBucket: "tabuk-medical-cmms.firebasestorage.app",
+            messagingSenderId: "756624281363",
+            appId: "1:756624281363:web:919e8555b86eddecbb14e6",
+            measurementId: "G-YV56L9QR5J"
+        };
+
+        // 3. تشغيل الاتصال بقاعدة البيانات
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('statusMsg').innerText = "✅ تم الاتصال بقاعدة البيانات بنجاح!";
+        
+        // المتغير db جاهز الآن لاستقبال البيانات
+        window.db = db; 
+    </script>
+
+</body>
+</html>
