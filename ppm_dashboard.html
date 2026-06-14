@@ -140,14 +140,14 @@
                 <div class="kpi-sub"><span id="kpi-rate">0%</span> نسبة الإنجاز</div>
             </div>
             <div class="kpi-card interactive-card" style="border-top-color: #eab308;" onclick="filterLogs('progress')">
-                <div class="kpi-label">تحت الإجراء <i class="fas fa-hand-pointer" style="color:#cbd5e1"></i></div>
+                <div class="kpi-label">مجدول / تحت الإجراء ⏳</div>
                 <div class="kpi-val" id="kpi-prog" style="color:#ca8a04">0</div>
-                <div class="kpi-sub">أقل من 30 يوم من البداية</div>
+                <div class="kpi-sub">تاريخ الاستحقاق بالمستقبل أو جاري العمل</div>
             </div>
             <div class="kpi-card interactive-card" style="border-top-color: #ef4444;" onclick="filterLogs('delayed')">
-                <div class="kpi-label">متأخر / معلق <i class="fas fa-hand-pointer" style="color:#cbd5e1"></i></div>
+                <div class="kpi-label">متأخر / متجاوز ❌</div>
                 <div class="kpi-val" id="kpi-delayed" style="color:#dc2626">0</div>
-                <div class="kpi-sub">تجاوز 30 يوم أو غير مستلم</div>
+                <div class="kpi-sub">انتهى تاريخ الاستحقاق ولم يُنجز</div>
             </div>
         </div>
 
@@ -175,7 +175,7 @@
                             <th>الموقع</th>
                             <th>الإجمالي</th>
                             <th>المنجز ✅</th>
-                            <th>تحت الإجراء ⏳</th>
+                            <th>مجدول/تحت الإجراء ⏳</th>
                             <th>متأخر ❌</th>
                             <th>نسبة الإنجاز %</th>
                         </tr>
@@ -197,7 +197,7 @@
                             <th>الفني</th>
                             <th>الإجمالي</th>
                             <th>المنجز ✅</th>
-                            <th>تحت الإجراء ⏳</th>
+                            <th>مجدول/تحت الإجراء ⏳</th>
                             <th>متأخر ❌</th>
                             <th>نسبة الإنجاز %</th>
                         </tr>
@@ -250,7 +250,6 @@
     let charts = {};
 
     window.addEventListener('DOMContentLoaded', async () => {
-        // Set default month to current month
         const now = new Date();
         const yyyy = now.getFullYear();
         const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -332,15 +331,21 @@
         const isAssigned = statusLower === 'assigned';
         
         if (isDone) return 'done';
-        if (!row.dStart) return 'delayed'; 
+        if (!row.dStart) return 'delayed'; // أمر مجهول التاريخ يُعتبر متأخر ليتم معالجته
 
         const today = Date.now();
-        const diffTime = today - row.dStart.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil((today - row.dStart.getTime()) / (1000 * 60 * 60 * 24));
 
-        if (isAssigned) return 'delayed';
-        if (!isAssigned && diffDays <= 30) return 'progress';
-        return 'delayed'; 
+        // التعديل الذكي للتواريخ المستقبلية
+        // إذا كان تاريخ الاستحقاق في المستقبل (الفرق بالسالب) فهو مجدول وتحت الإجراء
+        if (diffDays < 0) {
+            return 'progress'; 
+        }
+
+        // أما إذا جاء تاريخه أو مر عليه:
+        if (isAssigned) return 'delayed'; // متأخر لأنه لم يُستلم بعد مجيء تاريخه
+        if (!isAssigned && diffDays <= 30) return 'progress'; // مستلم ومر أقل من 30 يوم
+        return 'delayed'; // تجاوز 30 يوم
     }
 
     function updateDashboard() {
@@ -386,7 +391,6 @@
         renderLogsTable(); 
     }
 
-    // --- Interactivity Functions ---
     function filterLogs(type) {
         CURRENT_LOG_FILTER = type;
         
@@ -398,7 +402,7 @@
             labelEl.style.color = '#b91c1c';
             btnAll.style.display = 'none';
         } else if (type === 'progress') {
-            labelEl.textContent = 'المفلترة: (تحت الإجراء فقط)';
+            labelEl.textContent = 'المفلترة: (مجدول / تحت الإجراء)';
             labelEl.style.color = '#ca8a04';
             btnAll.style.display = 'flex';
         } else if (type === 'delayed') {
@@ -433,7 +437,7 @@
             const badgeStyle = r.category === 'progress' 
                 ? 'background:#fef08a; color:#854d0e' 
                 : 'background:#fee2e2; color:#991b1b'; 
-            const label = r.category === 'progress' ? `تحت الإجراء (${r.rawStatus})` : `متأخر (${r.rawStatus})`;
+            const label = r.category === 'progress' ? `مجدول (${r.rawStatus})` : `متأخر (${r.rawStatus})`;
 
             tb.insertAdjacentHTML('beforeend', `<tr>
                 <td><b>${r.id}</b></td>
@@ -463,40 +467,34 @@
             "الموقع (Site)": r.site,
             "الجهاز (Device)": r.device,
             "الفني (Technician)": r.tech,
-            "التصنيف الحالي": r.category === 'progress' ? 'تحت الإجراء' : 'متأخر',
+            "التصنيف الحالي": r.category === 'progress' ? 'مجدول/تحت الإجراء' : 'متأخر',
             "حالة النظام (System Status)": r.rawStatus
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
-        const colWidths = [{wch: 20}, {wch: 15}, {wch: 25}, {wch: 40}, {wch: 25}, {wch: 15}, {wch: 25}];
+        const colWidths = [{wch: 20}, {wch: 15}, {wch: 25}, {wch: 40}, {wch: 25}, {wch: 20}, {wch: 25}];
         ws['!cols'] = colWidths;
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "PPM Logs");
         
-        const fName = CURRENT_LOG_FILTER === 'progress' ? 'In_Progress_PPM' : (CURRENT_LOG_FILTER === 'delayed' ? 'Delayed_PPM' : 'Open_PPM');
+        const fName = CURRENT_LOG_FILTER === 'progress' ? 'Scheduled_PPM' : (CURRENT_LOG_FILTER === 'delayed' ? 'Delayed_PPM' : 'Open_PPM');
         XLSX.writeFile(wb, `${fName}_Tabuk.xlsx`);
     }
 
-    // --- دالة فتح التقرير للطباعة ---
     function openReport() {
         const siteVal = document.getElementById('siteFilter').value;
         const monthVal = document.getElementById('monthFilter').value;
 
-        // البيانات مجهزة ومفلترة مسبقاً في CURRENT_DASHBOARD_DATA
         if(CURRENT_DASHBOARD_DATA.length === 0) {
             alert('لا توجد بيانات للطباعة');
             return;
         }
 
-        // نقوم بإرسال البيانات المفلترة حالياً لصفحة التقرير
         sessionStorage.setItem('REPORT_DATA', JSON.stringify(CURRENT_DASHBOARD_DATA));
-        // نضع اسم الشهر المختار في رأس التقرير، وإذا كان فارغاً نكتب "كل الشهور"
         sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'PPM', site: siteVal, date: monthVal || 'كل الشهور' }));
-        
         window.open('report.html', '_blank');
     }
-    // ------------------------------------
 
     function renderCharts(data, done, prog, delay) {
         const ctxD = document.getElementById('chartDonut').getContext('2d');
@@ -504,7 +502,7 @@
         charts.d = new Chart(ctxD, {
             type: 'doughnut',
             data: { 
-                labels: ['منجز', 'تحت الإجراء', 'متأخر'], 
+                labels: ['منجز', 'مجدول/تحت الإجراء', 'متأخر'], 
                 datasets: [{ 
                     data: [done, prog, delay], 
                     backgroundColor: ['#16a34a', '#eab308', '#dc2626'], 
