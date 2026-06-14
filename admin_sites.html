@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة صلاحيات المواقع - C-Panel</title>
+    
+    <script>
+        if(sessionStorage.getItem('cpanel_auth') !== 'true') {
+            window.location.href = 'admin.html';
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #eab308; --bg: #f1f5f9; --surface: #ffffff; }
+        * { box-sizing: border-box; outline: none; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #334155; margin: 0; padding: 40px; }
+        
+        .container { max-width: 900px; margin: 0 auto; }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-back { background: #e2e8f0; color: #0f172a; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #cbd5e1; }
+        .btn-back:hover { background: #cbd5e1; }
+
+        .card { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; border-top: 5px solid var(--primary); margin-bottom: 20px; }
+        h1 { margin-top: 0; color: #0f172a; }
+
+        /* نموذج الإضافة */
+        .add-form { display: flex; gap: 15px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; align-items: flex-end; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 200px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #475569; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; font-size: 1rem; }
+        .btn-add { background: #0f172a; color: var(--primary); border: none; padding: 11px 25px; border-radius: 6px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 1rem; }
+        .btn-add:hover { background: #1e293b; }
+
+        /* جدول المواقع */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 15px; border-bottom: 1px solid #e2e8f0; text-align: right; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 800; }
+        tr:hover { background: #f8fafc; }
+        
+        .btn-delete { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; }
+        .btn-delete:hover { background: #fca5a5; }
+        
+        /* رسائل النظام */
+        #statusMsg { font-weight: bold; margin-top: 15px; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-nav">
+            <h2 style="margin: 0; color: #854d0e;"><i class="fas fa-key"></i> إدارة صلاحيات المواقع</h2>
+            <a href="admin.html" class="btn-back"><i class="fas fa-arrow-right"></i> العودة للوحة التوجيه</a>
+        </div>
+
+        <div class="card">
+            <h1>إضافة موقع جديد</h1>
+            <p style="color: #64748b;">قم بتسجيل المستشفى وتعيين كلمة المرور ليتمكن مديره من الدخول وتحديث الأعطال.</p>
+            
+            <div class="add-form">
+                <div class="form-group">
+                    <label>اسم الموقع (كما هو مكتوب في الإكسل بالضبط)</label>
+                    <input type="text" id="siteName" class="form-control" placeholder="مثال: مستشفي الوجه العام">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور (للدخول)</label>
+                    <input type="text" id="sitePass" class="form-control" placeholder="اكتب كلمة مرور قوية">
+                </div>
+                <button class="btn-add" id="btnAddSite"><i class="fas fa-plus"></i> حفظ وصلاحية</button>
+            </div>
+            <span id="statusMsg"></span>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-top:0;">المستشفيات المسجلة بالنظام</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>اسم الموقع</th>
+                        <th>كلمة المرور</th>
+                        <th>حالة الدخول</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="sitesTableBody">
+                    <tr><td colspan="4" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
+            authDomain: "tabuk-medical-cmms.firebaseapp.com",
+            projectId: "tabuk-medical-cmms",
+            storageBucket: "tabuk-medical-cmms.firebasestorage.app",
+            messagingSenderId: "756624281363",
+            appId: "1:756624281363:web:919e8555b86eddecbb14e6",
+            measurementId: "G-YV56L9QR5J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const statusMsg = document.getElementById('statusMsg');
+        const btnAddSite = document.getElementById('btnAddSite');
+        const sitesTableBody = document.getElementById('sitesTableBody');
+
+        // 1. دالة إضافة موقع جديد
+        btnAddSite.addEventListener('click', async () => {
+            const name = document.getElementById('siteName').value.trim();
+            const pass = document.getElementById('sitePass').value.trim();
+
+            if(!name || !pass) {
+                statusMsg.innerHTML = '<span style="color:#dc2626">❌ يرجى تعبئة اسم الموقع وكلمة المرور</span>';
+                return;
+            }
+
+            btnAddSite.disabled = true;
+            statusMsg.innerHTML = '<span style="color:#0284c7"><i class="fas fa-spinner fa-spin"></i> جاري الحفظ...</span>';
+
+            try {
+                // حفظ البيانات في كوليكشن جديد اسمه sites_auth
+                await addDoc(collection(db, "sites_auth"), {
+                    siteName: name,
+                    password: pass,
+                    createdAt: new Date().toISOString()
+                });
+
+                statusMsg.innerHTML = '<span style="color:#16a34a">✅ تم إضافة الموقع بنجاح!</span>';
+                document.getElementById('siteName').value = '';
+                document.getElementById('sitePass').value = '';
+                
+                loadSites(); // إعادة تحميل الجدول
+
+            } catch(e) {
+                console.error(e);
+                statusMsg.innerHTML = '<span style="color:#dc2626">❌ حدث خطأ أثناء الحفظ</span>';
+            }
+            btnAddSite.disabled = false;
+        });
+
+        // 2. دالة جلب وعرض المواقع
+        async function loadSites() {
+            try {
+                const q = query(collection(db, "sites_auth"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                sitesTableBody.innerHTML = ''; // مسح علامة التحميل
+                
+                if(querySnapshot.empty) {
+                    sitesTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">لا توجد مستشفيات مسجلة حتى الآن.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    sitesTableBody.insertAdjacentHTML('beforeend', `
+                        <tr>
+                            <td style="font-weight:bold; color:#1e3a8a;">${data.siteName}</td>
+                            <td style="font-family:monospace; font-size:1.1rem; background:#f1f5f9; padding:5px 10px; border-radius:4px; display:inline-block; margin-top:10px;">${data.password}</td>
+                            <td><span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">نشط</span></td>
+                            <td>
+                                <button class="btn-delete" onclick="window.deleteSite('${docSnap.id}')"><i class="fas fa-trash"></i> حذف</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            } catch(e) {
+                console.error(e);
+                sitesTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#dc2626;">خطأ في جلب البيانات من السيرفر.</td></tr>';
+            }
+        }
+
+        // 3. دالة حذف موقع
+        window.deleteSite = async function(docId) {
+            if(confirm('هل أنت متأكد من حذف صلاحية الدخول لهذا الموقع؟')) {
+                try {
+                    await deleteDoc(doc(db, "sites_auth", docId));
+                    loadSites(); // إعادة تحميل الجدول
+                } catch(e) {
+                    alert('حدث خطأ أثناء الحذف!');
+                    console.error(e);
+                }
+            }
+        }
+
+        // تحميل الجدول عند فتح الصفحة
+        window.onload = loadSites;
+
+    </script>
+</body>
+</html>
