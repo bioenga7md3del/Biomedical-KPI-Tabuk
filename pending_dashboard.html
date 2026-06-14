@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الأوامر المعلقة (Pending Jobs) - الإدارة الهندسية</title>
+    
+    <script>
+        if(sessionStorage.getItem('admin_token') !== 'secure_authenticated_session_2026') {
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #0284c7; --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; --green: #16a34a; --yellow: #eab308; --red: #dc2626; }
+        * { box-sizing: border-box; outline: none; text-decoration: none; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
+        
+        /* Header */
+        .header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .logo-img { height: 60px; object-fit: contain; } 
+        .header-titles { display: flex; align-items: center; gap: 15px; }
+        .header-titles h1 { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 800; }
+        .header-titles p { margin: 2px 0 0; font-size: 1rem; color: #64748b; font-weight: 700; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Tajawal'; transition: 0.2s;}
+        .btn-action:hover { background: #e2e8f0; }
+        .btn-print { background: var(--primary); color: white; border: none; }
+        .btn-print:hover { background: #0369a1; }
+
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        /* فلاتر */
+        .controls-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; margin-bottom: 2rem; display: flex; gap: 1.5rem; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); flex-wrap: wrap;}
+        .form-select { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: 'Tajawal'; font-size: 1rem; min-width: 200px; }
+
+        /* KPIs */
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; }
+        .kpi-val { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
+        .kpi-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
+
+        /* Charts */
+        .grid-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 2rem; }
+        @media(max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 2rem;}
+        .panel-header { font-size: 1.1rem; font-weight: 700; color: #334155; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; }
+
+        /* Table */
+        .table-wrap { overflow-x: auto; max-height: 600px; } 
+        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.9rem; }
+        th { background: #f8fafc; color: #475569; padding: 12px; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;}
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top;}
+        tr:hover { background: #f8fafc; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block;}
+        .age-green { background: #dcfce7; color: #166534; }
+        .age-yellow { background: #fef08a; color: #854d0e; }
+        .age-red { background: #fee2e2; color: #991b1b; }
+        
+        .comment-box { background: #f1f5f9; padding: 8px; border-radius: 6px; border-right: 3px solid var(--primary); margin-top: 5px; font-size: 0.85rem;}
+
+        /* إعدادات الطباعة (تخفي كل شيء ما عدا الجدول والترويسة) */
+        @media print {
+            body { background: white; padding: 0; }
+            .header, .controls-card, .grid-kpi, .grid-2, .btn-action { display: none !important; }
+            .container { margin: 0; max-width: 100%; padding: 0; }
+            .panel { border: none; box-shadow: none; padding: 0; }
+            .table-wrap { max-height: none; overflow: visible; }
+            table { font-size: 10px; }
+            th { border-bottom: 2px solid black; color: black; }
+            td { border-bottom: 1px solid #ddd; }
+            /* ترويسة خاصة للطباعة تظهر فقط وقت الطباعة */
+            #printHeader { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;}
+        }
+        #printHeader { display: none; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-titles">
+            <img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
+            <div>
+                <h1>لوحة الأوامر المعلقة (Pending Jobs)</h1>
+                <p>تحليل النواقص ومبررات المواقع</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div id="statusBadge" style="color: #0284c7; font-weight: bold; margin-left: 15px;">
+                <i class="fas fa-circle-notch fa-spin"></i> جاري جلب البيانات...
+            </div>
+            <button class="btn-action btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i> طباعة التقرير
+            </button>
+            <a href="index.html" class="btn-action">
+                <i class="fas fa-home"></i> الرئيسية
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div id="printHeader">
+            <img src="TabukCluster.jpeg" alt="شعار التجمع" style="height: 80px; margin-bottom: 10px;" onerror="this.style.display='none'"/>
+            <h2>تقرير الأوامر المفتوحة ومبررات التأخير</h2>
+            <p>الإدارة الهندسية - قسم الأجهزة الطبية | تجمع تبوك الصحي</p>
+            <p style="text-align: left; direction: ltr;" id="printDate"></p>
+        </div>
+
+        <div class="controls-card">
+            <div>
+                <label style="font-weight: bold; color: #475569; display:block; margin-bottom:5px;">الموقع:</label>
+                <select id="filterSite" class="form-select" onchange="updateDashboard()">
+                    <option value="All">-- كل المواقع --</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; color: #475569; display:block; margin-bottom:5px;">حالة العطل (Aging):</label>
+                <select id="filterAge" class="form-select" onchange="updateDashboard()">
+                    <option value="All">-- الكل --</option>
+                    <option value="green">حديث (أقل من 5 أيام)</option>
+                    <option value="yellow">متأخر (5 إلى 30 يوم)</option>
+                    <option value="red">حرج (أكثر من 30 يوم)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-kpi">
+            <div class="kpi-card" style="border-top-color: #3b82f6;">
+                <div class="kpi-label">إجمالي الأوامر المفتوحة</div>
+                <div class="kpi-val" id="kpi-total">0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #16a34a;">
+                <div class="kpi-label">حديثة (< 5 أيام)</div>
+                <div class="kpi-val" id="kpi-green" style="color:#16a34a">0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #eab308;">
+                <div class="kpi-label">متأخرة (5 - 30 يوم)</div>
+                <div class="kpi-val" id="kpi-yellow" style="color:#ca8a04">0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #dc2626;">
+                <div class="kpi-label">حرجة (> 30 يوم)</div>
+                <div class="kpi-val" id="kpi-red" style="color:#dc2626">0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #8b5cf6;">
+                <div class="kpi-label">نسبة الإفادة / التبرير</div>
+                <div class="kpi-val" id="kpi-reply" style="color:#8b5cf6">0%</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="panel">
+                <div class="panel-header">توزيع أعمار الأعطال (Aging)</div>
+                <div style="height:250px; display:flex; justify-content:center;"><canvas id="chartPie"></canvas></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">المواقع الأعلى في الأعطال الحرجة والمتأخرة</div>
+                <div style="height:250px;"><canvas id="chartBar"></canvas></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header" id="tableHeaderTitle">تفاصيل الأوامر المفتوحة وتبريرات المواقع</div>
+            <div class="table-wrap">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>رقم الأمر</th>
+                            <th>تاريخ الاستحقاق</th>
+                            <th>أيام التأخير</th>
+                            <th>الموقع</th>
+                            <th style="width: 25%;">الجهاز</th>
+                            <th>الفني</th>
+                            <th style="width: 30%;">تحديث / تبرير الموقع</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
+            authDomain: "tabuk-medical-cmms.firebaseapp.com",
+            projectId: "tabuk-medical-cmms",
+            storageBucket: "tabuk-medical-cmms.firebasestorage.app",
+            messagingSenderId: "756624281363",
+            appId: "1:756624281363:web:919e8555b86eddecbb14e6",
+            measurementId: "G-YV56L9QR5J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let RAW_DATA = [];
+        let charts = {};
+
+        // دالة مساعدة لحساب أيام التأخير
+        function calcDays(dateStr) {
+            if(!dateStr) return 0;
+            let d;
+            if(dateStr.includes('-')) {
+                let parts = dateStr.split(' ')[0].split('-');
+                if(parts[0].length === 4) d = new Date(parts[0], parts[1]-1, parts[2]); // YYYY-MM-DD
+                else d = new Date(parts[2], parts[1]-1, parts[0]); // DD-MM-YYYY
+            } else {
+                d = new Date(dateStr);
+            }
+            if(isNaN(d.getTime())) return 0;
+            const diff = Date.now() - d.getTime();
+            return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('printDate').innerText = new Date().toLocaleString('en-GB');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            try {
+                const q = query(collection(db, "pending_orders"), where("isCompleted", "==", false));
+                const snapshot = await getDocs(q);
+                
+                const siteSet = new Set();
+                
+                snapshot.forEach(doc => {
+                    const r = doc.data();
+                    r.daysOpen = calcDays(r.startDate || r.createdAt);
+                    
+                    if(r.daysOpen < 5) r.ageCat = 'green';
+                    else if(r.daysOpen <= 30) r.ageCat = 'yellow';
+                    else r.ageCat = 'red';
+                    
+                    if(r.site) siteSet.add(r.site);
+                    RAW_DATA.push(r);
+                });
+
+                // ملء فلتر المواقع
+                const sel = document.getElementById('filterSite');
+                [...siteSet].sort().forEach(s => sel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`));
+
+                statusBadge.innerHTML = `<i class="fas fa-check-circle"></i> متصل (${RAW_DATA.length} أمر)`;
+                statusBadge.style.color = '#16a34a';
+
+                window.updateDashboard();
+
+            } catch (e) {
+                console.error(e);
+                statusBadge.innerHTML = `<i class="fas fa-times-circle"></i> خطأ في الاتصال بالسيرفر`;
+                statusBadge.style.color = '#dc2626';
+            }
+        });
+
+        window.updateDashboard = function() {
+            const siteVal = document.getElementById('filterSite').value;
+            const ageVal = document.getElementById('filterAge').value;
+
+            // فلترة البيانات
+            const filtered = RAW_DATA.filter(r => {
+                if(siteVal !== 'All' && r.site !== siteVal) return false;
+                if(ageVal !== 'All' && r.ageCat !== ageVal) return false;
+                return true;
+            });
+
+            // حساب المؤشرات (KPIs) بناءً على الفلتر النشط
+            let g=0, y=0, red=0, replied=0;
+            filtered.forEach(r => {
+                if(r.ageCat === 'green') g++;
+                else if(r.ageCat === 'yellow') y++;
+                else if(r.ageCat === 'red') red++;
+                
+                if(r.comments && r.comments.length > 0) replied++;
+            });
+
+            document.getElementById('kpi-total').textContent = filtered.length;
+            document.getElementById('kpi-green').textContent = g;
+            document.getElementById('kpi-yellow').textContent = y;
+            document.getElementById('kpi-red').textContent = red;
+            document.getElementById('kpi-reply').textContent = filtered.length ? Math.round((replied/filtered.length)*100) + '%' : '0%';
+
+            // تحديث الجدول
+            renderTable(filtered);
+            
+            // تحديث الرسوم البيانية (دائماً نرسم كل البيانات للمقارنة، لكن لو تم اختيار موقع نرسم له هو فقط)
+            const chartData = siteVal === 'All' ? RAW_DATA : filtered;
+            renderCharts(chartData);
+        }
+
+        function renderTable(data) {
+            const tbody = document.querySelector('#dataTable tbody');
+            tbody.innerHTML = '';
+            
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">لا توجد بيانات مطابقة للفلتر.</td></tr>';
+                return;
+            }
+
+            // ترتيب تنازلي (الأكثر تأخيراً في الأعلى)
+            data.sort((a,b) => b.daysOpen - a.daysOpen).forEach(r => {
+                let badgeClass = 'age-green';
+                let ageText = r.daysOpen + ' أيام';
+                if(r.ageCat === 'yellow') badgeClass = 'age-yellow';
+                else if(r.ageCat === 'red') badgeClass = 'age-red';
+
+                let commentHTML = '<span style="color:#94a3b8; font-size:0.8rem;">لا يوجد رد</span>';
+                if(r.comments && r.comments.length > 0) {
+                    const lastC = r.comments[r.comments.length - 1];
+                    commentHTML = `<div class="comment-box"><strong>${lastC.text}</strong><br><span style="color:#64748b; font-size:0.75rem">${lastC.date}</span></div>`;
+                }
+
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td style="font-weight:bold;">${r.id}</td>
+                        <td style="direction:ltr;">${r.startDate || '-'}</td>
+                        <td><span class="badge ${badgeClass}">${ageText}</span></td>
+                        <td>${r.site}</td>
+                        <td title="${r.device}">${r.device.substring(0,40)}</td>
+                        <td>${r.tech}</td>
+                        <td>${commentHTML}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        function renderCharts(data) {
+            // رسم الدائرة
+            let g=0, y=0, red=0;
+            const siteCounts = {}; // للأعطال المتأخرة والحرجة فقط
+
+            data.forEach(r => {
+                if(r.ageCat === 'green') g++;
+                else if(r.ageCat === 'yellow') y++;
+                else if(r.ageCat === 'red') red++;
+
+                if(r.ageCat !== 'green') {
+                    siteCounts[r.site] = (siteCounts[r.site] || 0) + 1;
+                }
+            });
+
+            if(charts.pie) charts.pie.destroy();
+            charts.pie = new Chart(document.getElementById('chartPie').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['حديثة', 'متأخرة', 'حرجة'],
+                    datasets: [{ data: [g, y, red], backgroundColor: ['#16a34a', '#eab308', '#dc2626'], borderWidth:0 }]
+                },
+                options: { maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
+            });
+
+            // رسم الأعمدة (أكثر المستشفيات في الأعطال الصفراء والحمراء)
+            const sortedSites = Object.entries(siteCounts).sort((a,b)=>b[1]-a[1]).slice(0, 7);
+
+            if(charts.bar) charts.bar.destroy();
+            charts.bar = new Chart(document.getElementById('chartBar').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: sortedSites.map(s => s[0].substring(0, 15)),
+                    datasets: [{ label: 'أعطال متأخرة وحرجة', data: sortedSites.map(s => s[1]), backgroundColor: '#f97316', borderRadius:4 }]
+                },
+                options: { maintainAspectRatio:false, plugins:{legend:{display:false}} }
+            });
+        }
+    </script>
+</body>
+</html>
