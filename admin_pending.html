@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مزامنة النواقص - C-Panel</title>
+    
+    <script>
+        if(sessionStorage.getItem('cpanel_auth') !== 'true') {
+            window.location.href = 'admin.html';
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #16a34a; --bg: #f1f5f9; --surface: #ffffff; }
+        * { box-sizing: border-box; outline: none; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #334155; margin: 0; padding: 40px; }
+        
+        .container { max-width: 800px; margin: 0 auto; }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-back { background: #e2e8f0; color: #0f172a; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #cbd5e1; }
+        .btn-back:hover { background: #cbd5e1; }
+
+        .card { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; text-align: center; border-top: 5px solid var(--primary); }
+        h1 { margin-top: 0; color: #0f172a; }
+        
+        .upload-area { border: 2px dashed #cbd5e1; padding: 30px; border-radius: 8px; background: #f8fafc; margin-top: 20px; transition: 0.2s; }
+        .upload-area:hover { border-color: var(--primary); }
+        
+        .btn-action { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 6px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 1.05rem; }
+        .btn-action:disabled { background: #94a3b8; cursor: not-allowed; }
+        
+        #statusMsg { font-weight: 700; color: #0284c7; margin-top: 15px; font-size: 1.1rem; }
+        .log-box { background: #0f172a; color: #38bdf8; padding: 20px; border-radius: 8px; text-align: right; font-family: monospace; font-size: 0.9rem; max-height: 250px; overflow-y: auto; display: none; white-space: pre-wrap; margin-top: 20px; border: 1px solid #334155;}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-nav">
+            <h2 style="margin: 0; color: var(--primary);"><i class="fas fa-sync-alt"></i> مزامنة النواقص</h2>
+            <a href="admin.html" class="btn-back"><i class="fas fa-arrow-right"></i> العودة للوحة التوجيه</a>
+        </div>
+
+        <div class="card">
+            <h1>رفع ملف Pending Jobs</h1>
+            <p style="color: #64748b;">سيقوم النظام بمقارنة الملف بالسيرفر، تحديث الأوامر المفتوحة، وإغلاق الأوامر المنتهية تلقائياً.</p>
+            
+            <div class="upload-area">
+                <i class="fas fa-file-excel" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i><br>
+                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="margin-bottom: 20px; font-family:'Tajawal';"><br>
+                <button class="btn-action" id="btnUpload" disabled>بدء المعالجة والرفع <i class="fas fa-cloud-upload-alt"></i></button>
+                <div id="statusMsg">جاري الاتصال بقاعدة البيانات...</div>
+            </div>
+        </div>
+
+        <div class="log-box" id="logBox"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, doc, getDocs, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
+            authDomain: "tabuk-medical-cmms.firebaseapp.com",
+            projectId: "tabuk-medical-cmms",
+            storageBucket: "tabuk-medical-cmms.firebasestorage.app",
+            messagingSenderId: "756624281363",
+            appId: "1:756624281363:web:919e8555b86eddecbb14e6",
+            measurementId: "G-YV56L9QR5J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const statusMsg = document.getElementById('statusMsg');
+        const btnUpload = document.getElementById('btnUpload');
+        const excelInput = document.getElementById('excelFile');
+        const logBox = document.getElementById('logBox');
+
+        statusMsg.innerHTML = "<span style='color:#16a34a'><i class='fas fa-check-circle'></i> جاهز لاستقبال الملف!</span>";
+        btnUpload.disabled = false;
+
+        btnUpload.addEventListener('click', () => {
+            const file = excelInput.files[0];
+            if(!file) { alert("اختر ملف إكسل أولاً!"); return; }
+            
+            btnUpload.disabled = true;
+            statusMsg.innerHTML = "<i class='fas fa-spinner fa-spin'></i> جاري المزامنة...";
+            logBox.style.display = "block";
+            logBox.innerHTML = "> بدء تشغيل معالج البيانات...\n";
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {range: 1});
+
+                    if(json.length === 0) throw new Error("الملف فارغ أو صيغته غير مدعومة مباشرة.");
+                    await syncDataWithFirebase(json);
+
+                } catch (err) {
+                    console.error(err);
+                    statusMsg.innerHTML = `<span style='color:#dc2626'>❌ خطأ: ${err.message}</span>`;
+                    btnUpload.disabled = false;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        async function syncDataWithFirebase(excelRows) {
+            logBox.innerHTML += `> العثور على (${excelRows.length}) أمر في الملف.\n`;
+            
+            const querySnapshot = await getDocs(collection(db, "pending_orders"));
+            const firebaseOrders = {};
+            querySnapshot.forEach(doc => { firebaseOrders[doc.id] = doc.data(); });
+
+            let addedCount = 0, updatedCount = 0, completedCount = 0;
+            const excelOrderIds = new Set();
+
+            for(let row of excelRows) {
+                const id = String(row['#'] || row['رقم الأمر'] || row['Control No'] || '').trim();
+                if(!id || id === '-' || id === 'undefined') continue;
+
+                excelOrderIds.add(id);
+                const site = row['Site'] || 'Unknown';
+                const device = row['ECRI Code'] || row['Equipment Name'] || 'Device';
+                const tech = row['Assigned To'] || 'Unknown';
+                const status = row['Status'] || 'Assigned';
+                const startDateStr = row['start date'] || row['Start Date'] || '';
+
+                const orderRef = doc(db, "pending_orders", id);
+
+                if (firebaseOrders[id]) {
+                    await updateDoc(orderRef, {
+                        site: site, device: device, tech: tech, status: status, startDate: startDateStr,
+                        lastSyncDate: new Date().toISOString(), isCompleted: false
+                    });
+                    updatedCount++;
+                } else {
+                    await setDoc(orderRef, {
+                        id: id, site: site, device: device, tech: tech, status: status, startDate: startDateStr,
+                        isCompleted: false, comments: [], createdAt: new Date().toISOString()
+                    });
+                    addedCount++;
+                }
+            }
+
+            for(let id in firebaseOrders) {
+                if(!excelOrderIds.has(id) && firebaseOrders[id].isCompleted !== true) {
+                    await updateDoc(doc(db, "pending_orders", id), {
+                        isCompleted: true, status: "Signed Off", completedAt: new Date().toISOString()
+                    });
+                    completedCount++;
+                }
+            }
+
+            logBox.innerHTML += `\n> 📥 تمت الإضافة: ${addedCount} أمر جديد\n`;
+            logBox.innerHTML += `> 🔄 تم التحديث: ${updatedCount} أمر مفتوح\n`;
+            logBox.innerHTML += `> ✅ تم الإغلاق: ${completedCount} أمر منتهي\n`;
+            statusMsg.innerHTML = "<span style='color:#16a34a'>اكتملت المزامنة بنجاح!</span>";
+            btnUpload.disabled = false;
+        }
+    </script>
+</body>
+</html>
