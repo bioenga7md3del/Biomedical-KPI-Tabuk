@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة مديري المواقع - تحديث أوامر العمل</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #1e3a8a; --bg: #f1f5f9; --surface: #ffffff; --warn: #eab308; }
+        * { box-sizing: border-box; outline: none; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #0f172a; margin: 0; padding: 0; }
+        
+        /* Login Screen */
+        #loginScreen { height: 100vh; display: flex; align-items: center; justify-content: center; background: #e2e8f0; }
+        .login-card { background: var(--surface); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .login-card h2 { color: var(--primary); margin-top: 0; }
+        .form-control { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; font-size: 1rem; }
+        .btn-login { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; }
+        .btn-login:hover { background: #1e40af; }
+
+        /* Main App Screen */
+        #appScreen { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .header { background: var(--surface); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; }
+        .btn-logout { background: #fee2e2; color: #dc2626; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; }
+
+        /* Table */
+        .panel { background: var(--surface); padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; color: #475569; }
+        tr:hover { background: #f1f5f9; }
+        .btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .btn-update:hover { background: #bae6fd; }
+
+        /* Modal */
+        #commentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .history-box { background: #f8fafc; padding: 10px; border-radius: 6px; height: 150px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9rem; border: 1px solid #cbd5e1; }
+        .comment-item { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; }
+        .comment-date { color: #64748b; font-size: 0.8rem; display: block; margin-bottom: 2px; }
+        textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; resize: none; margin-bottom: 10px; }
+        .btn-save { background: #16a34a; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; width: 100%; }
+        
+        .badge-done { background: #dcfce7; color: #16a34a; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .badge-warn { background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <div class="login-card">
+            <h2><i class="fas fa-hospital-user"></i> بوابة مديري المواقع</h2>
+            <p style="color: #64748b; margin-bottom: 25px;">قم باختيار موقعك لتحديث حالة الأوامر</p>
+            
+            <select id="loginSite" class="form-control">
+                <option value="">-- اختر الموقع --</option>
+                <option value="مستشفي الوجه العام">مستشفى الوجه العام</option>
+                <option value="مستشفى الملك فهد التخصصى">مستشفى الملك فهد التخصصي</option>
+                <option value="مستشفي ضبا العام">مستشفى ضباء العام</option>
+                <option value="الفريق المتحرك">الفريق المتحرك</option>
+            </select>
+            
+            <input type="password" id="loginPass" class="form-control" placeholder="كلمة المرور">
+            <button class="btn-login" id="btnLogin">دخول</button>
+            <p id="loginError" style="color: red; display: none; margin-top: 10px;">كلمة المرور غير صحيحة</p>
+        </div>
+    </div>
+
+    <div id="appScreen">
+        <div class="header">
+            <div>
+                <h1>مرحباً، <span id="lblSiteName" style="color:#0284c7"></span></h1>
+                <p style="margin: 5px 0 0; color: #64748b;">سجل الأوامر المتأخرة وتحت الإجراء</p>
+            </div>
+            <button class="btn-logout" onclick="location.reload()">تسجيل خروج <i class="fas fa-sign-out-alt"></i></button>
+        </div>
+
+        <div class="panel">
+            <table id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>رقم الأمر</th>
+                        <th>الاستحقاق / العطل</th>
+                        <th>الجهاز</th>
+                        <th>الفني</th>
+                        <th>حالة التحديث</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="6" style="text-align: center;">جاري تحميل البيانات...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="commentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin:0; color:#1e3a8a;">تحديث أمر: <span id="modalOrderId"></span></h3>
+                <i class="fas fa-times" style="cursor: pointer; color: #dc2626; font-size: 1.2rem;" onclick="closeModal()"></i>
+            </div>
+            
+            <label style="font-weight: bold; color: #475569; margin-bottom: 5px; display: block;">السجل التاريخي (History):</label>
+            <div class="history-box" id="modalHistory"></div>
+            
+            <label style="font-weight: bold; color: #475569; margin-bottom: 5px; display: block;">تحديث جديد:</label>
+            <textarea id="modalNewComment" placeholder="اكتب سبب التأخير أو التحديث هنا..."></textarea>
+            
+            <button class="btn-save" id="btnSaveComment">حفظ التحديث</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
+            authDomain: "tabuk-medical-cmms.firebaseapp.com",
+            projectId: "tabuk-medical-cmms",
+            storageBucket: "tabuk-medical-cmms.firebasestorage.app",
+            messagingSenderId: "756624281363",
+            appId: "1:756624281363:web:919e8555b86eddecbb14e6",
+            measurementId: "G-YV56L9QR5J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentSite = "";
+        let currentEditingOrder = "";
+
+        // --- نظام تسجيل الدخول المبسط ---
+        document.getElementById('btnLogin').addEventListener('click', () => {
+            const site = document.getElementById('loginSite').value;
+            const pass = document.getElementById('loginPass').value;
+            
+            if (!site) { alert("اختر الموقع أولاً"); return; }
+            
+            // كلمة المرور الموحدة (1234)
+            if (pass === "1234") {
+                currentSite = site;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'block';
+                document.getElementById('lblSiteName').textContent = site;
+                loadSiteOrders();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+
+        // --- جلب بيانات المستشفى المحدد فقط ---
+        async function loadSiteOrders() {
+            const tb = document.querySelector('#ordersTable tbody');
+            tb.innerHTML = '<tr><td colspan="6" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> جاري جلب الأوامر...</td></tr>';
+
+            try {
+                const q = query(collection(db, "pending_orders"), where("site", "==", currentSite));
+                const snapshot = await getDocs(q);
+                
+                let rowsHTML = "";
+                let hasActiveOrders = false;
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    
+                    // إخفاء الأوامر المنتهية (المغلقة)
+                    if(data.isCompleted) return;
+                    hasActiveOrders = true;
+
+                    // التحقق من وجود تعليقات سابقة
+                    const commentsCount = data.comments ? data.comments.length : 0;
+                    const statusBadge = commentsCount > 0 
+                        ? `<span class="badge-done"><i class="fas fa-check"></i> تم الرد (${commentsCount})</span>`
+                        : `<span class="badge-warn"><i class="fas fa-exclamation-circle"></i> بانتظار الإفادة</span>`;
+
+                    rowsHTML += `
+                        <tr>
+                            <td style="font-weight:bold;">${data.id}</td>
+                            <td>${data.startDate || 'غير محدد'}</td>
+                            <td title="${data.device}">${data.device.substring(0, 30)}...</td>
+                            <td>${data.tech}</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button class="btn-update" onclick="window.openModal('${docSnap.id}')">
+                                    <i class="fas fa-pen"></i> تحديث
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                if(!hasActiveOrders) {
+                    tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:#16a34a; font-weight:bold;">رائع! لا توجد أي أوامر متأخرة لموقعك.</td></tr>';
+                } else {
+                    tb.innerHTML = rowsHTML;
+                }
+
+                // حفظ البيانات مؤقتاً لفتح النافذة
+                window.siteData = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+
+            } catch (error) {
+                console.error(error);
+                tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:red;">حدث خطأ في الاتصال بالسيرفر.</td></tr>';
+            }
+        }
+
+        // --- إدارة نافذة التعليقات (Modal) ---
+        window.openModal = function(orderId) {
+            currentEditingOrder = orderId;
+            document.getElementById('modalOrderId').textContent = orderId;
+            document.getElementById('modalNewComment').value = "";
+            
+            const orderData = window.siteData.find(o => o.id === orderId);
+            const historyBox = document.getElementById('modalHistory');
+            
+            if (orderData.comments && orderData.comments.length > 0) {
+                historyBox.innerHTML = orderData.comments.map(c => `
+                    <div class="comment-item">
+                        <span class="comment-date"><i class="fas fa-clock"></i> ${c.date}</span>
+                        <strong>${c.text}</strong>
+                    </div>
+                `).join('');
+            } else {
+                historyBox.innerHTML = '<div style="color:#94a3b8; text-align:center; padding-top:20px;">لا توجد تحديثات سابقة لهذا الأمر.</div>';
+            }
+
+            document.getElementById('commentModal').style.display = 'flex';
+        }
+
+        window.closeModal = function() {
+            document.getElementById('commentModal').style.display = 'none';
+        }
+
+        // حفظ التحديث في الفايربيز
+        document.getElementById('btnSaveComment').addEventListener('click', async () => {
+            const text = document.getElementById('modalNewComment').value.trim();
+            if(!text) { alert("الرجاء كتابة التحديث أولاً"); return; }
+
+            const btn = document.getElementById('btnSaveComment');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+            try {
+                const orderRef = doc(db, "pending_orders", currentEditingOrder);
+                const newComment = {
+                    text: text,
+                    date: new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }),
+                    author: currentSite
+                };
+
+                await updateDoc(orderRef, {
+                    comments: arrayUnion(newComment)
+                });
+
+                alert("تم حفظ التحديث بنجاح!");
+                closeModal();
+                loadSiteOrders(); // إعادة تحميل الجدول ليظهر الـ Badge الأخضر
+
+            } catch (error) {
+                console.error(error);
+                alert("حدث خطأ أثناء الحفظ!");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'حفظ التحديث';
+            }
+        });
+    </script>
+</body>
+</html>
