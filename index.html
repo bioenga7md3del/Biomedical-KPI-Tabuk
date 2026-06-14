@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>النظام الموحد لمؤشرات الصيانة الطبية - تجمع تبوك</title>
+    <title>النظام الموحد لمؤشرات الصيانة الطبية - تجمع تبوك الصحي</title>
     
+    <script>
+        if (sessionStorage.getItem('admin_token') !== 'secure_authenticated_session_2026') {
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -12,160 +18,180 @@
 
     <style>
         :root { 
-            --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
-            --primary: #1e3a8a; --secondary: #64748b;
-            --cm-color: #dc2626; --ppm-color: #16a34a; --accent: #3b82f6;
-            --warn: #eab308;
+            --bg: #f8fafc; 
+            --surface: #ffffff; 
+            --text: #0f172a; 
+            --primary: #1e3a8a; 
+            --secondary: #64748b;
+            --cm-color: #dc2626; 
+            --ppm-color: #16a34a; 
+            --pending-color: #0284c7;
+            --accent: #3b82f6;
         }
         * { box-sizing: border-box; outline: none; text-decoration: none; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
         
-        /* Header */
+        /* الهيدر وعناصر التحكم العلوية */
         .navbar { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;}
         .nav-brand { display: flex; align-items: center; gap: 15px; }
         .logo-img { height: 70px; object-fit: contain; } 
         .brand-titles h1 { margin: 0; font-size: 1.5rem; color: var(--primary); font-weight: 800; }
         .brand-titles p { margin: 5px 0 0; font-size: 0.95rem; color: var(--secondary); font-weight: 600; }
         
-        .status-badge { padding: 6px 15px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .header-controls { display: flex; gap: 12px; align-items: center; }
+        .btn-nav-admin { background: #0f172a; color: #38bdf8; border: 1px solid #334155; padding: 10px 18px; border-radius: 8px; font-weight: bold; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+        .btn-nav-admin:hover { background: #1e293b; transform: translateY(-1px); }
+
+        .status-badge { padding: 8px 16px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         .st-loading { background: #e0f2fe; color: #0284c7; }
         .st-success { background: #dcfce7; color: #16a34a; }
         .st-error { background: #fee2e2; color: #dc2626; }
 
-        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
+        .container { max-width: 1400px; margin: 2.5rem auto; padding: 0 1.5rem; }
         .section-title { font-size: 1.4rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; border-right: 5px solid var(--primary); padding-right: 10px;}
 
-        /* Portals */
-        .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        /* شبكة البوابات الثلاثية المحسنة */
+        .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 3.5rem; }
         .portal-card { background: var(--surface); border-radius: 1rem; padding: 2rem; display: flex; align-items: center; gap: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; }
-        .portal-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        .portal-icon { width: 70px; height: 70px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; }
+        .portal-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px -3px rgba(0,0,0,0.08); }
+        .portal-icon { width: 65px; height: 65px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+        
         .pc-cm { border-right: 5px solid var(--cm-color); }
         .pc-cm .portal-icon { background: #fee2e2; color: var(--cm-color); }
         .pc-ppm { border-right: 5px solid var(--ppm-color); }
         .pc-ppm .portal-icon { background: #dcfce7; color: var(--ppm-color); }
+        .pc-pending { border-right: 5px solid var(--pending-color); }
+        .pc-pending .portal-icon { background: #e0f2fe; color: var(--pending-color); }
         
-        .portal-info h3 { margin: 0 0 5px 0; font-size: 1.3rem; color: #1e293b; }
+        .portal-info { flex: 1; }
+        .portal-info h3 { margin: 0 0 5px 0; font-size: 1.25rem; color: #0f172a; font-weight: 700; }
         .portal-info p { margin: 0 0 15px 0; font-size: 0.9rem; color: var(--secondary); line-height: 1.5; }
-        .btn-enter { padding: 6px 15px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block; transition: 0.2s; }
+        .btn-enter { padding: 6px 15px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; display: inline-block; transition: 0.2s; }
+        
         .pc-cm .btn-enter { background: #fef2f2; color: var(--cm-color); border: 1px solid #fecaca; }
         .pc-ppm .btn-enter { background: #f0fdf4; color: var(--ppm-color); border: 1px solid #bbf7d0; }
+        .pc-pending .btn-enter { background: #f0f9ff; color: var(--pending-color); border: 1px solid #bae6fd; }
 
-        /* KPIs */
-        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        /* كروت الأداء العلوية KPIs */
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-align: center; display: flex; flex-direction: column; justify-content: center; }
-        .kpi-val { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
+        .kpi-val { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 8px 0; }
         .kpi-label { font-size: 0.95rem; font-weight: 700; color: var(--secondary); }
-        .kpi-trend { font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 10px; }
+        .kpi-trend { font-size: 0.8rem; font-weight: bold; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-top: 10px; text-align: center;}
         
+        /* لوحات الرسوم البيانية */
         .grid-charts { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 3rem; }
         @media(max-width: 900px) { .grid-charts { grid-template-columns: 1fr; } }
         .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .panel-header { font-size: 1.1rem; font-weight: 700; color: #334155; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;}
         
-        footer { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.9rem; margin-top: 2rem; border-top: 1px solid #e2e8f0; }
+        footer { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.9rem; margin-top: 3rem; border-top: 1px solid #e2e8f0; font-weight: 500; }
     </style>
 </head>
 <body>
 
     <header class="navbar">
         <div class="nav-brand">
-            <img src="TabukCluster.jpeg" alt="Logo" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
+            <img src="TabukCluster.jpeg" alt="شعار تجمع تبوك" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
             <div class="brand-titles">
                 <h1>الإدارة الهندسية - الأجهزة الطبية</h1>
                 <p>تجمع تبوك الصحي (Tabuk Health Cluster)</p>
             </div>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <a href="admin.html" class="btn-action" style="background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8; padding: 8px 15px; border-radius: 6px; font-weight: bold; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-user-shield"></i> لوحة الإدارة ⚙️
+        <div class="header-controls">
+            <a href="admin.html" class="btn-nav-admin">
+                <i class="fas fa-user-shield"></i> لوحة الإدارة المركزية ⚙️
             </a>
-            <a href="manager.html" class="btn-action" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 8px 15px; border-radius: 6px; font-weight: bold; display: flex; align-items: center; gap: 8px;">
-    <i class="fas fa-hospital-user"></i> دخول المواقع
-</a>
             <div id="statusBadge" class="status-badge st-loading">
-                <i class="fas fa-circle-notch fa-spin"></i> جاري مزامنة البيانات...
+                <i class="fas fa-circle-notch fa-spin"></i> جاري مزامنة الملفات...
             </div>
         </div>
     </header>
 
-    <div class="portal-grid">
+    <div class="container">
+        
+        <div class="section-title"><i class="fas fa-th-large"></i> بوابات الأنظمة الفرعية</div>
+        
+        <div class="portal-grid">
             <a href="cm_dashboard.html" class="portal-card pc-cm">
                 <div class="portal-icon"><i class="fas fa-tools"></i></div>
                 <div class="portal-info">
                     <h3>الصيانة التصحيحية (CM)</h3>
-                    <p>تحليل بلاغات الأعطال وسرعة الإصلاح.</p>
-                    <div class="btn-enter">عرض التفاصيل <i class="fas fa-arrow-left"></i></div>
+                    <p>تحليل بلاغات الأعطال الاستعجالية، قياس سرعة الاستجابة ومتوسط أوقات الإصلاح الفنية.</p>
+                    <div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
                 </div>
             </a>
+            
             <a href="ppm_dashboard.html" class="portal-card pc-ppm">
                 <div class="portal-icon"><i class="fas fa-calendar-check"></i></div>
                 <div class="portal-info">
                     <h3>الصيانة الوقائية (PPM)</h3>
-                    <p>متابعة خطط الصيانة ونسب الالتزام.</p>
-                    <div class="btn-enter">عرض التفاصيل <i class="fas fa-arrow-left"></i></div>
+                    <p>متابعة خطط الصيانة الدورية المجدولة، نسب الالتزام، والأوامر المتأخرة وتحت الإجراء.</p>
+                    <div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
                 </div>
             </a>
-            <a href="pending_dashboard.html" class="portal-card" style="border-right: 5px solid #0284c7;">
-                <div class="portal-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fas fa-exclamation-triangle"></i></div>
+
+            <a href="pending_dashboard.html" class="portal-card pc-pending">
+                <div class="portal-icon"><i class="fas fa-exclamation-triangle"></i></div>
                 <div class="portal-info">
                     <h3>الأوامر المعلقة (Pending Jobs)</h3>
-                    <p>تحليل النواقص، أعمار الأعطال، وتبريرات المواقع.</p>
-                    <div class="btn-enter" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd;">عرض التفاصيل <i class="fas fa-arrow-left"></i></div>
+                    <p>تحليل النواقص السحابي، أعمار الأعطال المفتوحة، ومتابعة مبررات وتحديثات مديري المواقع.</p>
+                    <div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
                 </div>
             </a>
         </div>
 
-        <div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي الموحد</div>
+        <div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي الموحد (Executive Summary)</div>
 
         <div class="grid-kpi">
             <div class="kpi-card">
-                <div class="kpi-label">إجمالي الأوامر</div>
+                <div class="kpi-label">إجمالي أوامر العمل</div>
                 <div class="kpi-val" id="ex-total">0</div>
-                <div class="kpi-trend" style="background:#e0f2fe; color:#0369a1;">CM + PPM</div>
+                <div class="kpi-trend" style="background:#e0f2fe; color:#0369a1;">CM + PPM المستلمة</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">الإنجاز الكلي</div>
+                <div class="kpi-label">معدل الإغلاق العام</div>
                 <div class="kpi-val" id="ex-rate" style="color:var(--ppm-color)">0%</div>
-                <div class="kpi-trend" style="background:#dcfce7; color:#15803d;">كفاءة الإغلاق</div>
+                <div class="kpi-trend" style="background:#dcfce7; color:#15803d;">كفاءة الإنجاز الكلية</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">أعطال مفتوحة</div>
+                <div class="kpi-label">أعطال مفتوحة حالياً</div>
                 <div class="kpi-val" id="ex-open-cm" style="color:var(--cm-color)">0</div>
-                <div class="kpi-trend" style="background:#fee2e2; color:#b91c1c;">أعطال CM</div>
+                <div class="kpi-trend" style="background:#fee2e2; color:#b91c1c;">أوامر قيد العمل (CM)</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label">وقائية متأخرة</div>
                 <div class="kpi-val" id="ex-delayed-ppm" style="color:#ca8a04">0</div>
-                <div class="kpi-trend" style="background:#fef08a; color:#854d0e;">تجاوز الاستحقاق (PPM)</div>
+                <div class="kpi-trend" style="background:#fef08a; color:#854d0e;">متجاوزة الاستحقاق الحقيقي</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">Avg Response</div>
+                <div class="kpi-label">Avg Response (CM)</div>
                 <div class="kpi-val" id="ex-resp">0</div>
-                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">يوم (الأعطال)</div>
+                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">أيام (معدل الاستجابة)</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">Avg Repair</div>
+                <div class="kpi-label">Avg Repair (CM)</div>
                 <div class="kpi-val" id="ex-fix">0</div>
-                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">يوم (الأعطال)</div>
+                <div class="kpi-trend" style="background:#f1f5f9; color:#475569;">أيام (معدل الإصلاح)</div>
             </div>
         </div>
 
         <div class="grid-charts">
             <div class="panel">
-                <div class="panel-header">توزيع حجم العمل</div>
+                <div class="panel-header"><i class="fas fa-chart-pie"></i> توزيع حجم العمل بالمستشفيات</div>
                 <div style="height: 250px;"><canvas id="chartWorkload"></canvas></div>
             </div>
             <div class="panel">
-                <div class="panel-header">أفضل 5 مواقع (كفاءة الإنجاز وسرعة الإصلاح)</div>
+                <div class="panel-header"><i class="fas fa-medal"></i> أعلى 5 مواقع في كفاءة الالتزام وسرعة العمل</div>
                 <div style="height: 250px;"><canvas id="chartTopSites"></canvas></div>
             </div>
         </div>
     </div>
 
-    <footer>إدارة الصيانة - قسم الصيانة الطبية</footer>
+    <footer>إدارة الصيانة الطبية - تجمع تبوك الصحي | النظام الموحد لمؤشرات الأداء 2026</footer>
 
     <script>
+        // مصادر الملفات المحلية التي يقرأ منها لوحة القيادة التنفيذية
         const SOURCES = [
             { url: 'data/PPM.xlsx', type: 'PPM' },
             { url: 'data/CM.xlsx', type: 'CM' }
@@ -187,11 +213,11 @@
 
                 if(combinedData.length > 0) {
                     badge.className = 'status-badge st-success';
-                    badge.innerHTML = `<i class="fas fa-check-circle"></i> البيانات محدثة`;
+                    badge.innerHTML = `<i class="fas fa-check-circle"></i> المؤشرات التنفيذية محدثة`;
                     processExecutiveData(combinedData);
                 } else {
                     badge.className = 'status-badge st-error';
-                    badge.innerHTML = `<i class="fas fa-times-circle"></i> لا توجد بيانات`;
+                    badge.innerHTML = `<i class="fas fa-times-circle"></i> خطأ في تحميل ملفات الداتا`;
                 }
             } catch(e) { console.error(e); }
         });
@@ -211,6 +237,7 @@
 
                 let resp = null, fix = null;
                 
+                // دمج المنطق الموحد لمنع الأرقام السالبة واستبعاد التواريخ الفارغة
                 if(type === 'CM') {
                     if(dFail && dStart) {
                         let rDiff = (dStart - dFail)/(1000*60*60*24);
@@ -222,17 +249,17 @@
                     }
                 }
 
+                // المنطق الذكي المحدث للصيانة الوقائية (استبعاد التواريخ المستقبلية من التأخير)
                 let isPpmDelayed = false;
                 if(type === 'PPM' && !isClosed && dStart) {
-                    // التعديل الذكي للتاريخ المستقبلي
                     const today = Date.now();
                     const diffDays = Math.ceil((today - dStart.getTime()) / (1000 * 60 * 60 * 24));
 
-                    if (diffDays >= 0) { // يعني تاريخ الاستحقاق مر أو جاء اليوم
+                    if (diffDays >= 0) { // تاريخ الاستحقاق حان أو انتهى
                         if(status.toLowerCase() === 'assigned') {
-                            isPpmDelayed = true; // متأخر لأنه لم يستلم حتى الآن
+                            isPpmDelayed = true;
                         } else if (diffDays > 30) {
-                            isPpmDelayed = true; // متأخر لتجاوز الـ 30 يوم
+                            isPpmDelayed = true;
                         }
                     }
                 }
@@ -302,19 +329,19 @@
             charts.w = new Chart(ctxW, {
                 type: 'doughnut',
                 data: {
-                    labels: ['CM', 'PPM'],
+                    labels: ['أعطال تصحيحية CM', 'صيانة وقائية PPM'],
                     datasets: [{ data: [cmCount, ppmCount], backgroundColor: ['#dc2626', '#16a34a'], borderWidth: 0 }]
                 },
                 options: { cutout: '70%', plugins:{legend:{position:'bottom'}} }
             });
 
+            // تصفية وترتيب المواقع الأعلى التزاماً (عدد أوامر العمل فيها >= 20)
             const sortedSites = Object.entries(siteStats)
                 .map(([name, v]) => ({
                     name: name,
                     total: v.t,
                     rate: Math.round((v.c/v.t)*100),
-                    avgFix: v.fCnt ? (v.fSum/v.fCnt) : 999, 
-                    avgResp: v.rCnt ? (v.rSum/v.rCnt) : 999
+                    avgFix: v.fCnt ? (v.fSum/v.fCnt) : 999
                 }))
                 .filter(s => s.name !== 'Unknown' && s.total >= 20) 
                 .sort((a,b) => {
@@ -327,8 +354,8 @@
             charts.s = new Chart(ctxS, {
                 type: 'bar',
                 data: {
-                    labels: sortedSites.map(s => s.name.substring(0, 15)),
-                    datasets: [{ label: 'إنجاز %', data: sortedSites.map(s => s.rate), backgroundColor: '#3b82f6', borderRadius: 4 }]
+                    labels: sortedSites.map(s => s.name.substring(0, 16)),
+                    datasets: [{ label: 'معدل الإنجاز %', data: sortedSites.map(s => s.rate), backgroundColor: '#3b82f6', borderRadius: 4 }]
                 },
                 options: { 
                     maintainAspectRatio: false, 
@@ -337,7 +364,7 @@
                             callbacks: {
                                 afterLabel: function(ctx) {
                                     const s = sortedSites[ctx.dataIndex];
-                                    return [`إجمالي الأعمال: ${s.total}`, `متوسط الإصلاح: ${s.avgFix === 999 ? 'N/A' : s.avgFix.toFixed(1)} يوم`];
+                                    return [`إجمالي أعمال الموقع: ${s.total}`, `متوسط أوقات الإصلاح: ${s.avgFix === 999 ? 'N/A' : s.avgFix.toFixed(1)} يوم`];
                                 }
                             }
                         }
