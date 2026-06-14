@@ -5,12 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>النظام الموحد لمؤشرات الصيانة الطبية - تجمع تبوك الصحي</title>
     
-    <script>
-        if (sessionStorage.getItem('admin_token') !== 'secure_authenticated_session_2026') {
-            window.location.href = 'login.html';
-        }
-    </script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -103,7 +97,7 @@
                 <i class="fas fa-user-shield"></i> لوحة الإدارة المركزية ⚙️
             </a>
             <div id="statusBadge" class="status-badge st-loading">
-                <i class="fas fa-circle-notch fa-spin"></i> جاري مزامنة الملفات...
+                <i class="fas fa-circle-notch fa-spin"></i> جاري قراءة البيانات...
             </div>
         </div>
     </header>
@@ -191,7 +185,7 @@
     <footer>إدارة الصيانة الطبية - تجمع تبوك الصحي | النظام الموحد لمؤشرات الأداء 2026</footer>
 
     <script>
-        // مصادر الملفات المحلية التي يقرأ منها لوحة القيادة التنفيذية
+        // مصادر الملفات المحلية
         const SOURCES = [
             { url: 'data/PPM.xlsx', type: 'PPM' },
             { url: 'data/CM.xlsx', type: 'CM' }
@@ -217,7 +211,7 @@
                     processExecutiveData(combinedData);
                 } else {
                     badge.className = 'status-badge st-error';
-                    badge.innerHTML = `<i class="fas fa-times-circle"></i> خطأ في تحميل ملفات الداتا`;
+                    badge.innerHTML = `<i class="fas fa-times-circle"></i> بانتظار رفع ملفات الداتا`;
                 }
             } catch(e) { console.error(e); }
         });
@@ -237,7 +231,6 @@
 
                 let resp = null, fix = null;
                 
-                // دمج المنطق الموحد لمنع الأرقام السالبة واستبعاد التواريخ الفارغة
                 if(type === 'CM') {
                     if(dFail && dStart) {
                         let rDiff = (dStart - dFail)/(1000*60*60*24);
@@ -249,13 +242,12 @@
                     }
                 }
 
-                // المنطق الذكي المحدث للصيانة الوقائية (استبعاد التواريخ المستقبلية من التأخير)
                 let isPpmDelayed = false;
                 if(type === 'PPM' && !isClosed && dStart) {
                     const today = Date.now();
                     const diffDays = Math.ceil((today - dStart.getTime()) / (1000 * 60 * 60 * 24));
 
-                    if (diffDays >= 0) { // تاريخ الاستحقاق حان أو انتهى
+                    if (diffDays >= 0) { 
                         if(status.toLowerCase() === 'assigned') {
                             isPpmDelayed = true;
                         } else if (diffDays > 30) {
@@ -315,7 +307,7 @@
             });
 
             document.getElementById('ex-total').textContent = totalCM + totalPPM;
-            document.getElementById('ex-rate').textContent = Math.round(((closedCM+closedPPM)/(totalCM+totalPPM))*100) + '%';
+            document.getElementById('ex-rate').textContent = (totalCM+totalPPM) > 0 ? Math.round(((closedCM+closedPPM)/(totalCM+totalPPM))*100) + '%' : '0%';
             document.getElementById('ex-open-cm').textContent = openCM;
             document.getElementById('ex-delayed-ppm').textContent = delayedPPM;
             document.getElementById('ex-resp').textContent = cntResp ? (sumResp/cntResp).toFixed(1) : '0';
@@ -335,7 +327,6 @@
                 options: { cutout: '70%', plugins:{legend:{position:'bottom'}} }
             });
 
-            // تصفية وترتيب المواقع الأعلى التزاماً (عدد أوامر العمل فيها >= 20)
             const sortedSites = Object.entries(siteStats)
                 .map(([name, v]) => ({
                     name: name,
