@@ -21,19 +21,19 @@
         
         .container { max-width: 900px; margin: 0 auto; }
         .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-back { background: #e2e8f0; color: #0f172a; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #cbd5e1; }
-        .btn-back:hover { background: #cbd5e1; }
+        .btn-back { background: #0f172a; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-back:hover { background: #1e293b; }
 
         .card { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; border-top: 5px solid var(--primary); margin-bottom: 20px; }
         h1 { margin-top: 0; color: #0f172a; }
 
         /* نموذج الإضافة */
         .add-form { display: flex; gap: 15px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; align-items: flex-end; flex-wrap: wrap; }
-        .form-group { flex: 1; min-width: 200px; }
+        .form-group { flex: 1; min-width: 250px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #475569; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; font-size: 1rem; }
-        .btn-add { background: #0f172a; color: var(--primary); border: none; padding: 11px 25px; border-radius: 6px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 1rem; }
-        .btn-add:hover { background: #1e293b; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; font-size: 1rem; background: white; }
+        .btn-add { background: #16a34a; color: white; border: none; padding: 11px 25px; border-radius: 6px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 1rem; }
+        .btn-add:hover { background: #15803d; }
 
         /* جدول المواقع */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -44,7 +44,6 @@
         .btn-delete { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; }
         .btn-delete:hover { background: #fca5a5; }
         
-        /* رسائل النظام */
         #statusMsg { font-weight: bold; margin-top: 15px; display: block; }
     </style>
 </head>
@@ -57,31 +56,33 @@
         </div>
 
         <div class="card">
-            <h1>إضافة موقع جديد</h1>
-            <p style="color: #64748b;">قم بتسجيل المستشفى وتعيين كلمة المرور ليتمكن مديره من الدخول وتحديث الأعطال.</p>
+            <h1>تخصيص كلمة مرور للموقع</h1>
+            <p style="color: #64748b;">يتم سحب أسماء المواقع أدناه تلقائياً من أوامر العمل المرفوعة في قاعدة البيانات لضمان عدم وجود أخطاء إملائية.</p>
             
             <div class="add-form">
                 <div class="form-group">
-                    <label>اسم الموقع (كما هو مكتوب في الإكسل بالضبط)</label>
-                    <input type="text" id="siteName" class="form-control" placeholder="مثال: مستشفي الوجه العام">
+                    <label>اختر الموقع المكتشف في السيرفر</label>
+                    <select id="siteNameSelect" class="form-control">
+                        <option value="">-- جاري تحميل المواقع من السيرفر... --</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>كلمة المرور (للدخول)</label>
-                    <input type="text" id="sitePass" class="form-control" placeholder="اكتب كلمة مرور قوية">
+                    <label>تعيين كلمة المرور</label>
+                    <input type="text" id="sitePass" class="form-control" placeholder="اكتب كلمة مرور للموقع">
                 </div>
-                <button class="btn-add" id="btnAddSite"><i class="fas fa-plus"></i> حفظ وصلاحية</button>
+                <button class="btn-add" id="btnAddSite"><i class="fas fa-save"></i> حفظ وصلاحية</button>
             </div>
             <span id="statusMsg"></span>
         </div>
 
         <div class="card">
-            <h2 style="margin-top:0;">المستشفيات المسجلة بالنظام</h2>
+            <h2 style="margin-top:0;">المستشفيات والمواقع المفعلة حالياً</h2>
             <table>
                 <thead>
                     <tr>
                         <th>اسم الموقع</th>
-                        <th>كلمة المرور</th>
-                        <th>حالة الدخول</th>
+                        <th>كلمة المرور المشتركة</th>
+                        <th>حالة الحساب</th>
                         <th>إجراءات</th>
                     </tr>
                 </thead>
@@ -94,7 +95,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
@@ -112,51 +113,90 @@
         const statusMsg = document.getElementById('statusMsg');
         const btnAddSite = document.getElementById('btnAddSite');
         const sitesTableBody = document.getElementById('sitesTableBody');
+        const siteNameSelect = document.getElementById('siteNameSelect');
 
-        // 1. دالة إضافة موقع جديد
+        // 1. دالة جلب المواقع الفريدة من كوليكشن الأوامر المفتوحة لملء القائمة المنسدلة
+        async function loadUniqueSitesFromDB() {
+            try {
+                // جلب الأوامر المفتوحة لاستخراج أسماء المستشفيات منها
+                const q = query(collection(db, "pending_orders"), where("isCompleted", "==", false));
+                const querySnapshot = await getDocs(q);
+                
+                const uniqueSites = new Set();
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if(data.site) uniqueSites.add(data.site);
+                });
+
+                siteNameSelect.innerHTML = '<option value="">-- اختر المستشفى/الموقع --</option>';
+                
+                if(uniqueSites.size === 0) {
+                    siteNameSelect.innerHTML = '<option value="">⚠️ لا توجد أوامر مفتوحة بالسيرفر لاستخراج المواقع</option>';
+                    return;
+                }
+
+                // ترتيب المواقع أبجدياً وإضافتها للقائمة
+                [...uniqueSites].sort().forEach(site => {
+                    siteNameSelect.insertAdjacentHTML('beforeend', `<option value="${site}">${site}</option>`);
+                });
+
+            } catch (e) {
+                console.error(e);
+                siteNameSelect.innerHTML = '<option value="">❌ فشل جلب المواقع من قاعدة البيانات</option>';
+            }
+        }
+
+        // 2. دالة حفظ الصلاحية وبثها للسيرفر
         btnAddSite.addEventListener('click', async () => {
-            const name = document.getElementById('siteName').value.trim();
+            const name = siteNameSelect.value;
             const pass = document.getElementById('sitePass').value.trim();
 
             if(!name || !pass) {
-                statusMsg.innerHTML = '<span style="color:#dc2626">❌ يرجى تعبئة اسم الموقع وكلمة المرور</span>';
+                statusMsg.innerHTML = '<span style="color:#dc2626">❌ الرجاء اختيار الموقع وتحديد كلمة المرور</span>';
+                return;
+            }
+
+            // التحقق من أن الموقع لم يتم إضافة باسورد له من قبل لمنع التكرار
+            const checkQ = query(collection(db, "sites_auth"), where("siteName", "==", name));
+            const checkSnapshot = await getDocs(checkQ);
+            if(!checkSnapshot.empty) {
+                statusMsg.innerHTML = '<span style="color:#dc2626">❌ هذا الموقع مضاف بالفعل في القائمة بالأسفل، يمكنك حذفه وإعادة إضافته لتغيير الباسورد</span>';
                 return;
             }
 
             btnAddSite.disabled = true;
-            statusMsg.innerHTML = '<span style="color:#0284c7"><i class="fas fa-spinner fa-spin"></i> جاري الحفظ...</span>';
+            statusMsg.innerHTML = '<span style="color:#0284c7"><i class="fas fa-spinner fa-spin"></i> جاري ربط الصلاحية...</span>';
 
             try {
-                // حفظ البيانات في كوليكشن جديد اسمه sites_auth
                 await addDoc(collection(db, "sites_auth"), {
                     siteName: name,
                     password: pass,
                     createdAt: new Date().toISOString()
                 });
 
-                statusMsg.innerHTML = '<span style="color:#16a34a">✅ تم إضافة الموقع بنجاح!</span>';
-                document.getElementById('siteName').value = '';
+                statusMsg.innerHTML = '<span style="color:#16a34a">✅ تم تفعيل حساب الموقع بنجاح!</span>';
                 document.getElementById('sitePass').value = '';
+                siteNameSelect.value = '';
                 
-                loadSites(); // إعادة تحميل الجدول
+                loadSitesList(); 
 
             } catch(e) {
                 console.error(e);
-                statusMsg.innerHTML = '<span style="color:#dc2626">❌ حدث خطأ أثناء الحفظ</span>';
+                statusMsg.innerHTML = '<span style="color:#dc2626">❌ حدث خطأ أثناء الاتصال بالسيرفر</span>';
             }
             btnAddSite.disabled = false;
         });
 
-        // 2. دالة جلب وعرض المواقع
-        async function loadSites() {
+        // 3. دالة جلب وعرض قائمة الحسابات المفعلة
+        async function loadSitesList() {
             try {
                 const q = query(collection(db, "sites_auth"), orderBy("createdAt", "desc"));
                 const querySnapshot = await getDocs(q);
                 
-                sitesTableBody.innerHTML = ''; // مسح علامة التحميل
+                sitesTableBody.innerHTML = '';
                 
                 if(querySnapshot.empty) {
-                    sitesTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">لا توجد مستشفيات مسجلة حتى الآن.</td></tr>';
+                    sitesTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">لا توجد حسابات مستخدمين مفعلة حالياً.</td></tr>';
                     return;
                 }
 
@@ -164,37 +204,39 @@
                     const data = docSnap.data();
                     sitesTableBody.insertAdjacentHTML('beforeend', `
                         <tr>
-                            <td style="font-weight:bold; color:#1e3a8a;">${data.siteName}</td>
-                            <td style="font-family:monospace; font-size:1.1rem; background:#f1f5f9; padding:5px 10px; border-radius:4px; display:inline-block; margin-top:10px;">${data.password}</td>
-                            <td><span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">نشط</span></td>
+                            <td style="font-weight:700; color:#1e3a8a;">${data.siteName}</td>
+                            <td style="font-family:monospace; font-size:1.1rem; background:#f1f5f9; padding:5px 10px; border-radius:4px; display:inline-block; margin-top:10px; font-weight:bold; color:#0f172a;">${data.password}</td>
+                            <td><span style="background:#dcfce7; color:#166534; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;"><i class="fas fa-check"></i> جاهز للدخول</span></td>
                             <td>
-                                <button class="btn-delete" onclick="window.deleteSite('${docSnap.id}')"><i class="fas fa-trash"></i> حذف</button>
+                                <button class="btn-delete" onclick="window.deleteSite('${docSnap.id}')"><i class="fas fa-trash"></i> إلغاء الصلاحية</button>
                             </td>
                         </tr>
                     `);
                 });
             } catch(e) {
                 console.error(e);
-                sitesTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#dc2626;">خطأ في جلب البيانات من السيرفر.</td></tr>';
+                sitesTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#dc2626;">خطأ في تحميل قائمة الصلاحيات.</td></tr>';
             }
         }
 
-        // 3. دالة حذف موقع
+        // 4. دالة حذف الحساب
         window.deleteSite = async function(docId) {
-            if(confirm('هل أنت متأكد من حذف صلاحية الدخول لهذا الموقع؟')) {
+            if(confirm('هل أنت متأكد من إلغاء صلاحية هذا الموقع؟ لن يتمكن المدير من تسجيل الدخول.')) {
                 try {
                     await deleteDoc(doc(db, "sites_auth", docId));
-                    loadSites(); // إعادة تحميل الجدول
+                    loadSitesList();
                 } catch(e) {
-                    alert('حدث خطأ أثناء الحذف!');
+                    alert('حدث خطأ!');
                     console.error(e);
                 }
             }
         }
 
-        // تحميل الجدول عند فتح الصفحة
-        window.onload = loadSites;
-
+        // تشغيل الدوال عند فتح الشاشة تلقائياً
+        window.onload = function() {
+            loadUniqueSitesFromDB();
+            loadSitesList();
+        }
     </script>
 </body>
 </html>
