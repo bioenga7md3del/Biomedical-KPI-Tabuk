@@ -10,20 +10,27 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        :root { --primary: #1e3a8a; --bg: #f8fafc; --surface: #ffffff; }
+        :root { 
+            --primary: #1e3a8a; 
+            --bg: #f8fafc; 
+            --surface: #ffffff; 
+        }
+        * { box-sizing: border-box; outline: none; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #0f172a; margin: 0; padding: 40px; }
         .admin-container { max-width: 800px; margin: 0 auto; }
         .admin-card { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; margin-bottom: 20px; text-align: center; }
         h1 { color: var(--primary); font-weight: 800; margin-top: 0; }
-        .upload-section { margin: 25px 0; padding: 30px; border: 2px dashed #cbd5e1; border-radius: 8px; background: #faa3a305; transition: 0.2s; }
+        .upload-section { margin: 25px 0; padding: 30px; border: 2px dashed #cbd5e1; border-radius: 8px; background: rgba(30, 58, 138, 0.01); transition: 0.2s; }
         .upload-section:hover { border-color: var(--primary); }
         .file-input-wrapper { margin-bottom: 20px; }
         .btn-sync { background: #16a34a; color: white; border: none; padding: 12px 30px; font-size: 1rem; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
         .btn-sync:hover { background: #15803d; }
         .btn-sync:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-back { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 6px; font-weight: bold; font-family: 'Tajawal'; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 0.9rem; margin-top: 10px; }
+        .btn-back:hover { background: #e2e8f0; }
         
         #statusMsg { font-weight: 700; color: #0284c7; margin-top: 15px; font-size: 1.1rem; }
-        .log-box { background: #0f172a; color: #38bdf8; padding: 20px; border-radius: 8px; text-align: right; font-family: monospace; font-size: 0.9rem; max-height: 250px; overflow-y: auto; display: none; white-space: pre-wrap; }
+        .log-box { background: #0f172a; color: #38bdf8; padding: 20px; border-radius: 8px; text-align: right; font-family: monospace; font-size: 0.9rem; max-height: 250px; overflow-y: auto; display: none; white-space: pre-wrap; line-height: 1.6; border: 1px solid #334155; }
     </style>
 </head>
 <body>
@@ -34,7 +41,7 @@
             <p style="color: #64748b;">مزامنة ملف الأوامر المعلقة والمفتوحة (Pending Jobs) وتحديث الذاكرة التاريخية</p>
             
             <div class="upload-section">
-                <i class="fas fa-file-excel style" style="font-size: 3rem; color: #16a34a; margin-bottom: 15px;"></i>
+                <i class="fas fa-file-excel" style="font-size: 3rem; color: #16a34a; margin-bottom: 15px;"></i>
                 <h3>اختر ملف Pending Job Order الأسبوعي</h3>
                 <div class="file-input-wrapper">
                     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
@@ -45,6 +52,8 @@
             </div>
             
             <div id="statusMsg">جاري الفحص والاتصال بالسيرفر...</div>
+            <br>
+            <a href="index.html" class="btn-back"><i class="fas fa-arrow-right"></i> العودة للرئيسية</a>
         </div>
 
         <div class="log-box" id="logBox"></div>
@@ -54,6 +63,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, doc, getDocs, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // إعدادات مشروعك الأساسية
         const firebaseConfig = {
             apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
             authDomain: "tabuk-medical-cmms.firebaseapp.com",
@@ -72,7 +82,7 @@
         const excelInput = document.getElementById('excelFile');
         const logBox = document.getElementById('logBox');
 
-        statusMsg.innerHTML = "<span style='color:#16a34a'><i class='fas fa-check-circle'></i> متصل بقاعدة البيانات حية وجاهز للعمل</span>";
+        statusMsg.innerHTML = "<span style='color:#16a34a'><i class='fas fa-check-circle'></i> متصل بقاعدة البيانات وجاهز لاستقبال الملف</span>";
         btnUpload.disabled = false;
 
         btnUpload.addEventListener('click', () => {
@@ -83,27 +93,38 @@
             }
             
             btnUpload.disabled = true;
-            statusMsg.innerHTML = "<i class='fas fa-spinner fa-spin'></i> جاري قراءة الملف وتحليل البيانات...";
+            statusMsg.innerHTML = "<i class='fas fa-spinner fa-spin'></i> جاري معالجة الملف ومزامنة البيانات...";
             logBox.style.display = "block";
-            logBox.innerHTML = "> بدء معالجة الملف...\n";
+            logBox.innerHTML = "> بدء تشغيل النظام...\n";
 
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+                        throw new Error("صيغة الملف غير مدعومة مباشرة. يرجى حفظه بصيغة .xlsx أولاً.");
+                    }
+
                     const sheetName = workbook.SheetNames[0];
-                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                    
+                    // التعديل الرئيسي: تخطي السطر الترحيبي الأول والبدء من أسطر العناوين الحقيقية للأعمدة
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {range: 1});
 
                     if(json.length === 0) {
-                        throw new Error("الملف فارغ ولا يحتوي على أسطر بيانات");
+                        throw new Error("لم يتم العثور على أسطر بيانات قابلة للقراءة في الجدول");
                     }
 
                     await syncDataWithFirebase(json);
 
                 } catch (err) {
                     console.error(err);
-                    statusMsg.innerHTML = "<span style='color:#dc2626'>❌ حدث خطأ أثناء المعالجة: " + err.message + "</span>";
+                    let errMsg = err.message;
+                    if (err.message.includes("reading '0'")) {
+                        errMsg = "الملف يحتاج للتحويل. افتحه بالإكسل واحفظه بصيغة (.xlsx) العادية.";
+                    }
+                    statusMsg.innerHTML = `<span style='color:#dc2626'>❌ حدث خطأ: ${errMsg}</span>`;
                     btnUpload.disabled = false;
                 }
             };
@@ -111,10 +132,11 @@
         });
 
         async function syncDataWithFirebase(excelRows) {
-            logBox.innerHTML += `> تم العثور على (${excelRows.length}) أمر عمل في ملف الإكسل.\n`;
-            logBox.innerHTML += `> جاري جلب البيانات الحالية من السيرفر للمقارنة...\n`;
+            logBox.innerHTML += `> تم العثور على (${excelRows.length}) صف في ملف الإكسل المرفوع.\n`;
+            logBox.innerHTML += `> جاري الاتصال بالسيرفر للمقارنة وفحص التحديثات...\n`;
+            logBox.scrollTop = logBox.scrollHeight;
 
-            // 1. جلب الأوامر المخزنة حالياً في الفايربيز
+            // 1. جلب البيانات المخزنة حالياً في الفايربيز للتحقق
             const querySnapshot = await getDocs(collection(db, "pending_orders"));
             const firebaseOrders = {};
             querySnapshot.forEach(doc => {
@@ -127,11 +149,10 @@
 
             const excelOrderIds = new Set();
 
-            // 2. معالجة الصفوف القادمة من ملف الإكسل
+            // 2. فحص وتوزيع السطور المرفوعة
             for(let row of excelRows) {
-                // محاولة قراءة المسميات المختلفة للأعمدة بمرونة
                 const id = String(row['#'] || row['رقم الأمر'] || row['Control No'] || row['Work Order'] || '').trim();
-                if(!id || id === '-') continue;
+                if(!id || id === '-' || id === 'undefined') continue;
 
                 excelOrderIds.add(id);
 
@@ -144,7 +165,7 @@
                 const orderRef = doc(db, "pending_orders", id);
 
                 if (firebaseOrders[id]) {
-                    // الأمر موجود مسبقاً -> تحديث البيانات الأساسية دون تدمير مصفوفة التعليقات (comments)
+                    // أمر عمل موجود مسبقاً -> تحديث البيانات التشغيلية فقط دون مسح مصفوفة التعليقات (comments)
                     await updateDoc(orderRef, {
                         site: site,
                         device: device,
@@ -152,11 +173,11 @@
                         status: status,
                         startDate: startDateStr,
                         lastSyncDate: new Date().toISOString(),
-                        isCompleted: false // نضمن أنه مفتوح طالما نزل في الإكسل الجديد
+                        isCompleted: false
                     });
                     updatedCount++;
                 } else {
-                    // أمر عمل جديد تماماً -> ننشئه لأول مرة ونضع له مصفوفة تعليقات فارغة
+                    // عطل أو أمر جديد تماماً -> يتم إنشاؤه وبناء مصفوفة تعليقات فارغة له
                     await setDoc(orderRef, {
                         id: id,
                         site: site,
@@ -165,7 +186,7 @@
                         status: status,
                         startDate: startDateStr,
                         isCompleted: false,
-                        comments: [], // مصفوفة فارغة لتبدأ كتابة سجل التحديثات الزمني من مديري المواقع
+                        comments: [], 
                         createdAt: new Date().toISOString(),
                         lastSyncDate: new Date().toISOString()
                     });
@@ -173,7 +194,7 @@
                 }
             }
 
-            // 3. اكتشاف الأوامر المنتهية (الموجودة بالسيرفر وغير موجودة بالإكسل الجديد)
+            // 3. التحقق من الأوامر المنجزة (موجودة في السيرفر واختفت من ملف النواقص الجديد)
             for(let id in firebaseOrders) {
                 if(!excelOrderIds.has(id) && firebaseOrders[id].isCompleted !== true) {
                     const orderRef = doc(db, "pending_orders", id);
@@ -186,14 +207,15 @@
                 }
             }
 
-            // إنهاء العرض المباشر للتقرير
-            logBox.innerHTML += `> تم إضافة: ${addedCount} أمر جديد.\n`;
-            logBox.innerHTML += `> تم تحديث: ${updatedCount} أمر عمل قيد المتابعة.\n`;
-            logBox.innerHTML += `> تم رصد: ${completedCount} أمر منتهي (تم إغلاقهم تلقائياً).\n`;
-            logBox.innerHTML += `> تمت العملية بنجاح! 🎉\n`;
+            // طباعة تقرير النتائج النهائي بالصندوق الأسود
+            logBox.innerHTML += `\n=================================\n`;
+            logBox.innerHTML += `> 🎉 اكتملت المزامنة!\n`;
+            logBox.innerHTML += `> 📥 تم إضافة أوامر جديدة: ${addedCount}\n`;
+            logBox.innerHTML += `> 🔄 تم تحديث أوامر حالية: ${updatedCount}\n`;
+            logBox.innerHTML += `> ✅ تم رصد وإغلاق أوامر منتهية: ${completedCount}\n`;
             logBox.scrollTop = logBox.scrollHeight;
 
-            statusMsg.innerHTML = "<span style='color:#16a34a'>📊 اكتملت المزامنة بنجاح! الأوامر المنتهية تم تحويل حالتها وجاهزة للمراجعة.</span>";
+            statusMsg.innerHTML = "<span style='color:#16a34a'><i class='fas fa-check-circle'></i> تمت المزامنة وحفظ البيانات بنجاح في السيرفر!</span>";
             btnUpload.disabled = false;
         }
     </script>
