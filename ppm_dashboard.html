@@ -89,13 +89,16 @@
         <img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
         <div>
             <h1>مؤشرات الصيانة الوقائية (PPM)</h1>
-            <p>متابعة إنجاز الخطط المجدولة لشهر مايو 2026</p>
+            <p>متابعة إنجاز الخطط المجدولة</p>
         </div>
     </div>
     <div class="header-actions">
         <div id="statusBadge" class="status-badge st-loading">
             <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
         </div>
+        <button class="btn-action" style="background: var(--ppm-color); color: white; border: none;" onclick="openReport()">
+            <i class="fas fa-print"></i> طباعة التقرير
+        </button>
         <a href="index.html" class="btn-action">
             <i class="fas fa-home"></i> الرئيسية
         </a>
@@ -125,7 +128,6 @@
 
     <div id="dashboard" style="display:none">
         
-        <!-- 4 KPIs Layout -->
         <div class="grid-kpi">
             <div class="kpi-card" style="border-top-color: #3b82f6;">
                 <div class="kpi-label">الإجمالي المستحق</div>
@@ -137,7 +139,6 @@
                 <div class="kpi-val" id="kpi-closed" style="color:#16a34a">0</div>
                 <div class="kpi-sub"><span id="kpi-rate">0%</span> نسبة الإنجاز</div>
             </div>
-            <!-- Interactive Cards -->
             <div class="kpi-card interactive-card" style="border-top-color: #eab308;" onclick="filterLogs('progress')">
                 <div class="kpi-label">تحت الإجراء <i class="fas fa-hand-pointer" style="color:#cbd5e1"></i></div>
                 <div class="kpi-val" id="kpi-prog" style="color:#ca8a04">0</div>
@@ -150,7 +151,6 @@
             </div>
         </div>
 
-        <!-- Charts -->
         <div class="grid-2">
             <div class="panel">
                 <div class="panel-header">
@@ -166,7 +166,6 @@
             </div>
         </div>
 
-        <!-- Sites Table -->
         <div class="panel">
             <div class="panel-header"><div class="panel-title"><i class="fas fa-hospital"></i> تقييم المواقع (Sites Performance)</div></div>
             <div class="table-wrap">
@@ -186,7 +185,6 @@
             </div>
         </div>
 
-        <!-- Techs Table -->
         <div class="panel">
             <div class="panel-header">
                 <div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين (Technicians)</div>
@@ -209,7 +207,6 @@
             </div>
         </div>
 
-        <!-- Open Logs -->
         <div class="panel" id="logsPanel">
             <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
                 <div class="panel-title" style="color:#1e293b">
@@ -248,8 +245,8 @@
 <script>
     const FILE_URL = 'data/PPM.xlsx';
     let RAW_DATA = [];
-    let CURRENT_DASHBOARD_DATA = []; // To store data after month/site filters
-    let CURRENT_LOG_FILTER = 'all'; // Default: show all non-done
+    let CURRENT_DASHBOARD_DATA = []; 
+    let CURRENT_LOG_FILTER = 'all'; 
     let charts = {};
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -386,14 +383,13 @@
         renderCharts(CURRENT_DASHBOARD_DATA, doneCount, progCount, delayCount);
         renderSiteTable(CURRENT_DASHBOARD_DATA);
         renderTechTable(CURRENT_DASHBOARD_DATA); 
-        renderLogsTable(); // Uses CURRENT_LOG_FILTER
+        renderLogsTable(); 
     }
 
-    // --- New Interactivity Functions ---
+    // --- Interactivity Functions ---
     function filterLogs(type) {
         CURRENT_LOG_FILTER = type;
         
-        // Update Labels and Buttons
         const labelEl = document.getElementById('logsFilterLabel');
         const btnAll = document.getElementById('btnShowAllLogs');
         
@@ -412,8 +408,6 @@
         }
 
         renderLogsTable();
-        
-        // Smooth scroll to the table
         document.getElementById('logsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -423,7 +417,6 @@
         
         let openOrders = CURRENT_DASHBOARD_DATA.filter(r => r.category !== 'done');
         
-        // Apply Drill-down filter
         if (CURRENT_LOG_FILTER !== 'all') {
             openOrders = openOrders.filter(r => r.category === CURRENT_LOG_FILTER);
         }
@@ -464,7 +457,6 @@
             return;
         }
 
-        // Prepare data for Excel
         const exportData = openOrders.map(r => ({
             "رقم الأمر (Work Order)": r.id,
             "تاريخ الاستحقاق (Start Date)": r.dStart ? r.dStart.toLocaleDateString('en-GB') : '-',
@@ -475,19 +467,34 @@
             "حالة النظام (System Status)": r.rawStatus
         }));
 
-        // Create Sheet and Download
         const ws = XLSX.utils.json_to_sheet(exportData);
-        
-        // Auto-size columns (optional simple logic)
         const colWidths = [{wch: 20}, {wch: 15}, {wch: 25}, {wch: 40}, {wch: 25}, {wch: 15}, {wch: 25}];
         ws['!cols'] = colWidths;
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "PPM Logs");
         
-        // Generate filename based on filter
         const fName = CURRENT_LOG_FILTER === 'progress' ? 'In_Progress_PPM' : (CURRENT_LOG_FILTER === 'delayed' ? 'Delayed_PPM' : 'Open_PPM');
         XLSX.writeFile(wb, `${fName}_Tabuk.xlsx`);
+    }
+
+    // --- دالة فتح التقرير للطباعة ---
+    function openReport() {
+        const siteVal = document.getElementById('siteFilter').value;
+        const monthVal = document.getElementById('monthFilter').value;
+
+        // البيانات مجهزة ومفلترة مسبقاً في CURRENT_DASHBOARD_DATA
+        if(CURRENT_DASHBOARD_DATA.length === 0) {
+            alert('لا توجد بيانات للطباعة');
+            return;
+        }
+
+        // نقوم بإرسال البيانات المفلترة حالياً لصفحة التقرير
+        sessionStorage.setItem('REPORT_DATA', JSON.stringify(CURRENT_DASHBOARD_DATA));
+        // نضع اسم الشهر المختار في رأس التقرير، وإذا كان فارغاً نكتب "كل الشهور"
+        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'PPM', site: siteVal, date: monthVal || 'كل الشهور' }));
+        
+        window.open('report.html', '_blank');
     }
     // ------------------------------------
 
