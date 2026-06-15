@@ -13,71 +13,44 @@
         * { box-sizing: border-box; outline: none; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #0f172a; margin: 0; padding: 0; }
         
-        /* Login Screen */
-        #loginScreen { height: 100vh; display: flex; align-items: center; justify-content: center; background: #e2e8f0; }
-        .login-card { background: var(--surface); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        .login-card h2 { color: var(--primary); margin-top: 0; }
-        .form-control { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; font-size: 1rem; }
-        .btn-login { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; }
-        .btn-login:hover { background: #1e40af; }
+        #appScreen { padding: 20px; max-width: 1300px; margin: 0 auto; }
+        .header { background: var(--surface); padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
+        .header h1 { margin: 0; color: var(--primary); font-size: 1.6rem; }
+        .btn-logout { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px;}
+        .btn-logout:hover { background: #fecaca; }
 
-        /* Main App Screen */
-        #appScreen { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
-        .header { background: var(--surface); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; }
-        .btn-logout { background: #fee2e2; color: #dc2626; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; }
-
-        /* Table */
-        .panel { background: var(--surface); padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
+        .panel { background: var(--surface); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: right; }
-        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; color: #475569; }
-        tr:hover { background: #f1f5f9; }
-        .btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        th, td { padding: 14px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; color: #475569; font-weight: 800; }
+        tr:hover { background: #f8fafc; }
+        
+        .btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 6px; }
         .btn-update:hover { background: #bae6fd; }
 
         /* Modal */
         #commentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
-        .history-box { background: #f8fafc; padding: 10px; border-radius: 6px; height: 150px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9rem; border: 1px solid #cbd5e1; }
-        .comment-item { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; }
-        .comment-date { color: #64748b; font-size: 0.8rem; display: block; margin-bottom: 2px; }
-        textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; resize: none; margin-bottom: 10px; }
-        .btn-save { background: #16a34a; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; width: 100%; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
+        .history-box { background: #f8fafc; padding: 15px; border-radius: 8px; height: 180px; overflow-y: auto; margin-bottom: 20px; font-size: 0.95rem; border: 1px solid #cbd5e1; }
+        .comment-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #cbd5e1; }
+        .comment-date { color: #64748b; font-size: 0.8rem; display: block; margin-bottom: 4px; }
+        textarea { width: 100%; height: 90px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; resize: none; margin-bottom: 15px; font-size: 1rem; }
+        .btn-save { background: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; width: 100%; font-size: 1.1rem; }
         
-        .badge-done { background: #dcfce7; color: #16a34a; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        .badge-warn { background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .badge-done { background: #dcfce7; color: #16a34a; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
+        .badge-warn { background: #fef08a; color: #854d0e; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div id="loginScreen">
-        <div class="login-card">
-            <h2><i class="fas fa-hospital-user"></i> بوابة مديري المواقع</h2>
-            <p style="color: #64748b; margin-bottom: 25px;">قم باختيار موقعك لتحديث حالة الأوامر</p>
-            
-            <select id="loginSite" class="form-control">
-                <option value="">-- اختر الموقع --</option>
-                <option value="مستشفي الوجه العام">مستشفى الوجه العام</option>
-                <option value="مستشفى الملك فهد التخصصى">مستشفى الملك فهد التخصصي</option>
-                <option value="مستشفي ضبا العام">مستشفى ضباء العام</option>
-                <option value="الفريق المتحرك">الفريق المتحرك</option>
-            </select>
-            
-            <input type="password" id="loginPass" class="form-control" placeholder="كلمة المرور">
-            <button class="btn-login" id="btnLogin">دخول</button>
-            <p id="loginError" style="color: red; display: none; margin-top: 10px;">كلمة المرور غير صحيحة</p>
-        </div>
-    </div>
 
     <div id="appScreen">
         <div class="header">
             <div>
                 <h1>مرحباً، <span id="lblSiteName" style="color:#0284c7"></span></h1>
-                <p style="margin: 5px 0 0; color: #64748b;">سجل الأوامر المتأخرة وتحت الإجراء</p>
+                <p style="margin: 5px 0 0; color: #64748b; font-weight: bold;">سجل الأوامر المتأخرة وتحت الإجراء المخصصة لموقعك</p>
             </div>
-            <button class="btn-logout" onclick="location.reload()">تسجيل خروج <i class="fas fa-sign-out-alt"></i></button>
+            <button class="btn-logout" onclick="window.logoutSite()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
         </div>
 
         <div class="panel">
@@ -86,14 +59,14 @@
                     <tr>
                         <th>رقم الأمر</th>
                         <th>الاستحقاق / العطل</th>
-                        <th>الجهاز</th>
+                        <th style="width: 30%;">الجهاز الطبي</th>
                         <th>الفني</th>
                         <th>حالة التحديث</th>
-                        <th>إجراء</th>
+                        <th>إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="6" style="text-align: center;">جاري تحميل البيانات...</td></tr>
+                    <tr><td colspan="6" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بك...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -103,16 +76,16 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 style="margin:0; color:#1e3a8a;">تحديث أمر: <span id="modalOrderId"></span></h3>
-                <i class="fas fa-times" style="cursor: pointer; color: #dc2626; font-size: 1.2rem;" onclick="closeModal()"></i>
+                <i class="fas fa-times" style="cursor: pointer; color: #dc2626; font-size: 1.5rem;" onclick="window.closeModal()"></i>
             </div>
             
-            <label style="font-weight: bold; color: #475569; margin-bottom: 5px; display: block;">السجل التاريخي (History):</label>
+            <label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block;">السجل التاريخي للردود:</label>
             <div class="history-box" id="modalHistory"></div>
             
-            <label style="font-weight: bold; color: #475569; margin-bottom: 5px; display: block;">تحديث جديد:</label>
-            <textarea id="modalNewComment" placeholder="اكتب سبب التأخير أو التحديث هنا..."></textarea>
+            <label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block;">إضافة تحديث جديد:</label>
+            <textarea id="modalNewComment" placeholder="اكتب سبب التأخير أو إجراءات العمل الحالية هنا..."></textarea>
             
-            <button class="btn-save" id="btnSaveComment">حفظ التحديث</button>
+            <button class="btn-save" id="btnSaveComment"><i class="fas fa-save"></i> حفظ التبرير</button>
         </div>
     </div>
 
@@ -133,115 +106,65 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let currentSite = "";
+        // التحقق من أن المستخدم دخل بطريقة شرعية عبر بوابة الدخول
+        const currentSite = sessionStorage.getItem('hospital_user');
+        if(!currentSite) {
+            window.location.href = 'admin.html'; // طرده لصفحة الدخول الموحدة
+        }
+
         let currentEditingOrder = "";
+        
+        // بمجرد تحميل الصفحة، نضع اسم المستشفى ونستدعي بياناته
+        window.onload = function() {
+            document.getElementById('lblSiteName').textContent = currentSite;
+            loadSiteOrders();
+        }
 
-        // --- نظام تسجيل الدخول المبسط ---
-        // --- نظام تسجيل الدخول المربوط بالفايربيز ---
-        document.getElementById('btnLogin').addEventListener('click', async () => {
-            const site = document.getElementById('loginSite').value;
-            const pass = document.getElementById('loginPass').value.trim();
-            const btn = document.getElementById('btnLogin');
-            const errorMsg = document.getElementById('loginError');
-            
-            if (!site) { alert("اختر الموقع أولاً من القائمة"); return; }
-            if (!pass) { errorMsg.style.display = 'block'; errorMsg.textContent = "الرجاء إدخال كلمة المرور"; return; }
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-            errorMsg.style.display = 'none';
-            
-            try {
-                // البحث في الفايربيز عن المستشفى المختار
-                const q = query(collection(db, "sites_auth"), where("siteName", "==", site));
-                const snapshot = await getDocs(q);
-
-                if (snapshot.empty) {
-                    errorMsg.style.display = 'block';
-                    errorMsg.textContent = "هذا الموقع غير مسجل في النظام، راجع الإدارة.";
-                } else {
-                    // الموقع موجود، لنتحقق من كلمة المرور
-                    const siteData = snapshot.docs[0].data();
-                    if (siteData.password === pass) {
-                        // الدخول ناجح!
-                        currentSite = site;
-                        document.getElementById('loginScreen').style.display = 'none';
-                        document.getElementById('appScreen').style.display = 'block';
-                        document.getElementById('lblSiteName').textContent = site;
-                        loadSiteOrders(); // تحميل أوامر الموقع
-                    } else {
-                        // الباسورد غلط
-                        errorMsg.style.display = 'block';
-                        errorMsg.textContent = "كلمة المرور غير صحيحة!";
-                    }
-                }
-            } catch (error) {
-                console.error("Login Error:", error);
-                errorMsg.style.display = 'block';
-                errorMsg.textContent = "حدث خطأ في الاتصال بالسيرفر.";
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'دخول';
-            }
-        });
-
-        // --- جلب بيانات المستشفى المحدد فقط ---
         async function loadSiteOrders() {
             const tb = document.querySelector('#ordersTable tbody');
-            tb.innerHTML = '<tr><td colspan="6" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> جاري جلب الأوامر...</td></tr>';
-
             try {
-                const q = query(collection(db, "pending_orders"), where("site", "==", currentSite));
+                const q = query(collection(db, "pending_orders"), where("site", "==", currentSite), where("isCompleted", "==", false));
                 const snapshot = await getDocs(q);
                 
                 let rowsHTML = "";
-                let hasActiveOrders = false;
+                
+                if(snapshot.empty) {
+                    tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:#16a34a; font-weight:bold; padding: 30px; font-size:1.1rem;"><i class="fas fa-check-circle"></i> رائع! لا توجد أي أوامر متأخرة أو معلقة لموقعك حالياً.</td></tr>';
+                    return;
+                }
 
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    
-                    // إخفاء الأوامر المنتهية (المغلقة)
-                    if(data.isCompleted) return;
-                    hasActiveOrders = true;
-
-                    // التحقق من وجود تعليقات سابقة
                     const commentsCount = data.comments ? data.comments.length : 0;
                     const statusBadge = commentsCount > 0 
-                        ? `<span class="badge-done"><i class="fas fa-check"></i> تم الرد (${commentsCount})</span>`
+                        ? `<span class="badge-done"><i class="fas fa-check"></i> تم الرد</span>`
                         : `<span class="badge-warn"><i class="fas fa-exclamation-circle"></i> بانتظار الإفادة</span>`;
 
                     rowsHTML += `
                         <tr>
-                            <td style="font-weight:bold;">${data.id}</td>
-                            <td>${data.startDate || 'غير محدد'}</td>
-                            <td title="${data.device}">${data.device.substring(0, 30)}...</td>
+                            <td style="font-weight:bold; font-size:1.05rem;">${data.id}</td>
+                            <td style="direction:ltr;">${data.startDate || 'غير محدد'}</td>
+                            <td title="${data.device}">${data.device.substring(0, 45)}...</td>
                             <td>${data.tech}</td>
                             <td>${statusBadge}</td>
                             <td>
                                 <button class="btn-update" onclick="window.openModal('${docSnap.id}')">
-                                    <i class="fas fa-pen"></i> تحديث
+                                    <i class="fas fa-pen"></i> إضافة تحديث
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
 
-                if(!hasActiveOrders) {
-                    tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:#16a34a; font-weight:bold;">رائع! لا توجد أي أوامر متأخرة لموقعك.</td></tr>';
-                } else {
-                    tb.innerHTML = rowsHTML;
-                }
-
-                // حفظ البيانات مؤقتاً لفتح النافذة
+                tb.innerHTML = rowsHTML;
                 window.siteData = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
 
             } catch (error) {
                 console.error(error);
-                tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:red;">حدث خطأ في الاتصال بالسيرفر.</td></tr>';
+                tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:red; padding: 20px;">حدث خطأ في الاتصال بالسيرفر.</td></tr>';
             }
         }
 
-        // --- إدارة نافذة التعليقات (Modal) ---
         window.openModal = function(orderId) {
             currentEditingOrder = orderId;
             document.getElementById('modalOrderId').textContent = orderId;
@@ -254,11 +177,11 @@
                 historyBox.innerHTML = orderData.comments.map(c => `
                     <div class="comment-item">
                         <span class="comment-date"><i class="fas fa-clock"></i> ${c.date}</span>
-                        <strong>${c.text}</strong>
+                        <strong style="color: #0f172a;">${c.text}</strong>
                     </div>
                 `).join('');
             } else {
-                historyBox.innerHTML = '<div style="color:#94a3b8; text-align:center; padding-top:20px;">لا توجد تحديثات سابقة لهذا الأمر.</div>';
+                historyBox.innerHTML = '<div style="color:#94a3b8; text-align:center; padding-top:40px;">لا توجد تحديثات سابقة لهذا الأمر. كن أول من يضيف تحديثاً.</div>';
             }
 
             document.getElementById('commentModal').style.display = 'flex';
@@ -268,7 +191,6 @@
             document.getElementById('commentModal').style.display = 'none';
         }
 
-        // حفظ التحديث في الفايربيز
         document.getElementById('btnSaveComment').addEventListener('click', async () => {
             const text = document.getElementById('modalNewComment').value.trim();
             if(!text) { alert("الرجاء كتابة التحديث أولاً"); return; }
@@ -289,18 +211,22 @@
                     comments: arrayUnion(newComment)
                 });
 
-                alert("تم حفظ التحديث بنجاح!");
-                closeModal();
-                loadSiteOrders(); // إعادة تحميل الجدول ليظهر الـ Badge الأخضر
+                window.closeModal();
+                loadSiteOrders(); 
 
             } catch (error) {
                 console.error(error);
                 alert("حدث خطأ أثناء الحفظ!");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = 'حفظ التحديث';
+                btn.innerHTML = '<i class="fas fa-save"></i> حفظ التبرير';
             }
         });
+
+        window.logoutSite = function() {
+            sessionStorage.removeItem('hospital_user');
+            window.location.href = 'admin.html'; // العودة لبوابة الدخول الموحدة
+        }
     </script>
 </body>
 </html>
