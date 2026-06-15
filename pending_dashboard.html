@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة الأوامر المعلقة (Pending Jobs) - الإدارة الهندسية</title>
-    
-    
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -70,7 +68,6 @@
             table { font-size: 10px; }
             th { border-bottom: 2px solid black; color: black; }
             td { border-bottom: 1px solid #ddd; }
-            /* ترويسة خاصة للطباعة تظهر فقط وقت الطباعة */
             #printHeader { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;}
         }
         #printHeader { display: none; }
@@ -201,14 +198,13 @@
         let RAW_DATA = [];
         let charts = {};
 
-        // دالة مساعدة لحساب أيام التأخير
         function calcDays(dateStr) {
             if(!dateStr) return 0;
             let d;
             if(dateStr.includes('-')) {
                 let parts = dateStr.split(' ')[0].split('-');
-                if(parts[0].length === 4) d = new Date(parts[0], parts[1]-1, parts[2]); // YYYY-MM-DD
-                else d = new Date(parts[2], parts[1]-1, parts[0]); // DD-MM-YYYY
+                if(parts[0].length === 4) d = new Date(parts[0], parts[1]-1, parts[2]); 
+                else d = new Date(parts[2], parts[1]-1, parts[0]); 
             } else {
                 d = new Date(dateStr);
             }
@@ -239,7 +235,6 @@
                     RAW_DATA.push(r);
                 });
 
-                // ملء فلتر المواقع
                 const sel = document.getElementById('filterSite');
                 [...siteSet].sort().forEach(s => sel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`));
 
@@ -259,14 +254,12 @@
             const siteVal = document.getElementById('filterSite').value;
             const ageVal = document.getElementById('filterAge').value;
 
-            // فلترة البيانات
             const filtered = RAW_DATA.filter(r => {
                 if(siteVal !== 'All' && r.site !== siteVal) return false;
                 if(ageVal !== 'All' && r.ageCat !== ageVal) return false;
                 return true;
             });
 
-            // حساب المؤشرات (KPIs) بناءً على الفلتر النشط
             let g=0, y=0, red=0, replied=0;
             filtered.forEach(r => {
                 if(r.ageCat === 'green') g++;
@@ -282,10 +275,8 @@
             document.getElementById('kpi-red').textContent = red;
             document.getElementById('kpi-reply').textContent = filtered.length ? Math.round((replied/filtered.length)*100) + '%' : '0%';
 
-            // تحديث الجدول
             renderTable(filtered);
             
-            // تحديث الرسوم البيانية (دائماً نرسم كل البيانات للمقارنة، لكن لو تم اختيار موقع نرسم له هو فقط)
             const chartData = siteVal === 'All' ? RAW_DATA : filtered;
             renderCharts(chartData);
         }
@@ -299,7 +290,6 @@
                 return;
             }
 
-            // ترتيب تنازلي (الأكثر تأخيراً في الأعلى)
             data.sort((a,b) => b.daysOpen - a.daysOpen).forEach(r => {
                 let badgeClass = 'age-green';
                 let ageText = r.daysOpen + ' أيام';
@@ -327,9 +317,8 @@
         }
 
         function renderCharts(data) {
-            // رسم الدائرة
             let g=0, y=0, red=0;
-            const siteCounts = {}; // للأعطال المتأخرة والحرجة فقط
+            const siteCounts = {}; 
 
             data.forEach(r => {
                 if(r.ageCat === 'green') g++;
@@ -351,7 +340,6 @@
                 options: { maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
             });
 
-            // رسم الأعمدة (أكثر المستشفيات في الأعطال الصفراء والحمراء)
             const sortedSites = Object.entries(siteCounts).sort((a,b)=>b[1]-a[1]).slice(0, 7);
 
             if(charts.bar) charts.bar.destroy();
