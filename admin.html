@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الإدارة المركزية (C-Panel)</title>
+    <title>C-Panel - الإدارة الهندسية المركزية</title>
     
+    <script>
+        if(sessionStorage.getItem('cpanel_auth') !== 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
@@ -13,18 +19,11 @@
         * { box-sizing: border-box; outline: none; text-decoration: none; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #334155; margin: 0; padding: 0; }
         
-        /* شاشة الدخول */
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a8a, #0f172a); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: var(--surface); padding: 40px; border-radius: 12px; box-shadow: 0 20px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
-        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; font-size: 1rem; }
-        .btn-login { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; transition: 0.2s;}
-        .btn-login:hover { background: #1e40af;}
-
-        /* لوحة التوجيه (Hub) */
-        #adminHub { display: none; padding: 40px; max-width: 1200px; margin: 0 auto; }
+        #adminHub { padding: 40px; max-width: 1200px; margin: 0 auto; }
         .hub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
         .hub-header h1 { margin: 0; color: var(--primary); font-size: 2rem; font-weight: 800; }
-        .btn-logout { background: #fee2e2; color: #dc2626; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px;}
+        .btn-logout { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px; transition: 0.2s;}
+        .btn-logout:hover { background: #fecaca; }
         
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
         .tool-card { background: var(--surface); padding: 30px; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; transition: 0.3s; display: block; color: #334155; }
@@ -36,76 +35,43 @@
 </head>
 <body>
 
-    <div id="loginOverlay">
-        <div class="login-card">
-            <h2 style="color: var(--primary); margin-bottom: 10px;"><i class="fas fa-shield-alt"></i> الإدارة العليا</h2>
-            <p style="color: #64748b; margin-bottom: 25px;">لوحة التوجيه المركزية</p>
-            <input type="password" id="adminPass" class="login-input" placeholder="كلمة المرور الإدارية">
-            <button class="btn-login" onclick="checkAdmin()">دخول آمن</button>
-            <p id="loginError" style="color: red; display: none; margin-top: 10px; font-weight: bold;">كلمة المرور غير صحيحة!</p>
-        </div>
-    </div>
-
     <div id="adminHub">
         <div class="hub-header">
             <div>
-                <h1><i class="fas fa-server"></i> C-Panel</h1>
-                <p style="margin:5px 0 0; color:#64748b;">اختر الأداة التي ترغب في إدارتها</p>
+                <h1><i class="fas fa-server"></i> C-Panel (الإدارة المركزية)</h1>
+                <p style="margin:5px 0 0; color:#64748b;">أهلاً بك، اختر الأداة التي ترغب في إدارتها</p>
             </div>
             <div style="display: flex; gap: 10px;">
-                <a href="index.html" class="btn-logout" style="background:#e0f2fe; color:#0369a1;"><i class="fas fa-home"></i> الداشبورد العام</a>
-                <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> إغلاق الجلسة</button>
+                <button class="btn-logout" onclick="logoutAdmin()"><i class="fas fa-sign-out-alt"></i> إغلاق الجلسة للرئيسية</button>
             </div>
         </div>
 
         <div class="grid-cards">
-            <a href="admin_pending.html" class="tool-card" style="border-top: 5px solid #16a34a;">
-                <div class="tool-icon" style="color: #16a34a;"><i class="fas fa-sync-alt"></i></div>
-                <h2>مزامنة النواقص (Pending)</h2>
-                <p>رفع ملفات الأعطال المفتوحة لمزامنتها مع المواقع، واستقبال أسباب التأخير من المديرين.</p>
+            <a href="admin_track.html" class="tool-card" style="border-top: 5px solid #0284c7;">
+                <div class="tool-icon" style="color: #0284c7;"><i class="fas fa-desktop"></i></div>
+                <h2>شاشة المتابعة الحية والردود</h2>
+                <p>الاطلاع اللحظي والآلي على تبريرات وأسباب تأخير الأعطال المكتوبة من المواقع.</p>
             </a>
 
-            <a href="admin_archive.html" class="tool-card" style="border-top: 5px solid #3b82f6;">
-                <div class="tool-icon" style="color: #3b82f6;"><i class="fas fa-calendar-check"></i></div>
-                <h2>أرشيف الإنجاز الشهري</h2>
-                <p>رفع الأداء الشهري للوقائية والتصحيحية لحفظها وإصدار المقارنات السنوية.</p>
+            <a href="admin_pending.html" class="tool-card" style="border-top: 5px solid #16a34a;">
+                <div class="tool-icon" style="color: #16a34a;"><i class="fas fa-sync-alt"></i></div>
+                <h2>مزامنة النواقص ورفع الإكسل</h2>
+                <p>رفع ملفات Pending Jobs لتحديث قاعدة البيانات وإغلاق الأوامر المنتهية تلقائياً.</p>
             </a>
 
             <a href="admin_sites.html" class="tool-card" style="border-top: 5px solid #eab308;">
                 <div class="tool-icon" style="color: #eab308;"><i class="fas fa-key"></i></div>
-                <h2>إدارة صلاحيات المواقع</h2>
-                <p>إضافة المستشفيات وإنشاء أو تغيير كلمات المرور الخاصة بمديري المواقع.</p>
+                <h2>إدارة صلاحيات وكلمات المرور</h2>
+                <p>التحكم الكامل بكلمات المرور المشتركة لمديري المستشفيات وتحديثها فوراً.</p>
             </a>
         </div>
     </div>
 
     <script>
-        // التحقق من وجود جلسة مسبقة لتسريع الدخول
-        window.onload = function() {
-            if(sessionStorage.getItem('cpanel_auth') === 'true') {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('adminHub').style.display = 'block';
-            }
-        }
-
-        function checkAdmin() {
-            const pass = document.getElementById('adminPass').value;
-            if (pass === 'admin2026') { // الباسورد الموحد
-                sessionStorage.setItem('cpanel_auth', 'true');
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('adminHub').style.display = 'block';
-            } else {
-                document.getElementById('loginError').style.display = 'block';
-            }
-        }
-
-        document.getElementById('adminPass').addEventListener('keypress', function(e) {
-            if(e.key === 'Enter') checkAdmin();
-        });
-
-        function logout() {
+        // دالة إنهاء الجلسة تعيد الأدمن للداشبورد الرئيسي
+        function logoutAdmin() {
             sessionStorage.removeItem('cpanel_auth');
-            location.reload();
+            window.location.href = 'index.html'; 
         }
     </script>
 </body>
