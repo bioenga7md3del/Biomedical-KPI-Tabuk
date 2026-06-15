@@ -67,7 +67,7 @@
         .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .panel-header { font-size: 1.1rem; font-weight: 700; color: #334155; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;}
         
-        /* ------------------ نافذة تسجيل الدخول المنبثقة (Modal) ------------------ */
+        /* Modal Style */
         #loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
         .login-card { background: var(--surface); padding: 35px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); width: 90%; max-width: 420px; position: relative; }
         .close-btn { position: absolute; top: 15px; left: 15px; font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: 0.2s; }
@@ -92,7 +92,6 @@
                 <p>تجمع تبوك الصحي (Tabuk Health Cluster)</p>
             </div>
         </div>
-        
         <div class="header-controls">
             <button class="btn-login-main" onclick="openLoginModal()">
                 <i class="fas fa-sign-in-alt"></i> تسجيل الدخول النظامي
@@ -126,7 +125,6 @@
     </div>
 
     <div class="container">
-        
         <div class="section-title"><i class="fas fa-th-large"></i> بوابات الأنظمة الفرعية</div>
         <div class="portal-grid">
             <a href="cm_dashboard.html" class="portal-card pc-cm">
@@ -156,7 +154,6 @@
         </div>
 
         <div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي الموحد (Executive Summary)</div>
-
         <div class="grid-kpi">
             <div class="kpi-card">
                 <div class="kpi-label">إجمالي أوامر العمل</div>
@@ -206,7 +203,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // إعدادات الفايربيز
         const firebaseConfig = {
             apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
             authDomain: "tabuk-medical-cmms.firebaseapp.com",
@@ -219,38 +215,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // متغيرات الدخول
         window.sitesPasswords = {};
 
-        // التحكم في النافذة المنبثقة
-        window.openLoginModal = function() {
-            document.getElementById('loginModal').style.display = 'flex';
-        }
-        window.closeLoginModal = function() {
+        window.openLoginModal = function() { document.getElementById('loginModal').style.display = 'flex'; }
+        window.closeLoginModal = function() { 
             document.getElementById('loginModal').style.display = 'none';
             document.getElementById('loginError').style.display = 'none';
             document.getElementById('loginPass').value = '';
         }
 
-        // جلب كلمات المرور للمواقع عند تحميل الصفحة
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, "sites_auth"));
                 const sitesOptions = document.getElementById('sitesOptions');
-                sitesOptions.innerHTML = ''; // مسح الرسالة الافتراضية
-                
+                sitesOptions.innerHTML = ''; 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
                     window.sitesPasswords[data.siteName] = data.password;
                     sitesOptions.insertAdjacentHTML('beforeend', `<option value="${data.siteName}">🏥 ${data.siteName}</option>`);
                 });
             } catch(e) {
-                console.error("خطأ في جلب المواقع: ", e);
                 document.getElementById('sitesOptions').innerHTML = '<option value="">تعذر الاتصال بالسيرفر</option>';
             }
         });
 
-        // دالة التحقق من الدخول
         window.submitLogin = function() {
             const user = document.getElementById('loginUser').value;
             const pass = document.getElementById('loginPass').value.trim();
@@ -269,8 +257,7 @@
                 if(user === 'admin') {
                     if(pass === 'admin2026') { 
                         sessionStorage.setItem('cpanel_auth', 'true');
-                        // سيتم توجيه الأدمن لصفحة تحكم منفصلة
-                        window.location.href = 'admin.html'; 
+                        window.location.href = 'admin.html'; // توجيه للأدمن
                     } else {
                         errorMsg.style.display = 'block';
                         errorMsg.innerHTML = '<i class="fas fa-times-circle"></i> كلمة مرور الإدارة غير صحيحة!';
@@ -279,7 +266,7 @@
                 } else {
                     if(window.sitesPasswords[user] === pass) {
                         sessionStorage.setItem('hospital_user', user);
-                        window.location.href = 'manager.html'; 
+                        window.location.href = 'manager.html'; // توجيه للمستشفى
                     } else {
                         errorMsg.style.display = 'block';
                         errorMsg.innerHTML = '<i class="fas fa-times-circle"></i> كلمة المرور الخاصة بالموقع غير صحيحة!';
@@ -289,7 +276,6 @@
             }, 500);
         }
 
-        // تفعيل Enter
         document.getElementById('loginPass').addEventListener('keypress', function(e) {
             if(e.key === 'Enter') window.submitLogin();
         });
@@ -302,15 +288,10 @@
         window.addEventListener('DOMContentLoaded', async () => {
             const badge = document.getElementById('statusBadge');
             let combinedData = [];
-
             const promises = SOURCES.map(src => fetch(src.url).then(r => r.ok ? r.arrayBuffer().then(b => ({b, t:src.type})) : null).catch(e=>null));
-            
             try {
                 const results = await Promise.all(promises);
-                results.forEach(res => {
-                    if(res) combinedData = [...combinedData, ...parseExcel(res.b, res.t)];
-                });
-
+                results.forEach(res => { if(res) combinedData = [...combinedData, ...parseExcel(res.b, res.t)]; });
                 if(combinedData.length > 0) {
                     badge.className = 'status-badge st-success';
                     badge.innerHTML = `<i class="fas fa-check-circle"></i> المؤشرات محدثة`;
@@ -330,7 +311,6 @@
                 const get = k => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
                 const status = String(get('Status')).trim();
                 const isClosed = status.toLowerCase() === 'signed off';
-                
                 const dFail = parseDate(get('Fail Date') || get('fail date'));
                 const dStart = parseDate(get('start date') || get('Start Date'));
                 const dSign = parseDate(get('sign off date') || get('Completion Date'));
@@ -350,7 +330,6 @@
                         else if (diffDays > 30) isPpmDelayed = true;
                     }
                 }
-
                 return { type: type, site: get('Site') || 'Unknown', isClosed: isClosed, isDelayed: isPpmDelayed, resp: resp, fix: fix };
             });
         }
