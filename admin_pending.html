@@ -5,12 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مزامنة النواقص - C-Panel</title>
     
-    <script>
-        if(sessionStorage.getItem('cpanel_auth') !== 'true') {
-            window.location.href = 'admin.html';
-        }
-    </script>
-
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -22,8 +16,8 @@
         
         .container { max-width: 800px; margin: 0 auto; }
         .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-back { background: #e2e8f0; color: #0f172a; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #cbd5e1; }
-        .btn-back:hover { background: #cbd5e1; }
+        .btn-back { background: #0f172a; color: #ffffff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #cbd5e1; display: flex; align-items: center; gap: 8px; transition: 0.2s;}
+        .btn-back:hover { background: #1e293b; transform: translateX(-5px); }
 
         .card { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; text-align: center; border-top: 5px solid var(--primary); }
         h1 { margin-top: 0; color: #0f172a; }
@@ -43,7 +37,7 @@
     <div class="container">
         <div class="header-nav">
             <h2 style="margin: 0; color: var(--primary);"><i class="fas fa-sync-alt"></i> مزامنة النواقص</h2>
-            <a href="admin.html" class="btn-back"><i class="fas fa-arrow-right"></i> العودة للوحة التوجيه</a>
+            <a href="admin.html" class="btn-back"><i class="fas fa-arrow-right"></i> رجوع للوحة الإدارة (Admin)</a>
         </div>
 
         <div class="card">
