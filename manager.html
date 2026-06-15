@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بوابة مديري المواقع - تحديث أوامر العمل</title>
     
+    <script>
+        if(!sessionStorage.getItem('hospital_user')) {
+            window.location.href = 'index.html';
+        }
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
@@ -28,7 +34,7 @@
         .btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 6px; }
         .btn-update:hover { background: #bae6fd; }
 
-        /* Modal */
+        /* Modal السجل والتحديث */
         #commentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
@@ -47,10 +53,10 @@
     <div id="appScreen">
         <div class="header">
             <div>
-                <h1>مرحباً، <span id="lblSiteName" style="color:#0284c7"></span></h1>
-                <p style="margin: 5px 0 0; color: #64748b; font-weight: bold;">سجل الأوامر المتأخرة وتحت الإجراء المخصصة لموقعك</p>
+                <h1>مرحباً، مستخدم: <span id="lblSiteName" style="color:#0284c7"></span></h1>
+                <p style="margin: 5px 0 0; color: #64748b; font-weight: bold;">سجل الأوامر المتأخرة المخصصة لموقعك لتبرير أسباب التأخير</p>
             </div>
-            <button class="btn-logout" onclick="window.logoutSite()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+            <button class="btn-logout" onclick="window.logoutSite()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج للرئيسية</button>
         </div>
 
         <div class="panel">
@@ -58,15 +64,15 @@
                 <thead>
                     <tr>
                         <th>رقم الأمر</th>
-                        <th>الاستحقاق / العطل</th>
+                        <th>تاريخ البلاغ / الاستحقاق</th>
                         <th style="width: 30%;">الجهاز الطبي</th>
-                        <th>الفني</th>
+                        <th>الفني المسند إليه</th>
                         <th>حالة التحديث</th>
                         <th>إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="6" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بك...</td></tr>
+                    <tr><td colspan="6" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعك...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -82,10 +88,10 @@
             <label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block;">السجل التاريخي للردود:</label>
             <div class="history-box" id="modalHistory"></div>
             
-            <label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block;">إضافة تحديث جديد:</label>
-            <textarea id="modalNewComment" placeholder="اكتب سبب التأخير أو إجراءات العمل الحالية هنا..."></textarea>
+            <label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block;">إضافة تحديث جديد لجلب الدعم الإداري:</label>
+            <textarea id="modalNewComment" placeholder="اكتب أسباب تأخر الإصلاح (بانتظار قطع غيار، بلاغ للوكيل، إلخ)..."></textarea>
             
-            <button class="btn-save" id="btnSaveComment"><i class="fas fa-save"></i> حفظ التبرير</button>
+            <button class="btn-save" id="btnSaveComment"><i class="fas fa-save"></i> حفظ التبرير وإرساله حياً للأدمن</button>
         </div>
     </div>
 
@@ -106,15 +112,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // التحقق من أن المستخدم دخل بطريقة شرعية عبر بوابة الدخول
+        // جلب الموقع الحالي المحفوظ من شاشة الدخول الموحدة
         const currentSite = sessionStorage.getItem('hospital_user');
-        if(!currentSite) {
-            window.location.href = 'admin.html'; // طرده لصفحة الدخول الموحدة
-        }
-
         let currentEditingOrder = "";
         
-        // بمجرد تحميل الصفحة، نضع اسم المستشفى ونستدعي بياناته
         window.onload = function() {
             document.getElementById('lblSiteName').textContent = currentSite;
             loadSiteOrders();
@@ -129,7 +130,7 @@
                 let rowsHTML = "";
                 
                 if(snapshot.empty) {
-                    tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:#16a34a; font-weight:bold; padding: 30px; font-size:1.1rem;"><i class="fas fa-check-circle"></i> رائع! لا توجد أي أوامر متأخرة أو معلقة لموقعك حالياً.</td></tr>';
+                    tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:#16a34a; font-weight:bold; padding: 30px; font-size:1.1rem;"><i class="fas fa-check-circle"></i> رائع! لا توجد أي أوامر متأخرة أو نواقص معلقة لموقعك حالياً.</td></tr>';
                     return;
                 }
 
@@ -137,7 +138,7 @@
                     const data = docSnap.data();
                     const commentsCount = data.comments ? data.comments.length : 0;
                     const statusBadge = commentsCount > 0 
-                        ? `<span class="badge-done"><i class="fas fa-check"></i> تم الرد</span>`
+                        ? `<span class="badge-done"><i class="fas fa-check"></i> تم التحديث</span>`
                         : `<span class="badge-warn"><i class="fas fa-exclamation-circle"></i> بانتظار الإفادة</span>`;
 
                     rowsHTML += `
@@ -149,7 +150,7 @@
                             <td>${statusBadge}</td>
                             <td>
                                 <button class="btn-update" onclick="window.openModal('${docSnap.id}')">
-                                    <i class="fas fa-pen"></i> إضافة تحديث
+                                    <i class="fas fa-pen"></i> تحديث مبرر
                                 </button>
                             </td>
                         </tr>
@@ -161,7 +162,7 @@
 
             } catch (error) {
                 console.error(error);
-                tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:red; padding: 20px;">حدث خطأ في الاتصال بالسيرفر.</td></tr>';
+                tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:red; padding: 20px;">حدث خطأ أثناء تحميل البيانات المباشرة.</td></tr>';
             }
         }
 
@@ -181,7 +182,7 @@
                     </div>
                 `).join('');
             } else {
-                historyBox.innerHTML = '<div style="color:#94a3b8; text-align:center; padding-top:40px;">لا توجد تحديثات سابقة لهذا الأمر. كن أول من يضيف تحديثاً.</div>';
+                historyBox.innerHTML = '<div style="color:#94a3b8; text-align:center; padding-top:40px;">لا توجد مبررات سابقة مسجلة لهذا الأمر.</div>';
             }
 
             document.getElementById('commentModal').style.display = 'flex';
@@ -193,11 +194,11 @@
 
         document.getElementById('btnSaveComment').addEventListener('click', async () => {
             const text = document.getElementById('modalNewComment').value.trim();
-            if(!text) { alert("الرجاء كتابة التحديث أولاً"); return; }
+            if(!text) { alert("الرجاء كتابة نص التحديث أولاً"); return; }
 
             const btn = document.getElementById('btnSaveComment');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إرسال البيانات...';
 
             try {
                 const orderRef = doc(db, "pending_orders", currentEditingOrder);
@@ -207,25 +208,24 @@
                     author: currentSite
                 };
 
-                await updateDoc(orderRef, {
-                    comments: arrayUnion(newComment)
-                });
+                await updateDoc(orderRef, { comments: arrayUnion(newComment) });
 
                 window.closeModal();
                 loadSiteOrders(); 
 
             } catch (error) {
                 console.error(error);
-                alert("حدث خطأ أثناء الحفظ!");
+                alert("حدث خلل أثناء الرفع، تحقق من اتصال السيرفر.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save"></i> حفظ التبرير';
+                btn.innerHTML = '<i class="fas fa-save"></i> حفظ التبرير وإرساله حياً للأدمن';
             }
         });
 
+        // دالة تسجيل الخروج المعدلة لتعيدك فوراً إلى صفحة المؤشرات الرئيسية (index.html)
         window.logoutSite = function() {
             sessionStorage.removeItem('hospital_user');
-            window.location.href = 'admin.html'; // العودة لبوابة الدخول الموحدة
+            window.location.href = 'index.html'; 
         }
     </script>
 </body>
