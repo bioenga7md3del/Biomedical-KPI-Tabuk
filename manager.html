@@ -15,89 +15,213 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        :root { --primary: #1e3a8a; --bg: #f1f5f9; --surface: #ffffff; --warn: #eab308; }
-        * { box-sizing: border-box; outline: none; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #0f172a; margin: 0; padding: 0; }
+        :root { 
+            --primary: #1e3a8a; 
+            --accent: #0284c7;
+            --bg: #f1f5f9; 
+            --surface: #ffffff; 
+            --text: #0f172a; 
+            --green: #16a34a; 
+            --yellow: #eab308; 
+            --red: #dc2626; 
+        }
         
-        #appScreen { padding: 20px; max-width: 1300px; margin: 0 auto; }
-        .header { background: var(--surface); padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
-        .header h1 { margin: 0; color: var(--primary); font-size: 1.6rem; }
-        .btn-logout { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px;}
+        * { box-sizing: border-box; outline: none; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #0f172a; margin: 0; padding: 0; padding-bottom: 60px; }
+        
+        /* الهيدر وعناصر الويب */
+        .header { background: var(--surface); padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        .header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; font-weight: 800; }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.9rem;}
+        .btn-action:hover { background: #e2e8f0; transform: translateY(-1px); }
+        .btn-print { background: var(--primary); color: white; border: none; }
+        .btn-print:hover { background: #1e40af; }
+        .btn-logout { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
         .btn-logout:hover { background: #fecaca; }
 
-        .panel { background: var(--surface); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: right; }
-        th, td { padding: 14px; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; color: #475569; font-weight: 800; }
-        tr:hover { background: #f8fafc; }
+        #appScreen { padding: 20px; max-width: 1550px; margin: 0 auto; }
         
-        .btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 6px; }
-        .btn-update:hover { background: #bae6fd; }
+        /* الكروت الإحصائية للمستشفى */
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; border: 1px solid #e2e8f0; border-top: 4px solid #cbd5e1;}
+        .kpi-val { font-size: 2.2rem; font-weight: 800; margin-top: 8px; }
+        .kpi-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
 
-        /* Modal السجل والتحديث */
-        #commentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
-        .history-box { background: #f8fafc; padding: 15px; border-radius: 8px; height: 180px; overflow-y: auto; margin-bottom: 20px; font-size: 0.95rem; border: 1px solid #cbd5e1; }
-        .comment-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #cbd5e1; }
-        .comment-date { color: #64748b; font-size: 0.8rem; display: block; margin-bottom: 4px; }
-        textarea { width: 100%; height: 90px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; resize: none; margin-bottom: 15px; font-size: 1rem; }
-        .btn-save { background: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; width: 100%; font-size: 1.1rem; }
+        /* منطقة الجدول */
+        .panel { background: var(--surface); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
+        .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th, td { padding: 16px 15px; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; }
+        th { background: #f8fafc; color: #475569; font-weight: 800; position: sticky; top: 0; }
         
-        .badge-done { background: #dcfce7; color: #16a34a; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
-        .badge-warn { background: #fef08a; color: #854d0e; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
+        /* تمييز الصفوف التي لم يتم الرد عليها لتجبر المدير على الانتباه */
+        .row-highlight-urgent { background: #fff7f7; border-right: 4px solid var(--red); }
+        .row-highlight-urgent:hover { background: #fef2f2; }
+        
+        .btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; transition: 0.2s; }
+        .btn-update:hover { background: #0284c7; color: white; }
+
+        .badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; }
+        .badge-done { background: #dcfce7; color: #16a34a; }
+        .badge-warn { background: #fee2e2; color: #dc2626; }
+
+        /* ------------------ نافذة التحديث والسجل المتقدمة ------------------ */
+        #commentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 16px; width: 95%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
+        
+        /* صندوق السجل التاريخي */
+        .history-box { background: #f8fafc; padding: 15px; border-radius: 8px; max-height: 220px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #cbd5e1; }
+        .comment-item { margin-bottom: 12px; padding: 10px; border-radius: 6px; background: white; border: 1px solid #e2e8f0; position: relative; }
+        .comment-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .comment-date { color: #64748b; font-size: 0.8rem; font-weight: bold; }
+        .comment-text { color: #0f172a; font-size: 0.95rem; font-weight: 700; line-height: 1.4; word-break: break-word; }
+        
+        /* أزرار الحذف والتعديل داخل الكومنت */
+        .comment-actions { display: flex; gap: 8px; }
+        .btn-inline-act { border: none; background: none; cursor: pointer; font-size: 0.9rem; padding: 2px 5px; transition: 0.2s; }
+        .btn-inline-edit { color: var(--accent); }
+        .btn-inline-edit:hover { color: var(--primary); }
+        .btn-inline-delete { color: var(--red); }
+        .btn-inline-delete:hover { color: #991b1b; }
+
+        /* أزرار الردود السريعة */
+        .quick-replies-label { font-weight: bold; color: #475569; margin-bottom: 8px; display: block; font-size: 0.9rem; }
+        .quick-replies-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .btn-quick { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.85rem; font-weight: 700; transition: 0.2s; }
+        .btn-quick:hover { background: #e2e8f0; border-color: #94a3b8; }
+        .btn-quick.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* حقول التعميد الديناميكية */
+        #approvalFields { display: none; background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .fields-row { display: flex; gap: 10px; }
+        .fields-row div { flex: 1; }
+        .fields-row label { display: block; font-size: 0.8rem; font-weight: bold; color: #0369a1; margin-bottom: 4px; }
+        .input-sub { width: 100%; padding: 8px; border: 1px solid #bae6fd; border-radius: 6px; font-family: 'Tajawal'; font-size: 0.9rem; }
+
+        textarea { width: 100%; height: 85px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; resize: none; margin-bottom: 15px; font-size: 1rem; }
+        .btn-save { background: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; width: 100%; font-size: 1.1rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-save:hover { background: #15803d; }
+
+        /* ------------------ تنسيق محرك الطباعة المنسقة ------------------ */
+        @media print {
+            @page { size: landscape; margin: 1cm; }
+            body { background: white !important; font-size: 10pt; color: black; }
+            .header, .grid-kpi, .quick-replies-label, .quick-replies-container, #approvalFields, textarea, .btn-save, .btn-update, #commentModal, .btn-inline-act { display: none !important; }
+            #appScreen { padding: 0; max-width: 100%; }
+            .panel { border: none; box-shadow: none; padding: 0; }
+            .table-wrap { border: none; overflow: visible; }
+            table { width: 100%; border: 1px solid #000; }
+            th, td { border: 1px solid #ddd !important; padding: 8px !important; color: black !important; background: none !important; }
+            th { background: #eee !important; -webkit-print-color-adjust: exact; }
+            .badge { background: none !important; border: none; color: black !important; padding: 0; font-weight: bold; }
+            .row-highlight-urgent { background: none !important; border-right: none !important; }
+        }
     </style>
 </head>
 <body>
 
     <div id="appScreen">
+        
         <div class="header">
-            <div>
-                <h1>مرحباً، مستخدم: <span id="lblSiteName" style="color:#0284c7"></span></h1>
-                <p style="margin: 5px 0 0; color: #64748b; font-weight: bold;">سجل الأوامر المتأخرة المخصصة لموقعك لتبرير أسباب التأخير</p>
+            <div class="logo-area">
+                <img src="TabukCluster.jpeg" alt="شعار التجمع" style="height: 60px; object-fit: contain;" onerror="this.style.display='none'">
+                <div>
+                    <h1>مرحباً، إدارة موقع: <span id="lblSiteName" style="color:var(--accent)"></span></h1>
+                    <p style="margin: 3px 0 0; color: #64748b; font-weight: bold; font-size: 0.9rem;">لوحة تحديث مبررات الأوامر المعلقة والمتأخرة</p>
+                </div>
             </div>
-            <button class="btn-logout" onclick="window.logoutSite()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج للرئيسية</button>
+            <div class="header-actions">
+                <button class="btn-action btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة كشف الأعطال</button>
+                <button class="btn-action btn-logout" onclick="window.logoutSite()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+            </div>
+        </div>
+
+        <div class="grid-kpi">
+            <div class="kpi-card" style="border-top-color: var(--accent);">
+                <div class="kpi-label">إجمالي الأوامر المعلقة بموقعكم</div>
+                <div class="kpi-val" id="kpi-site-total">0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: var(--red);">
+                <div class="kpi-label">أعطال حرجة متجاوزة (30 يوم)</div>
+                <div class="kpi-val" id="kpi-site-critical" style="color: var(--red);">0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: var(--yellow);">
+                <div class="kpi-label">أوامر تتطلب إفادة عاجلة منك</div>
+                <div class="kpi-val" id="kpi-site-pending" style="color: var(--yellow);">0</div>
+            </div>
         </div>
 
         <div class="panel">
-            <table id="ordersTable">
-                <thead>
-                    <tr>
-                        <th>رقم الأمر</th>
-                        <th>تاريخ البلاغ / الاستحقاق</th>
-                        <th style="width: 30%;">الجهاز الطبي</th>
-                        <th>الفني المسند إليه</th>
-                        <th>حالة التحديث</th>
-                        <th>إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="6" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعك...</td></tr>
-                </tbody>
-            </table>
+            <div class="table-wrap">
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>رقم الأمر</th>
+                            <th>تاريخ الفتح (Fail Date)</th>
+                            <th>أيام التأخير</th>
+                            <th style="width: 30%;">الجهاز الطبي المتأثر</th>
+                            <th>الفني المسند إليه</th>
+                            <th>حالة التحديث لموقعكم</th>
+                            <th>آخر مبرر مسجل ومرفوع للأدمن</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="8" style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم وتصفيتها الحية...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <div id="commentModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 style="margin:0; color:#1e3a8a;">تحديث أمر: <span id="modalOrderId"></span></h3>
-                <i class="fas fa-times" style="cursor: pointer; color: #dc2626; font-size: 1.5rem;" onclick="window.closeModal()"></i>
+                <h3 style="margin:0; color:var(--primary);">إدارة تحديثات الأمر: <span id="modalOrderId" style="color:var(--accent);"></span></h3>
+                <i class="fas fa-times" style="cursor: pointer; color: var(--red); font-size: 1.5rem;" onclick="window.closeModal()"></i>
             </div>
             
-            <label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block;">السجل التاريخي للردود:</label>
+            <label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block; font-size: 0.95rem;">السجل التاريخي للمبررات المرفوعة سابقا:</label>
             <div class="history-box" id="modalHistory"></div>
             
-            <label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block;">إضافة تحديث جديد لجلب الدعم الإداري:</label>
-            <textarea id="modalNewComment" placeholder="اكتب أسباب تأخر الإصلاح (بانتظار قطع غيار، بلاغ للوكيل، إلخ)..."></textarea>
-            
-            <button class="btn-save" id="btnSaveComment"><i class="fas fa-save"></i> حفظ التبرير وإرساله حياً للأدمن</button>
+            <div id="inputSection">
+                <span class="quick-replies-label"><i class="fas fa-bolt"></i> ردود سريعة لتوفير وقتكم:</span>
+                <div class="quick-replies-container">
+                    <button class="btn-quick" onclick="applyQuickReply('بانتظار وصول قطع الغيار من الشركة الوكيلة')">📦 بانتظار قطع غيار</button>
+                    <button class="btn-quick" onclick="applyQuickReply('تم الرفع للوكيل المعتمد وبانتظار العرض الفني للفحص')">🏢 تم الرفع للوكيل</button>
+                    <button class="btn-quick" onclick="applyQuickReply('الجهاز متوقف وبانتظار تعميد الإدارة المالية بالتجمع')">⏳ بانتظار تعميد التجمع</button>
+                    <button class="btn-quick" onclick="selectApprovalReply()">✅ تم التعميد (إدخال رقم المرجع)</button>
+                </div>
+
+                <div id="approvalFields">
+                    <div class="fields-row">
+                        <div>
+                            <label>رقم التعميد / المرجع:</label>
+                            <input type="text" id="appNum" class="input-sub" placeholder="مثال: PO-9988">
+                        </div>
+                        <div>
+                            <label>تاريخ التعميد الفعلي:</label>
+                            <input type="date" id="appDate" class="input-sub">
+                        </div>
+                    </div>
+                </div>
+
+                <label id="lblWriteType" style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block; font-size: 0.95rem;">إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:</label>
+                <textarea id="modalNewComment" placeholder="اكتب مبررات التأخير أو كمل على الرد السريع هنا..."></textarea>
+                
+                <button class="btn-save" id="btnSaveComment" onclick="saveCommentData()"><i class="fas fa-save"></i> حفظ المبرر وإرساله فوراً للأدمن</button>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
@@ -105,124 +229,280 @@
             projectId: "tabuk-medical-cmms",
             storageBucket: "tabuk-medical-cmms.firebasestorage.app",
             messagingSenderId: "756624281363",
-            appId: "1:756624281363:web:919e8555b86eddecbb14e6",
-            measurementId: "G-YV56L9QR5J"
+            appId: "1:756624281363:web:919e8555b86eddecbb14e6"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // جلب الموقع الحالي المحفوظ من شاشة الدخول الموحدة
         const currentSite = sessionStorage.getItem('hospital_user');
-        let currentEditingOrder = "";
-        
+        let currentEditingOrderId = "";
+        let currentCommentEditIndex = null; // يحدد إذا كنا نعدل كومنت قديم أو نضيف جديداً
+        let LOCAL_ORDERS = [];
+
         window.onload = function() {
             document.getElementById('lblSiteName').textContent = currentSite;
             loadSiteOrders();
         }
 
+        // حساب التقادم بالأيام بناء على التواريخ لمنع NaN
+        function calculateDays(v) {
+            if(!v) return 0;
+            let d = null;
+            let s = String(v).trim();
+            if(s.match(/^\d{4}-\d{2}-\d{2}/)) {
+                d = new Date(s);
+            } else {
+                let dPart = s.split(' ')[0];
+                let parts = dPart.split(/[\/\-\.]/);
+                if(parts.length >= 3) {
+                    let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
+                    if (p0 > 1900) d = new Date(p0, p1, p2);
+                    else if (p2 > 1900) d = new Date(p2, p1, p0);
+                }
+            }
+            if(!d || isNaN(d.getTime())) return 0;
+            const diff = Date.now() - d.getTime();
+            return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+        }
+
         async function loadSiteOrders() {
-            const tb = document.querySelector('#ordersTable tbody');
+            const tbody = document.getElementById('tableBody');
             try {
                 const q = query(collection(db, "pending_orders"), where("site", "==", currentSite), where("isCompleted", "==", false));
                 const snapshot = await getDocs(q);
                 
+                LOCAL_ORDERS = [];
                 let rowsHTML = "";
-                
+                let total = 0, critical = 0, pendingFeedback = 0;
+
                 if(snapshot.empty) {
-                    tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:#16a34a; font-weight:bold; padding: 30px; font-size:1.1rem;"><i class="fas fa-check-circle"></i> رائع! لا توجد أي أوامر متأخرة أو نواقص معلقة لموقعك حالياً.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color:var(--green); font-weight:bold; padding: 40px; font-size:1.1rem;"><i class="fas fa-check-circle"></i> ممتاز جداً! لا توجد أي أوامر عمل متأخرة أو نواقص معلقة لموقعكم حالياً.</td></tr>';
+                    updateKPIs(0, 0, 0);
                     return;
                 }
 
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    const commentsCount = data.comments ? data.comments.length : 0;
-                    const statusBadge = commentsCount > 0 
-                        ? `<span class="badge-done"><i class="fas fa-check"></i> تم التحديث</span>`
-                        : `<span class="badge-warn"><i class="fas fa-exclamation-circle"></i> بانتظار الإفادة</span>`;
+                    data.docId = docSnap.id; // الاحتفاظ بمعرف المستند للفايربيز
+                    data.calculatedAge = calculateDays(data.failDate || data.startDate || data.createdAt);
+                    LOCAL_ORDERS.push(data);
+                });
+
+                // ترتيب ذكي: وضع الأوامر التي بدون ردود أولاً في اللوحة لتنبيه مدير الموقع
+                LOCAL_ORDERS.sort((a, b) => {
+                    const aHas = (a.comments && a.comments.length > 0) ? 1 : 0;
+                    const bHas = (b.comments && b.comments.length > 0) ? 1 : 0;
+                    if (aHas !== bHas) return aHas - bHas; // اللي بدون رد (0) تطلع فوق
+                    return b.calculatedAge - a.calculatedAge; // ثم الأقدم للأحدث
+                });
+
+                LOCAL_ORDERS.forEach((data) => {
+                    total++;
+                    if(data.calculatedAge > 30) critical++;
+                    
+                    const hasComments = data.comments && data.comments.length > 0;
+                    if(!hasComments) pendingFeedback++;
+
+                    const statusBadge = hasComments 
+                        ? `<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>`
+                        : `<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة عاجل</span>`;
+
+                    const lastCommentText = hasComments 
+                        ? `<strong style="color:var(--text); font-size:0.85rem;">${data.comments[data.comments.length-1].text}</strong><br><small style="color:#64748b;">${data.comments[data.comments.length-1].date}</small>`
+                        : `<span style="color:var(--red); font-weight:bold;">لا يوجد أي تبرير مرفوع ⚠️</span>`;
+
+                    // تمييز صفي للأوامر المتروكة بدون رد
+                    const rowClass = !hasComments ? 'row-highlight-urgent' : '';
 
                     rowsHTML += `
-                        <tr>
-                            <td style="font-weight:bold; font-size:1.05rem;">${data.id}</td>
-                            <td style="direction:ltr;">${data.startDate || 'غير محدد'}</td>
+                        <tr class="${rowClass}">
+                            <td style="font-weight:bold; color:var(--primary);">${data.id}</td>
+                            <td style="direction:ltr;">${data.failDate || data.startDate || '-'}</td>
+                            <td><span style="font-weight:800; color:${data.calculatedAge > 30 ? 'var(--red)':'var(--text)'}">${data.calculatedAge} يوم</span></td>
                             <td title="${data.device}">${data.device.substring(0, 45)}...</td>
                             <td>${data.tech}</td>
                             <td>${statusBadge}</td>
+                            <td>${lastCommentText}</td>
                             <td>
-                                <button class="btn-update" onclick="window.openModal('${docSnap.id}')">
-                                    <i class="fas fa-pen"></i> تحديث مبرر
+                                <button class="btn-update" onclick="window.openModal('${data.id}')">
+                                    <i class="fas fa-comments"></i> إدارة الردود
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
 
-                tb.innerHTML = rowsHTML;
-                window.siteData = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                tbody.innerHTML = rowsHTML;
+                updateKPIs(total, critical, pendingFeedback);
 
             } catch (error) {
                 console.error(error);
-                tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color:red; padding: 20px;">حدث خطأ أثناء تحميل البيانات المباشرة.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color:var(--red); padding: 20px;">حدث خلل أثناء جلب البيانات المباشرة من السحابة.</td></tr>';
             }
         }
 
+        function updateKPIs(total, critical, pending) {
+            document.getElementById('kpi-site-total').textContent = total;
+            document.getElementById('kpi-site-critical').textContent = critical;
+            document.getElementById('kpi-site-pending').textContent = pending;
+        }
+
+        // فتح وإدارة الـ Modal وسجل الكومنتات المتقدم
         window.openModal = function(orderId) {
-            currentEditingOrder = orderId;
+            currentEditingOrderId = orderId;
+            currentCommentEditIndex = null; // تصفير مؤشر التعديل
             document.getElementById('modalOrderId').textContent = orderId;
             document.getElementById('modalNewComment').value = "";
+            document.getElementById('approvalFields').style.display = 'none';
+            document.getElementById('lblWriteType').textContent = "إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:";
+            document.getElementById('btnSaveComment').innerHTML = '<i class="fas fa-save"></i> حفظ المبرر وإرساله فوراً للأدمن';
             
-            const orderData = window.siteData.find(o => o.id === orderId);
-            const historyBox = document.getElementById('modalHistory');
-            
-            if (orderData.comments && orderData.comments.length > 0) {
-                historyBox.innerHTML = orderData.comments.map(c => `
-                    <div class="comment-item">
-                        <span class="comment-date"><i class="fas fa-clock"></i> ${c.date}</span>
-                        <strong style="color: #0f172a;">${c.text}</strong>
-                    </div>
-                `).join('');
-            } else {
-                historyBox.innerHTML = '<div style="color:#94a3b8; text-align:center; padding-top:40px;">لا توجد مبررات سابقة مسجلة لهذا الأمر.</div>';
-            }
+            // إلغاء تفعيل أي زر رد سريع نشط
+            document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
+
+            const order = LOCAL_ORDERS.find(o => o.id === orderId);
+            renderCommentsList(order);
 
             document.getElementById('commentModal').style.display = 'flex';
+        }
+
+        function renderCommentsList(order) {
+            const historyBox = document.getElementById('modalHistory');
+            if (order.comments && order.comments.length > 0) {
+                let commentsHTML = "";
+                order.comments.forEach((c, index) => {
+                    commentsHTML += `
+                        <div class="comment-item">
+                            <div class="comment-meta">
+                                <span class="comment-date"><i class="fas fa-clock"></i> ${c.date}</span>
+                                <div class="comment-actions">
+                                    <button class="btn-inline-act btn-inline-edit" onclick="window.editCommentTrigger(${index})" title="تعديل هذا النص"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-inline-act btn-inline-delete" onclick="window.deleteCommentTrigger(${index})" title="مسح هذا التحديث"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                            <div class="comment-text">${c.text}</div>
+                        </div>
+                    `;
+                });
+                historyBox.innerHTML = commentsHTML;
+            } else {
+                historyBox.innerHTML = '<div style="color:#94a3b8; text-align:center; padding-top:40px;">لا توجد مبررات سابقة مسجلة لهذا الأمر بموقعكم.</div>';
+            }
         }
 
         window.closeModal = function() {
             document.getElementById('commentModal').style.display = 'none';
         }
 
-        document.getElementById('btnSaveComment').addEventListener('click', async () => {
-            const text = document.getElementById('modalNewComment').value.trim();
-            if(!text) { alert("الرجاء كتابة نص التحديث أولاً"); return; }
+        // أزرار الردود السريعة العادية
+        window.applyQuickReply = function(text) {
+            document.getElementById('approvalFields').style.display = 'none';
+            document.getElementById('modalNewComment').value = text;
+        }
+
+        // عند اختيار رد "تم التعميد" يفتح حقول الإدخال الإضافية
+        window.selectApprovalReply = function() {
+            document.getElementById('modalNewComment').value = "";
+            document.getElementById('approvalFields').style.display = 'block';
+            document.getElementById('appNum').value = "";
+            document.getElementById('appDate').value = "";
+        }
+
+        // محرك حفظ ومسح وتعديل البيانات في مصفوفة الفايربيز
+        window.saveCommentData = async function() {
+            let text = document.getElementById('modalNewComment').value.trim();
+            const appFieldsVisible = document.getElementById('approvalFields').style.display === 'block';
+
+            // لو حقول التعميد ظاهرة، قم بصياغة النص بطريقة هندسية منظمة وموحدة
+            if (appFieldsVisible) {
+                const num = document.getElementById('appNum').value.trim();
+                const dt = document.getElementById('appDate').value;
+                if(!num || !dt) { alert("برجاء تعبئة رقم وتاريخ التعميد المرجعي للتوثيق الإداري."); return; }
+                text = `[تم التعميد رسميًا] - بموجب تعميد رقم: (${num}) الصادر بتاريخ: ${dt}. ` + text;
+            }
+
+            if(!text) { alert("الرجاء كتابة أو اختيار نص التحديث والمبرر أولاً."); return; }
 
             const btn = document.getElementById('btnSaveComment');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إرسال البيانات...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري مزامنة وتحديث سحابة التجمع...';
 
             try {
-                const orderRef = doc(db, "pending_orders", currentEditingOrder);
-                const newComment = {
-                    text: text,
-                    date: new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }),
-                    author: currentSite
-                };
+                const order = LOCAL_ORDERS.find(o => o.id === currentEditingOrderId);
+                const orderRef = doc(db, "pending_orders", order.docId);
 
-                await updateDoc(orderRef, { comments: arrayUnion(newComment) });
+                let updatedCommentsArray = order.comments ? [...order.comments] : [];
 
+                if (currentCommentEditIndex === null) {
+                    // 1. حالة إضافة كومنت جديد تماماً
+                    const newCommentObj = {
+                        text: text,
+                        date: new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }),
+                        author: currentSite
+                    };
+                    updatedCommentsArray.push(newCommentObj);
+                } else {
+                    // 2. حالة تعديل كومنت قديم مستهدف بالـ Index
+                    updatedCommentsArray[currentCommentEditIndex].text = text;
+                    updatedCommentsArray[currentCommentEditIndex].date = new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' }) + " (معدل)";
+                }
+
+                // تحديث قاعدة البيانات بالمصفوفة الكاملة والمصححة
+                await updateDoc(orderRef, { comments: updatedCommentsArray });
+                
                 window.closeModal();
-                loadSiteOrders(); 
+                loadSiteOrders(); // إعادة التحميل الحي والذكي للجدول
 
             } catch (error) {
                 console.error(error);
-                alert("حدث خلل أثناء الرفع، تحقق من اتصال السيرفر.");
+                alert("حدث خلل في السيرفر أثناء الرفع والتحديث، تحقق من الاتصال بالشبكة.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save"></i> حفظ التبرير وإرساله حياً للأدمن';
             }
-        });
+        }
 
-        // دالة تسجيل الخروج المعدلة لتعيدك فوراً إلى صفحة المؤشرات الرئيسية (index.html)
+        // زناد تعديل الكومنت القديم
+        window.editCommentTrigger = function(index) {
+            const order = LOCAL_ORDERS.find(o => o.id === currentEditingOrderId);
+            const targetComment = order.comments[index];
+            
+            currentCommentEditIndex = index; // حفظ الفهرس المستهدف بالتعديل
+            document.getElementById('modalNewComment').value = targetComment.text;
+            document.getElementById('approvalFields').style.display = 'none'; // إخفاء لوحة التعميد الفرعية عند التعديل المباشر
+            
+            document.getElementById('lblWriteType').textContent = "تعديل وتصحيح نص المبرر المختار:";
+            document.getElementById('btnSaveComment').innerHTML = '<i class="fas fa-edit"></i> حفظ التعديلات الآن وإرسالها للأدمن';
+            document.getElementById('modalNewComment').focus();
+        }
+
+        // زناد مسح الكomنت القديم نهائياً
+        window.deleteCommentTrigger = async function(index) {
+            if(!confirm("هل أنت متأكد من مسح هذا التبرير نهائياً من السجل المرسل للأدمن؟ لا يمكن التراجع عن هذا الإجراء.")) return;
+
+            try {
+                const order = LOCAL_ORDERS.find(o => o.id === currentEditingOrderId);
+                const orderRef = doc(db, "pending_orders", order.docId);
+
+                let updatedCommentsArray = [...order.comments];
+                updatedCommentsArray.splice(index, 1); // حذف العنصر من المصفوفة المحلية
+
+                await updateDoc(orderRef, { comments: updatedCommentsArray });
+                
+                // تحديث الواجهة الفرعية فوراً داخل الـ Modal
+                order.comments = updatedCommentsArray;
+                renderCommentsList(order);
+                
+                // تحديث اللوحة الرئيسية بالخلفية
+                loadSiteOrders();
+
+            } catch (error) {
+                console.error(error);
+                alert("تعذر مسح الكومنت، تحقق من الصلاحيات والاتصال.");
+            }
+        }
+
+        // دالة إنهاء الجلسة والعودة لبوابة العرض
         window.logoutSite = function() {
             sessionStorage.removeItem('hospital_user');
             window.location.href = 'index.html'; 
