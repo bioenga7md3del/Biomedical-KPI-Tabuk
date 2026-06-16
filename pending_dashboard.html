@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الأوامر المعلقة (Pending Jobs) - الإدارة الهندسية</title>
+    <title>لوحة الأوامر المعلقة - الإدارة الهندسية</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
         * { box-sizing: border-box; outline: none; text-decoration: none; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
         
-        /* Header */
+        /* الهيدر والفلاتر والـ KPIs (كما هي بتصميمها الجميل) */
         .header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .logo-img { height: 60px; object-fit: contain; } 
         .header-titles { display: flex; align-items: center; gap: 15px; }
@@ -28,49 +28,97 @@
 
         .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
 
-        /* فلاتر */
         .controls-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; margin-bottom: 2rem; display: flex; gap: 1.5rem; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); flex-wrap: wrap;}
         .form-select { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: 'Tajawal'; font-size: 1rem; min-width: 200px; }
 
-        /* KPIs */
         .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; }
         .kpi-val { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
         .kpi-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
 
-        /* Charts */
         .grid-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 2rem; }
         @media(max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
-        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 2rem;}
-        .panel-header { font-size: 1.1rem; font-weight: 700; color: #334155; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; }
+        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 2rem;}
+        .panel-header { font-size: 1.2rem; font-weight: 800; color: #334155; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; display: flex; align-items: center; gap: 8px;}
 
-        /* Table */
-        .table-wrap { overflow-x: auto; max-height: 600px; } 
-        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.9rem; }
-        th { background: #f8fafc; color: #475569; padding: 12px; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10;}
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top;}
-        tr:hover { background: #f8fafc; }
+        /* تنسيق الجدول المتقدم والصفوف المتمددة */
+        .table-wrap { overflow-x: auto; max-height: 700px; border-radius: 8px; border: 1px solid #e2e8f0;} 
+        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.95rem; }
+        th { background: #f8fafc; color: #475569; padding: 15px; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 800;}
         
-        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: inline-block;}
+        /* السطر الأساسي القابل للضغط */
+        .main-row { cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
+        .main-row:hover { background: #f0f9ff; }
+        .main-row td { padding: 15px; vertical-align: middle; }
+        
+        .expand-icon { color: #94a3b8; transition: transform 0.3s; font-size: 1.1rem; }
+        .main-row.expanded { background: #f8fafc; border-left: 4px solid var(--primary); }
+        .main-row.expanded .expand-icon { transform: rotate(180deg); color: var(--primary); }
+
+        /* منطقة التفاصيل المنزلقة */
+        .details-row { display: none; background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+        .details-container { padding: 20px 40px; box-shadow: inset 0 3px 6px -3px rgba(0,0,0,0.1); animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .detail-box { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; border-right: 4px solid #38bdf8;}
+        .detail-box label { display: block; font-size: 0.8rem; color: #64748b; font-weight: bold; margin-bottom: 5px; }
+        .detail-box span { font-size: 1rem; color: #0f172a; font-weight: 700; }
+
+        /* أزرار الجدول */
+        .btn-timeline { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.85rem;}
+        .btn-timeline:hover { background: #2563eb; color: white; }
+        
+        .badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;}
         .age-green { background: #dcfce7; color: #166534; }
         .age-yellow { background: #fef08a; color: #854d0e; }
         .age-red { background: #fee2e2; color: #991b1b; }
-        
-        .comment-box { background: #f1f5f9; padding: 8px; border-radius: 6px; border-right: 3px solid var(--primary); margin-top: 5px; font-size: 0.85rem;}
 
-        /* إعدادات الطباعة (تخفي كل شيء ما عدا الجدول والترويسة) */
+        /* ------------------ المخطط الزمني (Timeline Modal) المبهر ------------------ */
+        #timelineModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 9999; }
+        .timeline-card { background: var(--surface); padding: 30px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; position: relative; }
+        .close-modal { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: 0.2s; }
+        .close-modal:hover { color: #dc2626; }
+        
+        .timeline-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px;}
+        .timeline-header h2 { color: var(--primary); margin: 0 0 5px 0; font-size: 1.5rem; }
+        .timeline-header p { color: #64748b; margin: 0; font-weight: bold; }
+
+        /* تصميم الخط الزمني العمودي */
+        .timeline-wrapper { position: relative; padding-right: 30px; margin-right: 10px;}
+        .timeline-wrapper::before { content: ''; position: absolute; top: 0; bottom: 0; right: 14px; width: 3px; background: #e2e8f0; border-radius: 3px;}
+        
+        .timeline-item { position: relative; margin-bottom: 25px; animation: fadeInRight 0.5s ease-out forwards; opacity: 0; transform: translateX(20px);}
+        @keyframes fadeInRight { to { opacity: 1; transform: translateX(0); } }
+        
+        /* تأخير ظهور العناصر لعمل أنيميشن متسلسل */
+        .timeline-item:nth-child(1) { animation-delay: 0.1s; }
+        .timeline-item:nth-child(2) { animation-delay: 0.2s; }
+        .timeline-item:nth-child(3) { animation-delay: 0.3s; }
+        .timeline-item:nth-child(4) { animation-delay: 0.4s; }
+        .timeline-item:nth-child(5) { animation-delay: 0.5s; }
+
+        .timeline-icon { position: absolute; right: -42px; top: 0; width: 30px; height: 30px; border-radius: 50%; background: white; border: 3px solid var(--primary); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.9rem; z-index: 2; box-shadow: 0 0 0 4px white;}
+        .timeline-icon.start { border-color: #8b5cf6; color: #8b5cf6; }
+        .timeline-icon.action { border-color: #f59e0b; color: #f59e0b; }
+        .timeline-icon.current { border-color: #ef4444; color: #ef4444; background: #fee2e2; animation: pulse 2s infinite; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        .timeline-content { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; position: relative; }
+        .timeline-content::before { content: ''; position: absolute; right: -8px; top: 10px; width: 15px; height: 15px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; transform: rotate(45deg); }
+        .t-date { font-size: 0.8rem; color: #64748b; font-weight: bold; margin-bottom: 5px; display: block; }
+        .t-title { margin: 0 0 5px 0; color: #0f172a; font-size: 1.1rem; }
+        .t-desc { margin: 0; color: #475569; font-size: 0.95rem; line-height: 1.5; }
+
         @media print {
-            body { background: white; padding: 0; }
-            .header, .controls-card, .grid-kpi, .grid-2, .btn-action { display: none !important; }
-            .container { margin: 0; max-width: 100%; padding: 0; }
+            body { background: white; }
+            .header, .controls-card, .grid-kpi, .grid-2 { display: none !important; }
             .panel { border: none; box-shadow: none; padding: 0; }
-            .table-wrap { max-height: none; overflow: visible; }
-            table { font-size: 10px; }
-            th { border-bottom: 2px solid black; color: black; }
-            td { border-bottom: 1px solid #ddd; }
-            #printHeader { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;}
+            .table-wrap { max-height: none; overflow: visible; border: none;}
+            .expand-icon, .btn-timeline { display: none !important; }
+            .details-row { display: table-row !important; }
         }
-        #printHeader { display: none; }
     </style>
 </head>
 <body>
@@ -79,17 +127,14 @@
         <div class="header-titles">
             <img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
             <div>
-                <h1>لوحة الأوامر المعلقة (Pending Jobs)</h1>
-                <p>تحليل النواقص ومبررات المواقع</p>
+                <h1>لوحة الأوامر المعلقة والمخطط الزمني</h1>
+                <p>تتبع دقيق لدورة حياة الأعطال</p>
             </div>
         </div>
         <div class="header-actions">
             <div id="statusBadge" style="color: #0284c7; font-weight: bold; margin-left: 15px;">
                 <i class="fas fa-circle-notch fa-spin"></i> جاري جلب البيانات...
             </div>
-            <button class="btn-action btn-print" onclick="window.print()">
-                <i class="fas fa-print"></i> طباعة التقرير
-            </button>
             <a href="index.html" class="btn-action">
                 <i class="fas fa-home"></i> الرئيسية
             </a>
@@ -98,13 +143,6 @@
 
     <div class="container">
         
-        <div id="printHeader">
-            <img src="TabukCluster.jpeg" alt="شعار التجمع" style="height: 80px; margin-bottom: 10px;" onerror="this.style.display='none'"/>
-            <h2>تقرير الأوامر المفتوحة ومبررات التأخير</h2>
-            <p>الإدارة الهندسية - قسم الأجهزة الطبية | تجمع تبوك الصحي</p>
-            <p style="text-align: left; direction: ltr;" id="printDate"></p>
-        </div>
-
         <div class="controls-card">
             <div>
                 <label style="font-weight: bold; color: #475569; display:block; margin-bottom:5px;">الموقع:</label>
@@ -140,36 +178,22 @@
                 <div class="kpi-label">حرجة (> 30 يوم)</div>
                 <div class="kpi-val" id="kpi-red" style="color:#dc2626">0</div>
             </div>
-            <div class="kpi-card" style="border-top-color: #8b5cf6;">
-                <div class="kpi-label">نسبة الإفادة / التبرير</div>
-                <div class="kpi-val" id="kpi-reply" style="color:#8b5cf6">0%</div>
-            </div>
-        </div>
-
-        <div class="grid-2">
-            <div class="panel">
-                <div class="panel-header">توزيع أعمار الأعطال (Aging)</div>
-                <div style="height:250px; display:flex; justify-content:center;"><canvas id="chartPie"></canvas></div>
-            </div>
-            <div class="panel">
-                <div class="panel-header">المواقع الأعلى في الأعطال الحرجة والمتأخرة</div>
-                <div style="height:250px;"><canvas id="chartBar"></canvas></div>
-            </div>
         </div>
 
         <div class="panel">
-            <div class="panel-header" id="tableHeaderTitle">تفاصيل الأوامر المفتوحة وتبريرات المواقع</div>
+            <div class="panel-header"><i class="fas fa-list-alt" style="color: var(--primary);"></i> السجل التفصيلي لأوامر العمل (اضغط على السطر للتفاصيل)</div>
             <div class="table-wrap">
                 <table id="dataTable">
                     <thead>
                         <tr>
+                            <th style="width: 40px;"></th>
                             <th>رقم الأمر</th>
-                            <th>تاريخ الاستحقاق</th>
-                            <th>أيام التأخير</th>
+                            <th>تاريخ الفتح (Fail Date)</th>
+                            <th>حالة التقادم</th>
                             <th>الموقع</th>
-                            <th style="width: 25%;">الجهاز</th>
+                            <th style="width: 25%;">الجهاز (مختصر)</th>
                             <th>الفني</th>
-                            <th style="width: 30%;">تحديث / تبرير الموقع</th>
+                            <th>المسار الزمني</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -178,6 +202,23 @@
         </div>
     </div>
 
+    <!-- نافذة المخطط الزمني (Timeline Modal) -->
+    <div id="timelineModal">
+        <div class="timeline-card">
+            <i class="fas fa-times close-modal" onclick="closeTimeline()"></i>
+            
+            <div class="timeline-header">
+                <h2><i class="fas fa-route"></i> المخطط الزمني للأمر</h2>
+                <p id="tl-order-id">WO-XXXXXX</p>
+            </div>
+
+            <div class="timeline-wrapper" id="timelineContainer">
+                <!-- سيتم حقن المحطات الزمنية هنا بواسطة الجافاسكريبت -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Code -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -196,8 +237,8 @@
         const db = getFirestore(app);
 
         let RAW_DATA = [];
-        let charts = {};
 
+        // دالة حساب الأيام بناءً على تاريخ الفتح
         function calcDays(dateStr) {
             if(!dateStr) return 0;
             let d;
@@ -214,7 +255,6 @@
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
-            document.getElementById('printDate').innerText = new Date().toLocaleString('en-GB');
             const statusBadge = document.getElementById('statusBadge');
             
             try {
@@ -225,7 +265,10 @@
                 
                 snapshot.forEach(doc => {
                     const r = doc.data();
-                    r.daysOpen = calcDays(r.startDate || r.createdAt);
+                    
+                    // الأولوية لتاريخ الفتح (Fail Date) وإلا نستخدم (Start Date) أو (CreatedAt)
+                    r.actualFailDate = r.failDate || r.startDate || r.createdAt;
+                    r.daysOpen = calcDays(r.actualFailDate);
                     
                     if(r.daysOpen < 5) r.ageCat = 'green';
                     else if(r.daysOpen <= 30) r.ageCat = 'yellow';
@@ -245,7 +288,7 @@
 
             } catch (e) {
                 console.error(e);
-                statusBadge.innerHTML = `<i class="fas fa-times-circle"></i> خطأ في الاتصال بالسيرفر`;
+                statusBadge.innerHTML = `<i class="fas fa-times-circle"></i> خطأ في الاتصال`;
                 statusBadge.style.color = '#dc2626';
             }
         });
@@ -260,98 +303,182 @@
                 return true;
             });
 
-            let g=0, y=0, red=0, replied=0;
+            let g=0, y=0, red=0;
             filtered.forEach(r => {
                 if(r.ageCat === 'green') g++;
                 else if(r.ageCat === 'yellow') y++;
                 else if(r.ageCat === 'red') red++;
-                
-                if(r.comments && r.comments.length > 0) replied++;
             });
 
             document.getElementById('kpi-total').textContent = filtered.length;
             document.getElementById('kpi-green').textContent = g;
             document.getElementById('kpi-yellow').textContent = y;
             document.getElementById('kpi-red').textContent = red;
-            document.getElementById('kpi-reply').textContent = filtered.length ? Math.round((replied/filtered.length)*100) + '%' : '0%';
 
             renderTable(filtered);
-            
-            const chartData = siteVal === 'All' ? RAW_DATA : filtered;
-            renderCharts(chartData);
         }
 
+        // بناء الجدول بالصفوف المتمددة
         function renderTable(data) {
             const tbody = document.querySelector('#dataTable tbody');
             tbody.innerHTML = '';
             
             if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">لا توجد بيانات مطابقة للفلتر.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#64748b;">لا توجد بيانات مطابقة للفلتر.</td></tr>';
                 return;
             }
 
             data.sort((a,b) => b.daysOpen - a.daysOpen).forEach(r => {
                 let badgeClass = 'age-green';
-                let ageText = r.daysOpen + ' أيام';
-                if(r.ageCat === 'yellow') badgeClass = 'age-yellow';
-                else if(r.ageCat === 'red') badgeClass = 'age-red';
+                let ageIcon = 'fa-check-circle';
+                if(r.ageCat === 'yellow') { badgeClass = 'age-yellow'; ageIcon = 'fa-exclamation-triangle'; }
+                else if(r.ageCat === 'red') { badgeClass = 'age-red'; ageIcon = 'fa-fire'; }
 
-                let commentHTML = '<span style="color:#94a3b8; font-size:0.8rem;">لا يوجد رد</span>';
-                if(r.comments && r.comments.length > 0) {
-                    const lastC = r.comments[r.comments.length - 1];
-                    commentHTML = `<div class="comment-box"><strong>${lastC.text}</strong><br><span style="color:#64748b; font-size:0.75rem">${lastC.date}</span></div>`;
-                }
+                const trMain = document.createElement('tr');
+                trMain.className = 'main-row';
+                trMain.onclick = () => toggleRow(r.id, trMain);
+                
+                trMain.innerHTML = `
+                    <td style="text-align:center;"><i class="fas fa-chevron-down expand-icon"></i></td>
+                    <td style="font-weight:bold; color:var(--primary); font-size:1.05rem;">${r.id}</td>
+                    <td style="direction:ltr;">${r.actualFailDate || '-'}</td>
+                    <td><span class="badge ${badgeClass}"><i class="fas ${ageIcon}"></i> ${r.daysOpen} يوم</span></td>
+                    <td style="font-weight:bold;">${r.site}</td>
+                    <td title="${r.device}">${r.device.substring(0,35)}...</td>
+                    <td>${r.tech}</td>
+                    <td>
+                        <button class="btn-timeline" onclick="event.stopPropagation(); openTimelineModal('${r.id}')">
+                            <i class="fas fa-stream"></i> المخطط الزمني
+                        </button>
+                    </td>
+                `;
 
-                tbody.insertAdjacentHTML('beforeend', `
-                    <tr>
-                        <td style="font-weight:bold;">${r.id}</td>
-                        <td style="direction:ltr;">${r.startDate || '-'}</td>
-                        <td><span class="badge ${badgeClass}">${ageText}</span></td>
-                        <td>${r.site}</td>
-                        <td title="${r.device}">${r.device.substring(0,40)}</td>
-                        <td>${r.tech}</td>
-                        <td>${commentHTML}</td>
-                    </tr>
-                `);
+                const trDetails = document.createElement('tr');
+                trDetails.id = `details-${r.id}`;
+                trDetails.className = 'details-row';
+                
+                // بناء كارت التفاصيل الممتد
+                trDetails.innerHTML = `
+                    <td colspan="8" style="padding:0;">
+                        <div class="details-container">
+                            <div class="details-grid">
+                                <div class="detail-box">
+                                    <label>الاسم الكامل للجهاز / الوصف</label>
+                                    <span>${r.device}</span>
+                                </div>
+                                <div class="detail-box">
+                                    <label>تاريخ البدء (Start Date)</label>
+                                    <span style="direction:ltr; display:inline-block;">${r.startDate || 'غير مسجل'}</span>
+                                </div>
+                                <div class="detail-box">
+                                    <label>حالة النظام (System Status)</label>
+                                    <span>${r.status || 'Assigned'}</span>
+                                </div>
+                                <div class="detail-box">
+                                    <label>آخر تحديث من الموقع</label>
+                                    <span>${r.comments && r.comments.length > 0 ? r.comments[r.comments.length-1].text : '<span style="color:#94a3b8">لا يوجد مبرر مسجل</span>'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(trMain);
+                tbody.appendChild(trDetails);
             });
         }
 
-        function renderCharts(data) {
-            let g=0, y=0, red=0;
-            const siteCounts = {}; 
+        // دالة فتح وإغلاق السطر المتمدد (Accordion)
+        window.toggleRow = function(id, rowElement) {
+            const detailsRow = document.getElementById(`details-${id}`);
+            const isExpanded = rowElement.classList.contains('expanded');
+            
+            // إغلاق كل الصفوف الأخرى أولاً (اختياري، لشكل أنظف)
+            document.querySelectorAll('.main-row').forEach(r => r.classList.remove('expanded'));
+            document.querySelectorAll('.details-row').forEach(r => r.style.display = 'none');
 
-            data.forEach(r => {
-                if(r.ageCat === 'green') g++;
-                else if(r.ageCat === 'yellow') y++;
-                else if(r.ageCat === 'red') red++;
-
-                if(r.ageCat !== 'green') {
-                    siteCounts[r.site] = (siteCounts[r.site] || 0) + 1;
-                }
-            });
-
-            if(charts.pie) charts.pie.destroy();
-            charts.pie = new Chart(document.getElementById('chartPie').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['حديثة', 'متأخرة', 'حرجة'],
-                    datasets: [{ data: [g, y, red], backgroundColor: ['#16a34a', '#eab308', '#dc2626'], borderWidth:0 }]
-                },
-                options: { maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
-            });
-
-            const sortedSites = Object.entries(siteCounts).sort((a,b)=>b[1]-a[1]).slice(0, 7);
-
-            if(charts.bar) charts.bar.destroy();
-            charts.bar = new Chart(document.getElementById('chartBar').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: sortedSites.map(s => s[0].substring(0, 15)),
-                    datasets: [{ label: 'أعطال متأخرة وحرجة', data: sortedSites.map(s => s[1]), backgroundColor: '#f97316', borderRadius:4 }]
-                },
-                options: { maintainAspectRatio:false, plugins:{legend:{display:false}} }
-            });
+            if (!isExpanded) {
+                rowElement.classList.add('expanded');
+                detailsRow.style.display = 'table-row';
+            }
         }
+
+        // دالة رسم المخطط الزمني (Timeline)
+        window.openTimelineModal = function(orderId) {
+            const order = RAW_DATA.find(r => r.id === orderId);
+            if(!order) return;
+
+            document.getElementById('tl-order-id').textContent = `أمر رقم: ${order.id} | ${order.site}`;
+            const container = document.getElementById('timelineContainer');
+            container.innerHTML = ''; // تفريغ القديم
+
+            // 1. المحطة الأولى: إنشاء البلاغ (Fail Date)
+            let tlHTML = `
+                <div class="timeline-item">
+                    <div class="timeline-icon"><i class="fas fa-file-medical"></i></div>
+                    <div class="timeline-content">
+                        <span class="t-date"><i class="fas fa-calendar-alt"></i> ${order.actualFailDate || 'تاريخ غير محدد'}</span>
+                        <h3 class="t-title">تسجيل البلاغ (Creation)</h3>
+                        <p class="t-desc">تم رصد العطل وتسجيل الأمر في النظام الموحد.</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. المحطة الثانية: بدء العمل (Start Date) إن وُجد واختلف
+            if(order.startDate && order.startDate !== order.actualFailDate) {
+                tlHTML += `
+                    <div class="timeline-item">
+                        <div class="timeline-icon start"><i class="fas fa-tools"></i></div>
+                        <div class="timeline-content">
+                            <span class="t-date"><i class="fas fa-play-circle"></i> ${order.startDate}</span>
+                            <h3 class="t-title">بدء العمل (Work Started)</h3>
+                            <p class="t-desc">تم إسناد العمل للبدء الفعلي للإصلاح بواسطة: <strong>${order.tech}</strong>.</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. محطات التحديثات: طباعة تعليقات مدير الموقع
+            if(order.comments && order.comments.length > 0) {
+                order.comments.forEach(comment => {
+                    tlHTML += `
+                        <div class="timeline-item">
+                            <div class="timeline-icon action"><i class="fas fa-user-edit"></i></div>
+                            <div class="timeline-content" style="border-right: 3px solid #f59e0b;">
+                                <span class="t-date"><i class="fas fa-clock"></i> ${comment.date}</span>
+                                <h3 class="t-title">تحديث من إدارة الموقع</h3>
+                                <p class="t-desc"><strong>المبرر/الإجراء:</strong> ${comment.text}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // 4. المحطة النهائية: الوضع الحالي (Aging)
+            let statusText = "جاري العمل ومتابعة الإصلاح";
+            let statusColor = "#3b82f6"; // أزرق افتراضي
+            if(order.ageCat === 'yellow') { statusText = "تأخير في الإنجاز - يتطلب متابعة"; statusColor = "#f59e0b"; }
+            if(order.ageCat === 'red') { statusText = "حالة حرجة جداً - يستوجب تدخل عاجل التصعيد"; statusColor = "#ef4444"; }
+
+            tlHTML += `
+                <div class="timeline-item">
+                    <div class="timeline-icon current" style="border-color:${statusColor}; color:${statusColor};"><i class="fas fa-spinner"></i></div>
+                    <div class="timeline-content" style="border: 2px solid ${statusColor}; background: white;">
+                        <span class="t-date" style="color:${statusColor}">الوقت الفعلي المنقضي: ${order.daysOpen} أيام</span>
+                        <h3 class="t-title" style="color:${statusColor}">الوضع الحالي (Current State)</h3>
+                        <p class="t-desc"><strong>التقييم:</strong> ${statusText}</p>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = tlHTML;
+            document.getElementById('timelineModal').style.display = 'flex';
+        }
+
+        window.closeTimeline = function() {
+            document.getElementById('timelineModal').style.display = 'none';
+        }
+
     </script>
 </body>
 </html>
