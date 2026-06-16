@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الأوامر المعلقة والمخطط الزمني - تجمع تبوك الصحي</title>
+    <title>لوحة الأوامر المعلقة والمخطط الزمني - الإدارة الهندسية</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -38,6 +38,19 @@
 
         .container { max-width: 1550px; margin: 2rem auto; padding: 0 1.5rem; }
 
+        /* منطقة الفلاتر الذكية */
+        .controls-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); flex-wrap: wrap; align-items: flex-end;}
+        .control-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 250px;}
+        .control-group label { font-weight: 700; color: #475569; font-size: 0.95rem; }
+        .form-select { padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; background: #f8fafc; color: #0f172a; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%;}
+        .form-select:hover, .form-select:focus { border-color: var(--primary); outline: none; }
+
+        /* الكروت الإحصائية (KPIs) */
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid #e2e8f0;}
+        .kpi-val { font-size: 2.2rem; font-weight: 800; margin-top: 10px; }
+        .kpi-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
+
         /* نافذة إعدادات الطباعة المخصصة */
         #printConfigModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; }
         .config-card { background: white; padding: 30px; border-radius: 16px; width: 450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
@@ -61,7 +74,7 @@
         .update-cell { max-width: 350px; }
         .update-text { display: block; font-weight: 700; color: var(--text); font-size: 0.85rem; margin-bottom: 4px; line-height: 1.4; }
         .update-date { display: block; font-size: 0.75rem; color: #64748b; font-weight: bold; }
-        .no-update { color: #dc2626; font-weight: 800; font-size: 0.8rem; background: #fee2e2; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .no-update { color: #dc2626; font-weight: 800; font-size: 0.8rem; background: #fee2e2; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #fca5a5;}
 
         .badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;}
         .age-green { background: #dcfce7; color: #166534; }
@@ -82,11 +95,11 @@
         .timeline-item { position: relative; margin-bottom: 30px; }
         .timeline-dot { position: absolute; right: -46px; top: 0; width: 24px; height: 24px; background: white; border: 4px solid var(--primary); border-radius: 50%; z-index: 2;}
 
-        /* إعدادات الطباعة النظيفة والمخصصة */
+        /* إعدادات الطباعة النظيفة */
         @media print {
             @page { size: landscape; margin: 1cm; }
             body { background: white !important; font-size: 10pt; }
-            .header, .controls-card, .grid-kpi, .header-actions, .expand-icon, .btn-timeline, #printConfigModal, .close-modal { display: none !important; }
+            .header, .controls-card, .grid-kpi, .header-actions, .btn-timeline, #printConfigModal, .close-modal { display: none !important; }
             .container { max-width: 100%; margin: 0; padding: 0; }
             .panel { border: none; box-shadow: none; padding: 0; margin: 0; }
             .table-wrap { border: none; overflow: visible; }
@@ -94,7 +107,7 @@
             th, td { border: 1px solid #ddd !important; padding: 8px !important; color: black !important; }
             th { background: #eee !important; -webkit-print-color-adjust: exact; }
             .badge { background: none !important; border: none; color: black !important; padding: 0; }
-            .no-update { background: none !important; color: black !important; border: 1px solid black; }
+            .no-update { background: none !important; color: black !important; border: none; font-weight: bold;}
             
             /* الفئة المسؤولة عن إخفاء الأعمدة في الطباعة */
             .p-hide { display: none !important; }
@@ -143,14 +156,49 @@
     </div>
 
     <div class="container">
-        <div class="grid-kpi" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-            <div class="kpi-card" style="background:white; padding: 20px; border-radius: 12px; border-top: 4px solid var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <div class="kpi-label" style="font-weight: bold; color: #64748b;">إجمالي الأوامر المفتوحة</div>
-                <div class="kpi-val" id="count-total" style="font-size: 2rem; font-weight: 800; margin-top: 10px;">0</div>
+        
+        <div class="controls-card">
+            <div class="control-group">
+                <label><i class="fas fa-hospital"></i> الموقع / المستشفى:</label>
+                <select id="filterSite" class="form-select" onchange="applyFilters()">
+                    <option value="All">-- كل المواقع --</option>
+                </select>
             </div>
-            <div class="kpi-card" style="background:white; padding: 20px; border-radius: 12px; border-top: 4px solid var(--red); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <div class="kpi-label" style="font-weight: bold; color: #64748b;">حالات حرجة (+30 يوم)</div>
-                <div class="kpi-val" id="count-red" style="font-size: 2rem; font-weight: 800; margin-top: 10px; color: var(--red);">0</div>
+            <div class="control-group">
+                <label><i class="fas fa-clock"></i> حالة العطل (التقادم):</label>
+                <select id="filterAge" class="form-select" onchange="applyFilters()">
+                    <option value="All">-- جميع الحالات --</option>
+                    <option value="green">أعطال حديثة (أقل من 5 أيام)</option>
+                    <option value="yellow">أعطال متأخرة (5 إلى 30 يوم)</option>
+                    <option value="red">أعطال حرجة (أكثر من 30 يوم)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label><i class="fas fa-comment-dots"></i> حالة الإفادة (مبرر الموقع):</label>
+                <select id="filterUpdate" class="form-select" onchange="applyFilters()">
+                    <option value="All">-- الكل --</option>
+                    <option value="with_update">تم التحديث (يوجد إفادة)</option>
+                    <option value="no_update">بانتظار الإفادة (بدون رد)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-kpi">
+            <div class="kpi-card" style="border-top: 4px solid var(--accent);">
+                <div class="kpi-label">إجمالي الأوامر المفتوحة</div>
+                <div class="kpi-val" id="count-total" style="color: var(--primary);">0</div>
+            </div>
+            <div class="kpi-card" style="border-top: 4px solid var(--green);">
+                <div class="kpi-label">أعطال حديثة (< 5 أيام)</div>
+                <div class="kpi-val" id="count-green" style="color: var(--green);">0</div>
+            </div>
+            <div class="kpi-card" style="border-top: 4px solid var(--yellow);">
+                <div class="kpi-label">أعطال متأخرة (5-30 يوم)</div>
+                <div class="kpi-val" id="count-yellow" style="color: var(--yellow);">0</div>
+            </div>
+            <div class="kpi-card" style="border-top: 4px solid var(--red);">
+                <div class="kpi-label">حالات حرجة (+30 يوم)</div>
+                <div class="kpi-val" id="count-red" style="color: var(--red);">0</div>
             </div>
         </div>
 
@@ -208,92 +256,132 @@
                 const q = query(collection(db, "pending_orders"), where("isCompleted", "==", false));
                 const snapshot = await getDocs(q);
                 MASTER_DATA = [];
+                const siteSet = new Set();
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    // استخدام معالج التواريخ الجديد لإيقاف مشكلة NaN
                     data.agingDays = calculateDays(data.failDate || data.startDate || data.createdAt);
+                    
+                    // تصنيف التقادم
+                    if(data.agingDays < 5) data.ageCat = 'green';
+                    else if(data.agingDays <= 30) data.ageCat = 'yellow';
+                    else data.ageCat = 'red';
+
+                    // تصنيف الإفادة
+                    data.hasUpdate = (data.comments && data.comments.length > 0);
+
+                    if(data.site) siteSet.add(data.site);
                     MASTER_DATA.push(data);
                 });
-                renderMainTable(MASTER_DATA);
-                updateKPIs(MASTER_DATA);
-                status.innerHTML = `<i class="fas fa-check-circle" style="color:var(--green)"></i> تم جلب البيانات بنجاح`;
+
+                // تعبئة فلتر المواقع
+                const sel = document.getElementById('filterSite');
+                [...siteSet].sort().forEach(s => sel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`));
+
+                applyFilters(); // تطبيق الفلاتر الافتراضية ورسم الجدول
+                status.innerHTML = `<i class="fas fa-check-circle" style="color:var(--green)"></i> متصل بنجاح`;
             } catch (err) {
                 status.innerHTML = `<i class="fas fa-times-circle" style="color:var(--red)"></i> فشل الاتصال بالسيرفر`;
             }
         }
 
-        // 🛠️ دالة تفكيك ومعالجة التاريخ الذكية لمنع ظهور NaN نهائياً
+        // 🛠️ دالة معالجة التاريخ الذكية لمنع NaN
         function calculateDays(v) {
             if(!v) return 0;
             if(v instanceof Date) {
                 const diff = Date.now() - v.getTime();
                 return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
             }
-            
             let s = String(v).trim();
             let d = null;
-            
-            // إذا كان التنسيق القياسي العالمي يبدأ بالسنة YYYY-MM-DD
             if(s.match(/^\d{4}-\d{2}-\d{2}/)) {
                 d = new Date(s);
             } else {
-                // إذا كان التنسيق الإقليمي يوم-شهر-سنة DD-MM-YYYY
                 let dPart = s.split(' ')[0];
                 let parts = dPart.split(/[\/\-\.]/);
                 if(parts.length >= 3) {
                     let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
-                    if (p0 > 1900) {
-                        d = new Date(p0, p1, p2); // YYYY, MM, DD
-                    } else if (p2 > 1900) {
-                        d = new Date(p2, p1, p0); // DD, MM, YYYY -> نصلح الترتيب هنا
-                    }
+                    if (p0 > 1900) d = new Date(p0, p1, p2);
+                    else if (p2 > 1900) d = new Date(p2, p1, p0);
                 }
             }
-            
             if(!d || isNaN(d.getTime())) return 0;
             const diff = Date.now() - d.getTime();
             return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
         }
+
+        // 🎯 محرك الفلاتر الديناميكي
+        window.applyFilters = function() {
+            const siteVal = document.getElementById('filterSite').value;
+            const ageVal = document.getElementById('filterAge').value;
+            const updateVal = document.getElementById('filterUpdate').value;
+
+            const filteredData = MASTER_DATA.filter(r => {
+                if(siteVal !== 'All' && r.site !== siteVal) return false;
+                if(ageVal !== 'All' && r.ageCat !== ageVal) return false;
+                
+                if(updateVal === 'with_update' && !r.hasUpdate) return false;
+                if(updateVal === 'no_update' && r.hasUpdate) return false;
+                
+                return true;
+            });
+
+            renderMainTable(filteredData);
+            updateKPIs(filteredData);
+        };
 
         function renderMainTable(data) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             
             if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">لا توجد أوامر معلقة حالياً.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b; font-weight:bold;">لا توجد بيانات مطابقة لخيارات الفلتر الحالية.</td></tr>';
                 return;
             }
 
             data.sort((a,b) => b.agingDays - a.agingDays).forEach(row => {
-                const ageClass = row.agingDays > 30 ? 'age-red' : (row.agingDays > 5 ? 'age-yellow' : 'age-green');
-                const lastComment = (row.comments && row.comments.length > 0) ? row.comments[row.comments.length-1] : null;
+                let badgeClass = 'age-green';
+                if(row.ageCat === 'yellow') badgeClass = 'age-yellow';
+                if(row.ageCat === 'red') badgeClass = 'age-red';
+
+                const lastComment = row.hasUpdate ? row.comments[row.comments.length-1] : null;
 
                 const tr = document.createElement('tr');
                 tr.className = 'main-row';
                 tr.innerHTML = `
                     <td class="col-wo" style="font-weight:bold; color:var(--primary);">${row.id}</td>
                     <td class="col-fail" style="direction:ltr;">${row.failDate || row.startDate || '-'}</td>
-                    <td class="col-aging"><span class="badge ${ageClass}">${row.agingDays} يوم</span></td>
-                    <td class="col-site">${row.site}</td>
+                    <td class="col-aging"><span class="badge ${badgeClass}">${row.agingDays} يوم</span></td>
+                    <td class="col-site" style="font-weight:600;">${row.site}</td>
                     <td class="col-device" title="${row.device}">${row.device.substring(0,40)}...</td>
                     <td class="col-tech">${row.tech}</td>
                     <td class="col-update update-cell">
                         ${lastComment ? `
                             <span class="update-text">${lastComment.text}</span>
                             <span class="update-date"><i class="far fa-clock"></i> ${lastComment.date}</span>
-                        ` : `<span class="no-update">بانتظار الإفادة ⚠️</span>`}
+                        ` : `<span class="no-update"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>`}
                     </td>
                     <td class="header-actions-col p-hide">
-                        <button class="btn-timeline" onclick="showTimeline('${row.id}')"><i class="fas fa-route"></i> المسار الزمني</button>
+                        <button class="btn-timeline" onclick="showTimeline('${row.id}')"><i class="fas fa-route"></i> المسار</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        // 📊 تحديث الكروت العلوية بناءً على الفلتر
         function updateKPIs(data) {
+            let g = 0, y = 0, r = 0;
+            data.forEach(item => {
+                if(item.ageCat === 'green') g++;
+                if(item.ageCat === 'yellow') y++;
+                if(item.ageCat === 'red') r++;
+            });
+
             document.getElementById('count-total').innerText = data.length;
-            document.getElementById('count-red').innerText = data.filter(r => r.agingDays > 30).length;
+            document.getElementById('count-green').innerText = g;
+            document.getElementById('count-yellow').innerText = y;
+            document.getElementById('count-red').innerText = r;
         }
 
         // منطق المخطط الزمني
