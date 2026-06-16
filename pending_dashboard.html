@@ -53,7 +53,7 @@
         table { width: 100%; border-collapse: collapse; text-align: right; }
         th { background: #f8fafc; color: #475569; padding: 18px 15px; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 800; font-size: 0.9rem; }
         
-        .main-row { cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
+        .main-row { transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
         .main-row:hover { background: #f0f9ff; }
         .main-row td { padding: 16px 15px; vertical-align: middle; font-size: 0.9rem; }
         
@@ -105,7 +105,7 @@
 
     <header class="header">
         <div class="header-titles">
-            <img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.style.display='none'"/>
+            <img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
             <div>
                 <h1>لوحة متابعة الأداء ومبررات التأخير</h1>
                 <p>قسم الأجهزة الطبية - تجمع تبوك الصحي</p>
@@ -210,6 +210,7 @@
                 MASTER_DATA = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
+                    // استخدام معالج التواريخ الجديد لإيقاف مشكلة NaN
                     data.agingDays = calculateDays(data.failDate || data.startDate || data.createdAt);
                     MASTER_DATA.push(data);
                 });
@@ -221,9 +222,35 @@
             }
         }
 
-        function calculateDays(dStr) {
-            if(!dStr) return 0;
-            const d = new Date(dStr);
+        // 🛠️ دالة تفكيك ومعالجة التاريخ الذكية لمنع ظهور NaN نهائياً
+        function calculateDays(v) {
+            if(!v) return 0;
+            if(v instanceof Date) {
+                const diff = Date.now() - v.getTime();
+                return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+            }
+            
+            let s = String(v).trim();
+            let d = null;
+            
+            // إذا كان التنسيق القياسي العالمي يبدأ بالسنة YYYY-MM-DD
+            if(s.match(/^\d{4}-\d{2}-\d{2}/)) {
+                d = new Date(s);
+            } else {
+                // إذا كان التنسيق الإقليمي يوم-شهر-سنة DD-MM-YYYY
+                let dPart = s.split(' ')[0];
+                let parts = dPart.split(/[\/\-\.]/);
+                if(parts.length >= 3) {
+                    let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
+                    if (p0 > 1900) {
+                        d = new Date(p0, p1, p2); // YYYY, MM, DD
+                    } else if (p2 > 1900) {
+                        d = new Date(p2, p1, p0); // DD, MM, YYYY -> نصلح الترتيب هنا
+                    }
+                }
+            }
+            
+            if(!d || isNaN(d.getTime())) return 0;
             const diff = Date.now() - d.getTime();
             return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
         }
@@ -276,9 +303,8 @@
             const body = document.getElementById('tl-body');
             body.innerHTML = '';
             
-            // بناء محطات المخطط
             let nodes = [
-                { label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل', icon: 'fa-file-medical', color: '#8b5cf6' }
+                { label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل والمتابعة الفنية.', icon: 'fa-file-medical', color: '#8b5cf6' }
             ];
             
             if(order.comments) {
@@ -313,13 +339,9 @@
                 'p-update': '.col-update'
             };
             
-            // إعادة ضبط جميع الأعمدة المخفية للوضع الطبيعي أولاً
             document.querySelectorAll('th, td').forEach(el => el.classList.remove('p-hide'));
-            
-            // إخفاء عمود الأزرار دائماً في الطباعة
             document.querySelectorAll('.header-actions-col').forEach(el => el.classList.add('p-hide')); 
 
-            // إخفاء الأعمدة بناءً على اختيار المستخدم
             Object.keys(mapping).forEach(key => {
                 const isChecked = document.getElementById(key).checked;
                 if(!isChecked) {
@@ -328,8 +350,6 @@
             });
 
             closePrintConfig();
-            
-            // استدعاء نافذة الطباعة بعد نصف ثانية ليتم تطبيق التنسيقات
             setTimeout(() => { window.print(); }, 500);
         };
 
