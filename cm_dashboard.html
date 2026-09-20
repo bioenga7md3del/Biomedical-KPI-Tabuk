@@ -528,7 +528,7 @@
         const filteredData = RAW_DATA.filter(r => siteVal === 'All' || r.site === siteVal);
         if(filteredData.length === 0) { alert('لا توجد بيانات للطباعة'); return; }
         sessionStorage.setItem('REPORT_DATA', JSON.stringify(filteredData));
-        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'CM', site: siteVal, date: 'اغسطس 2026' }));
+        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'CM', site: siteVal, date: 'سبتمبر2026' }));
         window.open('report.html', '_blank');
     }
 </script>
