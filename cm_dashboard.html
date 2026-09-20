@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>مؤشرات الصيانة التصحيحية (CM) - سبتمبر 2026</title>
+    <title>مؤشرات الصيانة التصحيحية (CM)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -86,7 +86,7 @@
         <img src="TabukCluster.jpeg" alt="شعار تجمع تبوك" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
         <div>
             <h1>مؤشرات الصيانة التصحيحية (CM)</h1>
-            <p>تقرير شهر سبتمبر 2026</p>
+            <p id="reportMonthLabel">تقرير الصيانة التصحيحية</p>
         </div>
     </div>
     <div class="header-actions">
@@ -274,6 +274,7 @@
                 document.getElementById('controlsArea').style.display = 'flex';
                 document.getElementById('dashboard').style.display = 'block';
                 initFilters();
+                setReportLabel();
                 updateDashboard();
             }
         } catch(e) { 
@@ -523,12 +524,27 @@
         });
     }
 
-    function openReport() {
+    let REPORT_LABEL = '';
+function setReportLabel() {
+  const ds = RAW_DATA.map(r => r.dFail).filter(d => d && !isNaN(d.getTime()));
+  if (!ds.length) return;
+  const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const t = ds.map(d => d.getTime());
+  const a = new Date(Math.min(...t)), b = new Date(Math.max(...t));
+  const la = months[a.getMonth()] + ' ' + a.getFullYear();
+  const lb = months[b.getMonth()] + ' ' + b.getFullYear();
+  const same = (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear());
+  REPORT_LABEL = same ? la : (la + ' - ' + lb);
+  document.getElementById('reportMonthLabel').textContent = (same ? 'تقرير شهر ' : 'تقرير الفترة ') + REPORT_LABEL;
+  document.title = 'مؤشرات الصيانة التصحيحية (CM) - ' + REPORT_LABEL;
+}
+
+function openReport() {
         const siteVal = document.getElementById('siteFilter').value;
         const filteredData = RAW_DATA.filter(r => siteVal === 'All' || r.site === siteVal);
         if(filteredData.length === 0) { alert('لا توجد بيانات للطباعة'); return; }
         sessionStorage.setItem('REPORT_DATA', JSON.stringify(filteredData));
-        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'CM', site: siteVal, date: 'سبتمبر2026' }));
+        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'CM', site: siteVal, date: REPORT_LABEL || 'كل الفترة' }));
         window.open('report.html', '_blank');
     }
 </script>
