@@ -12,85 +12,97 @@
 
 <style>
 :root {
---bg: #f8fafc; --surface: #ffffff; --text: #0f172a; --primary: #1e3a8a; --secondary: #64748b;
+--bg: #eef2f7; --surface: #ffffff; --text: #0f172a; --primary: #1e3a8a; --secondary: #64748b; --line: #e2e8f0;
 --cm-color: #dc2626; --ppm-color: #16a34a; --pending-color: #0284c7;
 }
 * { box-sizing: border-box; outline: none; text-decoration: none; }
 body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
 
-.navbar { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;}
+.navbar { background: var(--surface); padding: .8rem 2rem; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(15,23,42,.05); position: sticky; top: 0; z-index: 100; gap: 12px; flex-wrap: wrap; }
 .nav-brand { display: flex; align-items: center; gap: 15px; }
-.logo-img { height: 70px; object-fit: contain; }
-.brand-titles h1 { margin: 0; font-size: 1.5rem; color: var(--primary); font-weight: 800; }
-.brand-titles p { margin: 5px 0 0; font-size: 0.95rem; color: var(--secondary); font-weight: 600; }
-
-.header-controls { display: flex; gap: 12px; align-items: center; }
-.btn-login-main { background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
-.btn-login-main:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
-
-.status-badge { padding: 8px 16px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+.logo-img { height: 64px; object-fit: contain; }
+.brand-titles h1 { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 800; }
+.brand-titles p { margin: 4px 0 0; font-size: .92rem; color: var(--secondary); font-weight: 600; }
+.header-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.btn-login-main { background: #0f172a; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: .2s; font-size: .92rem; }
+.btn-login-main:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,.15); }
+.status-badge { padding: 8px 16px; border-radius: 99px; font-size: .85rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .st-loading { background: #e0f2fe; color: #0284c7; }
 .st-success { background: #dcfce7; color: #16a34a; }
 .st-error { background: #fee2e2; color: #dc2626; }
 
-.container { max-width: 1400px; margin: 2.5rem auto; padding: 0 1.5rem; }
-.section-title { font-size: 1.4rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; border-right: 5px solid var(--primary); padding-right: 10px;}
+.container { max-width: 1500px; margin: 1.5rem auto; padding: 0 1.5rem; }
 
-.portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 3.5rem; }
-.portal-card { background: var(--surface); border-radius: 1rem; padding: 2rem; display: flex; align-items: center; gap: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; }
-.portal-icon { width: 65px; height: 65px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+.hero { background: linear-gradient(120deg, #0f2a6b 0%, #1e3a8a 45%, #0284c7 100%); color: #fff; border-radius: 20px; padding: 2rem 2.2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; box-shadow: 0 14px 34px rgba(30,58,138,.28); margin-bottom: 1.75rem; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; left: -70px; top: -70px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,.07); }
+.hero::after { content: ''; position: absolute; left: 140px; bottom: -90px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,.05); }
+.hero h2 { margin: 0 0 8px; font-size: 1.7rem; font-weight: 800; }
+.hero p { margin: 0; opacity: .88; font-size: 1rem; max-width: 520px; line-height: 1.7; }
+.hero-stats { display: flex; gap: 2.2rem; flex-wrap: wrap; position: relative; z-index: 1; }
+.hero-stat { text-align: center; }
+.hero-stat b { display: block; font-size: 2.3rem; font-weight: 800; line-height: 1.1; }
+.hero-stat span { font-size: .82rem; opacity: .9; font-weight: 700; }
 
-.pc-cm { border-right: 5px solid var(--cm-color); }
-.pc-cm .portal-icon { background: #fee2e2; color: var(--cm-color); }
-.pc-ppm { border-right: 5px solid var(--ppm-color); }
-.pc-ppm .portal-icon { background: #dcfce7; color: var(--ppm-color); }
-.pc-pending { border-right: 5px solid var(--pending-color); }
-.pc-pending .portal-icon { background: #e0f2fe; color: var(--pending-color); }
+.section-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0 0 1.1rem; display: flex; align-items: center; gap: 10px; border-right: 5px solid var(--primary); padding-right: 10px; }
 
-.portal-info { flex: 1; }
-.portal-info h3 { margin: 0 0 5px 0; font-size: 1.25rem; color: #0f172a; font-weight: 700; }
-.portal-info p { margin: 0 0 15px 0; font-size: 0.9rem; color: var(--secondary); line-height: 1.5; }
-.btn-enter { padding: 6px 15px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; display: inline-block; transition: 0.2s; }
+.portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+.portal-card { background: var(--surface); border-radius: 18px; padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--line); box-shadow: 0 2px 10px rgba(15,23,42,.05); transition: .25s; position: relative; overflow: hidden; color: inherit; }
+.portal-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 5px; background: var(--c); }
+.portal-card:hover { transform: translateY(-6px); box-shadow: 0 16px 30px rgba(15,23,42,.12); }
+.pc-top { display: flex; align-items: center; gap: 1rem; }
+.portal-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; flex-shrink: 0; background: var(--bgc); color: var(--c); }
+.portal-info h3 { margin: 0 0 4px; font-size: 1.2rem; color: #0f172a; font-weight: 800; }
+.portal-info p { margin: 0; font-size: .88rem; color: var(--secondary); line-height: 1.6; }
+.pc-stats { display: flex; gap: 10px; }
+.pc-stat { flex: 1; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 9px 6px; text-align: center; }
+.pc-stat b { display: block; font-size: 1.35rem; font-weight: 800; color: var(--c); line-height: 1.2; }
+.pc-stat span { font-size: .72rem; color: var(--secondary); font-weight: 700; }
+.btn-enter { align-self: flex-start; padding: 8px 18px; border-radius: 8px; font-weight: 800; font-size: .88rem; background: var(--bgc); color: var(--c); display: inline-flex; gap: 8px; align-items: center; }
+.pc-cm { --c: #dc2626; --bgc: #fee2e2; }
+.pc-ppm { --c: #16a34a; --bgc: #dcfce7; }
+.pc-pending { --c: #0284c7; --bgc: #e0f2fe; }
 
-.pc-cm .btn-enter { background: #fef2f2; color: var(--cm-color); border: 1px solid #fecaca; }
-.pc-ppm .btn-enter { background: #f0fdf4; color: var(--ppm-color); border: 1px solid #bbf7d0; }
-.pc-pending .btn-enter { background: #f0f9ff; color: var(--pending-color); border: 1px solid #bae6fd; }
+.group { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 1.3rem; margin-bottom: 1.5rem; box-shadow: 0 2px 10px rgba(15,23,42,.04); }
+.group-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; margin-bottom: 1rem; color: var(--gc); }
+.group-title .gi { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--gbg); color: var(--gc); }
+.group-title small { color: var(--secondary); font-weight: 600; font-size: .8rem; margin-right: 6px; }
+.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
+.kpi-card { background: #f8fafc; padding: 1rem 1.1rem; border-radius: 14px; border: 1px solid var(--line); text-align: center; }
+.kpi-val { font-size: 2.1rem; font-weight: 800; color: #1e293b; margin: 4px 0; line-height: 1.15; }
+.kpi-label { font-size: .88rem; font-weight: 700; color: var(--secondary); }
+.kpi-sub { font-size: .74rem; color: #94a3b8; font-weight: 600; }
 
-.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
-.kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); text-align: center; display: flex; flex-direction: column; justify-content: center; }
-.kpi-val { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 8px 0; }
-.kpi-label { font-size: 0.95rem; font-weight: 700; color: var(--secondary); }
-.kpi-trend { font-size: 0.8rem; font-weight: bold; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-top: 10px; text-align: center;}
+.grid-charts { display: grid; grid-template-columns: 1fr 1.6fr 1.6fr; gap: 1.25rem; margin-bottom: 2rem; }
+@media(max-width: 1100px) { .grid-charts { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border-radius: 16px; padding: 1.2rem 1.3rem; border: 1px solid var(--line); box-shadow: 0 2px 10px rgba(15,23,42,.04); }
+.panel-header { font-size: 1rem; font-weight: 800; color: #334155; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+.chart-box { position: relative; height: 290px; }
 
-.grid-charts { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 3rem; }
-@media(max-width: 900px) { .grid-charts { grid-template-columns: 1fr; } }
-.panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-.panel-header { font-size: 1.1rem; font-weight: 700; color: #334155; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;}
-
-/* Modal Style */
-#loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
-.login-card { background: var(--surface); padding: 35px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); width: 90%; max-width: 420px; position: relative; }
-.close-btn { position: absolute; top: 15px; left: 15px; font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: 0.2s; }
+#loginModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,.8); align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
+.login-card { background: var(--surface); padding: 35px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); width: 90%; max-width: 420px; position: relative; }
+.close-btn { position: absolute; top: 15px; left: 15px; font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: .2s; }
 .close-btn:hover { color: #dc2626; }
 .login-card h2 { color: var(--primary); margin: 0 0 10px 0; text-align: center; }
-.login-card p { color: #64748b; margin-bottom: 25px; text-align: center; font-size: 0.95rem; }
-.form-label { display: block; text-align: right; margin-bottom: 5px; font-weight: bold; color: #475569; font-size: 0.95rem;}
-.login-input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; background: #f8fafc;}
-.login-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); }
-.btn-submit-login { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; transition: 0.2s;}
-.btn-submit-login:hover { background: #1e40af; transform: translateY(-1px);}
+.login-card p { color: #64748b; margin-bottom: 25px; text-align: center; font-size: .95rem; }
+.form-label { display: block; text-align: right; margin-bottom: 5px; font-weight: 700; color: #475569; font-size: .95rem; }
+.login-input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; background: #f8fafc; }
+.login-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,58,138,.1); }
+.btn-submit-login { width: 100%; background: var(--primary); color: #fff; border: none; padding: 14px; font-size: 1.1rem; font-weight: 700; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; transition: .2s; }
+.btn-submit-login:hover { background: #1e40af; transform: translateY(-1px); }
 .btn-submit-login:disabled { background: #94a3b8; cursor: not-allowed; }
-.link-forgot { display: block; text-align: center; margin-top: 15px; color: #0284c7; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
-#loginError, #loginInfo { display: none; margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; font-size: 0.9rem;}
+.link-forgot { display: block; text-align: center; margin-top: 15px; color: #0284c7; cursor: pointer; font-weight: 700; font-size: .9rem; }
+#loginError, #loginInfo { display: none; margin-top: 15px; font-weight: 700; padding: 10px; border-radius: 6px; text-align: center; font-size: .9rem; }
 #loginError { color: #dc2626; background: #fee2e2; }
 #loginInfo { color: #166534; background: #dcfce7; }
+.footer { text-align: center; color: #94a3b8; font-size: .82rem; font-weight: 600; margin-top: 1rem; }
+@media (max-width: 700px) { .navbar { padding: .7rem 1rem; } .container { padding: 0 .8rem; } .hero { padding: 1.3rem; } }
 </style>
 </head>
 <body>
 
 <header class="navbar">
 <div class="nav-brand">
-<img src="TabukCluster.jpeg" alt="شعار تجمع تبوك" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
+<img src="TabukCluster.jpeg" alt="شعار تجمع تبوك" class="logo-img" onerror="this.style.display='none'"/>
 <div class="brand-titles">
 <h1>الإدارة الهندسية - الأجهزة الطبية</h1>
 <p>تجمع تبوك الصحي (Tabuk Health Cluster)</p>
@@ -126,78 +138,82 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 </div>
 
 <div class="container">
+
+<div class="hero">
+<div>
+<h2><i class="fas fa-hospital-user"></i> منصة مؤشرات الصيانة الطبية</h2>
+<p>متابعة موحدة لأداء الصيانة التصحيحية والوقائية والأوامر المعلقة على مستوى مستشفيات ومراكز تجمع تبوك الصحي.</p>
+</div>
+<div class="hero-stats">
+<div class="hero-stat"><b id="hs-cm">-</b><span>بلاغات تصحيحية</span></div>
+<div class="hero-stat"><b id="hs-ppm">-</b><span>التزام وقائي</span></div>
+<div class="hero-stat"><b id="hs-open">-</b><span>أعطال مفتوحة</span></div>
+</div>
+</div>
+
 <div class="section-title"><i class="fas fa-th-large"></i> بوابات الأنظمة الفرعية</div>
 <div class="portal-grid">
 <a href="cm_dashboard.html" class="portal-card pc-cm">
-<div class="portal-icon"><i class="fas fa-tools"></i></div>
-<div class="portal-info">
-<h3>الصيانة التصحيحية (CM)</h3>
-<p>تحليل بلاغات الأعطال الاستعجالية، قياس سرعة الاستجابة ومتوسط أوقات الإصلاح الفنية.</p>
-<div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
+<div class="pc-top"><div class="portal-icon"><i class="fas fa-tools"></i></div>
+<div class="portal-info"><h3>الصيانة التصحيحية (CM)</h3><p>بلاغات الأعطال، سرعة الاستجابة، ومتوسط أوقات الإصلاح.</p></div></div>
+<div class="pc-stats">
+<div class="pc-stat"><b id="pc-cm-total">-</b><span>بلاغ</span></div>
+<div class="pc-stat"><b id="pc-cm-rate">-</b><span>إنجاز</span></div>
+<div class="pc-stat"><b id="pc-cm-open">-</b><span>مفتوح</span></div>
 </div>
+<div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
 </a>
 <a href="ppm_dashboard.html" class="portal-card pc-ppm">
-<div class="portal-icon"><i class="fas fa-calendar-check"></i></div>
-<div class="portal-info">
-<h3>الصيانة الوقائية (PPM)</h3>
-<p>متابعة خطط الصيانة الدورية المجدولة، نسب الالتزام، والأوامر المتأخرة وتحت الإجراء.</p>
-<div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
+<div class="pc-top"><div class="portal-icon"><i class="fas fa-calendar-check"></i></div>
+<div class="portal-info"><h3>الصيانة الوقائية (PPM)</h3><p>الالتزام بالخطة المجدولة والأوامر المتأخرة وتحت الإجراء.</p></div></div>
+<div class="pc-stats">
+<div class="pc-stat"><b id="pc-ppm-total">-</b><span>مستحق</span></div>
+<div class="pc-stat"><b id="pc-ppm-rate">-</b><span>التزام</span></div>
+<div class="pc-stat"><b id="pc-ppm-delayed">-</b><span>متأخر</span></div>
 </div>
+<div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
 </a>
 <a href="pending_dashboard.html" class="portal-card pc-pending">
-<div class="portal-icon"><i class="fas fa-exclamation-triangle"></i></div>
-<div class="portal-info">
-<h3>الأوامر المعلقة (Pending Jobs)</h3>
-<p>تحليل النواقص السحابي، أعمار الأعطال المفتوحة، ومتابعة مبررات وتحديثات مديري المواقع. (يتطلب تسجيل الدخول)</p>
-<div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
+<div class="pc-top"><div class="portal-icon"><i class="fas fa-list-check"></i></div>
+<div class="portal-info"><h3>الأوامر المعلقة (Pending Jobs)</h3><p>الأعطال النشطة وأوامر العمل تحت الإجراء، وأعمارها، وإفادات مديري المواقع. (يتطلب تسجيل الدخول)</p></div></div>
+<div class="pc-stats">
+<div class="pc-stat"><b><i class="fas fa-lock" style="font-size:1rem"></i></b><span>لوحة محمية</span></div>
+<div class="pc-stat"><b><i class="fas fa-cloud" style="font-size:1rem"></i></b><span>بيانات حية</span></div>
 </div>
+<div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
 </a>
 </div>
 
-<div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي الموحد (Executive Summary)</div>
+<div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي (Executive Summary)</div>
+
+<div class="group" style="--gc:#dc2626; --gbg:#fee2e2">
+<div class="group-title"><span class="gi"><i class="fas fa-tools"></i></span> الصيانة التصحيحية (CM) <small id="cm-period"></small></div>
 <div class="grid-kpi">
-<div class="kpi-card">
-<div class="kpi-label">إجمالي أوامر العمل</div>
-<div class="kpi-val" id="ex-total">0</div>
-<div class="kpi-trend" style="background:#e0f2fe; color:#0369a1;">CM + PPM المستلمة</div>
+<div class="kpi-card"><div class="kpi-label">إجمالي البلاغات</div><div class="kpi-val" id="ex-cm-total">0</div><div class="kpi-sub">Total Corrective WOs</div></div>
+<div class="kpi-card"><div class="kpi-label">نسبة الإنجاز</div><div class="kpi-val" id="ex-cm-rate" style="color:#16a34a">0%</div><div class="kpi-sub" id="ex-cm-closed">Signed Off</div></div>
+<div class="kpi-card"><div class="kpi-label">أعطال مفتوحة</div><div class="kpi-val" id="ex-open-cm" style="color:#dc2626">0</div><div class="kpi-sub">Active / Pending</div></div>
+<div class="kpi-card"><div class="kpi-label">متوسط الاستجابة</div><div class="kpi-val" id="ex-resp" style="color:#ea580c">0</div><div class="kpi-sub">أيام (Fail → Start)</div></div>
+<div class="kpi-card"><div class="kpi-label">متوسط الإصلاح</div><div class="kpi-val" id="ex-fix" style="color:#0891b2">0</div><div class="kpi-sub">أيام (Fail → Closed)</div></div>
 </div>
-<div class="kpi-card">
-<div class="kpi-label">معدل الإغلاق العام</div>
-<div class="kpi-val" id="ex-rate" style="color:var(--ppm-color)">0%</div>
-<div class="kpi-trend" style="background:#dcfce7; color:#15803d;">كفاءة الإنجاز الكلية</div>
 </div>
-<div class="kpi-card">
-<div class="kpi-label">أعطال مفتوحة حالياً</div>
-<div class="kpi-val" id="ex-open-cm" style="color:var(--cm-color)">0</div>
-<div class="kpi-trend" style="background:#fee2e2; color:#b91c1c;">أوامر قيد العمل (CM)</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-label">وقائية متأخرة</div>
-<div class="kpi-val" id="ex-delayed-ppm" style="color:#ca8a04">0</div>
-<div class="kpi-trend" style="background:#fef08a; color:#854d0e;">متجاوزة الاستحقاق الحقيقي</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-label">Avg Response (CM)</div>
-<div class="kpi-val" id="ex-resp">0</div>
-<div class="kpi-trend" style="background:#f1f5f9; color:#475569;">أيام (معدل الاستجابة)</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-label">Avg Repair (CM)</div>
-<div class="kpi-val" id="ex-fix">0</div>
-<div class="kpi-trend" style="background:#f1f5f9; color:#475569;">أيام (معدل الإصلاح)</div>
+
+<div class="group" style="--gc:#16a34a; --gbg:#dcfce7">
+<div class="group-title"><span class="gi"><i class="fas fa-calendar-check"></i></span> الصيانة الوقائية (PPM) <small>حتى نهاية الشهر الحالي</small></div>
+<div class="grid-kpi">
+<div class="kpi-card"><div class="kpi-label">إجمالي المستحق</div><div class="kpi-val" id="ex-ppm-total">0</div><div class="kpi-sub">Total Scheduled</div></div>
+<div class="kpi-card"><div class="kpi-label">نسبة الالتزام</div><div class="kpi-val" id="ex-ppm-rate">0%</div><div class="kpi-sub" id="ex-ppm-gap">المستهدف 90%</div></div>
+<div class="kpi-card"><div class="kpi-label">متأخرة</div><div class="kpi-val" id="ex-delayed-ppm" style="color:#dc2626">0</div><div class="kpi-sub">تجاوزت الاستحقاق ولم تُنجز</div></div>
+<div class="kpi-card"><div class="kpi-label">مجدولة / تحت الإجراء</div><div class="kpi-val" id="ex-prog-ppm" style="color:#d99e04">0</div><div class="kpi-sub">قادمة أو جاري العمل</div></div>
 </div>
 </div>
 
 <div class="grid-charts">
-<div class="panel">
-<div class="panel-header"><i class="fas fa-chart-pie"></i> توزيع حجم العمل بالمستشفيات</div>
-<div style="height: 250px;"><canvas id="chartWorkload"></canvas></div>
+<div class="panel"><div class="panel-header"><i class="fas fa-chart-pie" style="color:#1e3a8a"></i> حجم العمل (CM مقابل PPM)</div><div class="chart-box"><canvas id="chartWorkload"></canvas></div></div>
+<div class="panel"><div class="panel-header"><i class="fas fa-tools" style="color:#dc2626"></i> البلاغات التصحيحية حسب الموقع</div><div class="chart-box"><canvas id="chartCM"></canvas></div></div>
+<div class="panel"><div class="panel-header"><i class="fas fa-bullseye" style="color:#16a34a"></i> الالتزام الوقائي حسب الموقع (المستهدف 90%)</div><div class="chart-box"><canvas id="chartPPM"></canvas></div></div>
 </div>
-<div class="panel">
-<div class="panel-header"><i class="fas fa-medal"></i> أعلى 5 مواقع في كفاءة الالتزام وسرعة العمل</div>
-<div style="height: 250px;"><canvas id="chartTopSites"></canvas></div>
-</div>
-</div>
+
+<div class="footer">إدارة الصيانة - قسم الأجهزة الطبية | تجمع تبوك الصحي</div>
 </div>
 
 <!-- ============ المصادقة (Firebase Auth) ============ -->
@@ -287,131 +303,153 @@ document.getElementById('loginEmail').addEventListener('keypress', e => { if (e.
 <!-- ============ المؤشرات التنفيذية من ملفات الإكسل ============ -->
 <script>
 const SOURCES = [{ url: 'data/PPM.xlsx', type: 'PPM' }, { url: 'data/CM.xlsx', type: 'CM' }];
-let charts = {};
+const TARGET = 90;
+const DAY = 86400000;
+const charts = {};
+const $ = id => document.getElementById(id);
 
 window.addEventListener('DOMContentLoaded', async () => {
-const badge = document.getElementById('statusBadge');
-let combinedData = [];
-const promises = SOURCES.map(src => fetch(src.url).then(r => r.ok ? r.arrayBuffer().then(b => ({b, t:src.type})) : null).catch(e=>null));
+const badge = $('statusBadge');
+let rows = [];
 try {
-const results = await Promise.all(promises);
-results.forEach(res => { if(res) combinedData = [...combinedData, ...parseExcel(res.b, res.t)]; });
-if(combinedData.length > 0) {
+const results = await Promise.all(SOURCES.map(src => fetch(src.url).then(r => r.ok ? r.arrayBuffer().then(b => ({ b: b, t: src.type })) : null).catch(() => null)));
+results.forEach(res => { if (res) rows = rows.concat(parseExcel(res.b, res.t)); });
+if (rows.length > 0) {
 badge.className = 'status-badge st-success';
-badge.innerHTML = `<i class="fas fa-check-circle"></i> المؤشرات محدثة`;
-processExecutiveData(combinedData);
+badge.innerHTML = '<i class="fas fa-check-circle"></i> المؤشرات محدثة';
+processExecutiveData(rows);
 } else {
 badge.className = 'status-badge st-error';
-badge.innerHTML = `<i class="fas fa-times-circle"></i> بانتظار الداتا`;
+badge.innerHTML = '<i class="fas fa-times-circle"></i> بانتظار الداتا';
 }
-} catch(e) { console.error(e); }
+} catch (e) { console.error(e); }
 });
 
 function parseExcel(buf, type) {
-const wb = XLSX.read(buf, {type:'array'});
+const wb = XLSX.read(buf, { type: 'array' });
 const ws = wb.Sheets[wb.SheetNames[0]];
 const json = XLSX.utils.sheet_to_json(ws);
-return json.map(row => {
+const now = new Date();
+const out = [];
+json.forEach(row => {
 const get = k => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
 const status = String(get('Status')).trim();
-const isClosed = status.toLowerCase() === 'signed off';
+const sl = status.toLowerCase();
+const isClosed = sl === 'signed off';
 const dFail = parseDate(get('Fail Date') || get('fail date'));
 const dStart = parseDate(get('start date') || get('Start Date'));
 const dSign = parseDate(get('sign off date') || get('Completion Date'));
+const site = get('Site') || 'Unknown';
 
+if (type === 'CM') {
 let resp = null, fix = null;
-if(type === 'CM') {
-if(dFail && dStart) { let rDiff = (dStart - dFail)/(1000*60*60*24); resp = rDiff >= 0 ? rDiff : 0; }
-if(dFail && dSign && isClosed) { let fDiff = (dSign - dFail)/(1000*60*60*24); fix = fDiff >= 0 ? fDiff : 0; }
+if (dFail && dStart) { const d = (dStart - dFail) / DAY; resp = d >= 0 ? d : 0; }
+if (dFail && dSign && isClosed) { const d = (dSign - dFail) / DAY; fix = d >= 0 ? d : 0; }
+out.push({ type: 'CM', site: site, isClosed: isClosed, resp: resp, fix: fix });
+} else {
+// الوقائية: نستبعد ما يستحق في شهور قادمة (نفس منطق لوحة PPM)
+if (dStart && (dStart.getFullYear() > now.getFullYear() || (dStart.getFullYear() === now.getFullYear() && dStart.getMonth() > now.getMonth()))) return;
+let cat;
+if (isClosed) cat = 'done';
+else if (!dStart) cat = 'delayed';
+else {
+const diff = Math.ceil((Date.now() - dStart.getTime()) / DAY);
+if (diff < 0) cat = 'progress';
+else if (sl === 'assigned') cat = 'delayed';
+else cat = diff <= 30 ? 'progress' : 'delayed';
 }
-
-let isPpmDelayed = false;
-if(type === 'PPM' && !isClosed && dStart) {
-const today = Date.now();
-const diffDays = Math.ceil((today - dStart.getTime()) / (1000 * 60 * 60 * 24));
-if (diffDays >= 0) {
-if(status.toLowerCase() === 'assigned') isPpmDelayed = true;
-else if (diffDays > 30) isPpmDelayed = true;
+out.push({ type: 'PPM', site: site, cat: cat });
 }
-}
-return { type: type, site: get('Site') || 'Unknown', isClosed: isClosed, isDelayed: isPpmDelayed, resp: resp, fix: fix };
 });
+return out;
 }
 
 function parseDate(v) {
-if(!v) return null;
-if(v instanceof Date) return v;
-let s = String(v).trim();
-if(s.match(/^\d{4}-\d{2}-\d{2}/)) return new Date(s);
-let dPart = s.split(' ')[0];
-let parts = dPart.split(/[\/\-\.]/);
-if(parts.length >= 3) {
-let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
+if (!v) return null;
+if (v instanceof Date) return v;
+const s = String(v).trim();
+if (s === '-' || s === '') return null;
+if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s.replace(' ', 'T'));
+const parts = s.split(' ')[0].split(/[\/\-\.]/);
+if (parts.length >= 3) {
+const p0 = parseInt(parts[0]), p1 = parseInt(parts[1]) - 1, p2 = parseInt(parts[2]);
 return p0 > 1900 ? new Date(p0, p1, p2) : new Date(p2, p1, p0);
 }
 return null;
 }
 
 function processExecutiveData(data) {
-let totalCM = 0, closedCM = 0, openCM = 0, totalPPM = 0, closedPPM = 0, delayedPPM = 0;
-let sumResp = 0, cntResp = 0, sumFix = 0, cntFix = 0;
-const siteStats = {};
+let cmT = 0, cmC = 0, cmO = 0, sr = 0, nr = 0, sf = 0, nf = 0;
+let pT = 0, pD = 0, pP = 0, pL = 0;
+const cmSites = {}, ppmSites = {};
 
 data.forEach(r => {
-if(!siteStats[r.site]) siteStats[r.site] = { t:0, c:0, rSum:0, rCnt:0, fSum:0, fCnt:0 };
-const s = siteStats[r.site];
-s.t++;
-if(r.isClosed) s.c++;
-
-if(r.type === 'CM') {
-totalCM++;
-if(r.isClosed) {
-closedCM++;
-if(r.resp !== null) { sumResp += r.resp; cntResp++; s.rSum += r.resp; s.rCnt++; }
-if(r.fix !== null) { sumFix += r.fix; cntFix++; s.fSum += r.fix; s.fCnt++; }
-} else openCM++;
+if (r.type === 'CM') {
+cmT++;
+if (!cmSites[r.site]) cmSites[r.site] = { c: 0, o: 0 };
+if (r.isClosed) { cmC++; cmSites[r.site].c++; if (r.resp !== null) { sr += r.resp; nr++; } if (r.fix !== null) { sf += r.fix; nf++; } }
+else { cmO++; cmSites[r.site].o++; }
 } else {
-totalPPM++;
-if(r.isClosed) closedPPM++;
-if(r.isDelayed) delayedPPM++;
+pT++;
+if (!ppmSites[r.site]) ppmSites[r.site] = { t: 0, d: 0 };
+ppmSites[r.site].t++;
+if (r.cat === 'done') { pD++; ppmSites[r.site].d++; } else if (r.cat === 'progress') pP++; else pL++;
 }
 });
 
-document.getElementById('ex-total').textContent = totalCM + totalPPM;
-document.getElementById('ex-rate').textContent = (totalCM+totalPPM) > 0 ? Math.round(((closedCM+closedPPM)/(totalCM+totalPPM))*100) + '%' : '0%';
-document.getElementById('ex-open-cm').textContent = openCM;
-document.getElementById('ex-delayed-ppm').textContent = delayedPPM;
-document.getElementById('ex-resp').textContent = cntResp ? (sumResp/cntResp).toFixed(1) : '0';
-document.getElementById('ex-fix').textContent = cntFix ? (sumFix/cntFix).toFixed(1) : '0';
+const cmRate = cmT ? Math.round(cmC / cmT * 100) : 0;
+const pRate = pT ? Math.round(pD / pT * 100) : 0;
+const fmt = (s, n) => n ? (s / n).toFixed(1) : '-';
 
-renderCharts(totalCM, totalPPM, siteStats);
+$('ex-cm-total').textContent = cmT;
+$('ex-cm-rate').textContent = cmRate + '%';
+$('ex-cm-closed').textContent = cmC + ' بلاغ منجز';
+$('ex-open-cm').textContent = cmO;
+$('ex-resp').textContent = fmt(sr, nr);
+$('ex-fix').textContent = fmt(sf, nf);
+
+$('ex-ppm-total').textContent = pT;
+$('ex-ppm-rate').textContent = pRate + '%';
+const col = pRate >= TARGET ? '#16a34a' : (pRate >= 70 ? '#d99e04' : '#dc2626');
+$('ex-ppm-rate').style.color = col;
+$('ex-ppm-gap').textContent = pRate >= TARGET ? 'تحقق المستهدف (' + TARGET + '%)' : 'أقل من المستهدف (' + TARGET + '%) بـ ' + (TARGET - pRate) + ' نقطة';
+$('ex-delayed-ppm').textContent = pL;
+$('ex-prog-ppm').textContent = pP;
+
+$('hs-cm').textContent = cmT;
+$('hs-ppm').textContent = pRate + '%';
+$('hs-open').textContent = cmO;
+$('pc-cm-total').textContent = cmT; $('pc-cm-rate').textContent = cmRate + '%'; $('pc-cm-open').textContent = cmO;
+$('pc-ppm-total').textContent = pT; $('pc-ppm-rate').textContent = pRate + '%'; $('pc-ppm-delayed').textContent = pL;
+
+renderCharts(cmT, pT, cmSites, ppmSites);
 }
 
-function renderCharts(cmCount, ppmCount, siteStats) {
-const ctxW = document.getElementById('chartWorkload').getContext('2d');
-charts.w = new Chart(ctxW, {
+function renderCharts(cmT, pT, cmSites, ppmSites) {
+Chart.defaults.font.family = 'Tajawal'; Chart.defaults.font.weight = '600';
+const short = s => s.length > 20 ? s.substring(0, 20) + '…' : s;
+
+charts.w = new Chart($('chartWorkload'), {
 type: 'doughnut',
-data: {
-labels: ['أعطال تصحيحية CM', 'صيانة وقائية PPM'],
-datasets: [{ data: [cmCount, ppmCount], backgroundColor: ['#dc2626', '#16a34a'], borderWidth: 0 }]
-},
-options: { cutout: '70%', plugins:{legend:{position:'bottom'}} }
+data: { labels: ['تصحيحية CM', 'وقائية PPM'], datasets: [{ data: [cmT, pT], backgroundColor: ['#dc2626', '#16a34a'], borderWidth: 2, borderColor: '#fff' }] },
+options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
 });
 
-const sortedSites = Object.entries(siteStats)
-.map(([name, v]) => ({ name: name, total: v.t, rate: Math.round((v.c/v.t)*100), avgFix: v.fCnt ? (v.fSum/v.fCnt) : 999 }))
-.filter(s => s.name !== 'Unknown' && s.total >= 20)
-.sort((a,b) => { if (b.rate !== a.rate) return b.rate - a.rate; return a.avgFix - b.avgFix; })
-.slice(0, 5);
-
-const ctxS = document.getElementById('chartTopSites').getContext('2d');
-charts.s = new Chart(ctxS, {
+const cm = Object.entries(cmSites).sort((a, b) => (b[1].c + b[1].o) - (a[1].c + a[1].o)).slice(0, 8);
+charts.c = new Chart($('chartCM'), {
 type: 'bar',
-data: {
-labels: sortedSites.map(s => s.name.substring(0, 16)),
-datasets: [{ label: 'معدل الإنجاز %', data: sortedSites.map(s => s.rate), backgroundColor: '#3b82f6', borderRadius: 4 }]
-},
-options: { maintainAspectRatio: false, scales: { y: { max: 100 } } }
+data: { labels: cm.map(x => short(x[0])), datasets: [
+{ label: 'منجز', data: cm.map(x => x[1].c), backgroundColor: '#1e3a8a', borderRadius: 4 },
+{ label: 'مفتوح', data: cm.map(x => x[1].o), backgroundColor: '#dc2626', borderRadius: 4 }
+] },
+options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }, y: { stacked: true } }, plugins: { legend: { position: 'bottom' } } }
+});
+
+const pp = Object.entries(ppmSites).map(x => ({ n: x[0], p: Math.round(x[1].d / x[1].t * 100), t: x[1].t })).sort((a, b) => b.t - a.t).slice(0, 8);
+charts.p = new Chart($('chartPPM'), {
+type: 'bar',
+data: { labels: pp.map(x => short(x.n)), datasets: [{ label: 'نسبة الالتزام %', data: pp.map(x => x.p), backgroundColor: pp.map(x => x.p >= TARGET ? '#16a34a' : (x.p >= 70 ? '#eab308' : '#dc2626')), borderRadius: 4 }] },
+options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
 });
 }
 </script>

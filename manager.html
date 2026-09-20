@@ -7,104 +7,141 @@
 
 <style>html { visibility: hidden; }</style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <style>
 :root {
---primary: #1e3a8a;
---accent: #0284c7;
---bg: #f1f5f9;
---surface: #ffffff;
---text: #0f172a;
---green: #16a34a;
---yellow: #eab308;
---red: #dc2626;
+--primary: #1e3a8a; --primary-2: #2563eb; --accent: #0284c7; --bg: #eef2f7; --surface: #fff; --text: #0f172a;
+--muted: #64748b; --line: #e2e8f0; --green: #16a34a; --yellow: #d99e04; --red: #dc2626; --purple: #7c3aed; --orange: #ea580c;
 }
+* { box-sizing: border-box; outline: none; text-decoration: none; }
+body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
 
-* { box-sizing: border-box; outline: none; }
-body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #0f172a; margin: 0; padding: 0; padding-bottom: 60px; }
-
-.header { background: var(--surface); padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
-.header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; font-weight: 800; }
-.logo-area { display: flex; align-items: center; gap: 15px; }
-
-.header-actions { display: flex; gap: 10px; align-items: center; }
-.btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.9rem;}
+.header { background: var(--surface); padding: .8rem 2rem; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(15,23,42,.05); gap: 12px; flex-wrap: wrap; }
+.logo-area { display: flex; align-items: center; gap: 14px; }
+.logo-area h1 { margin: 0; color: var(--primary); font-size: 1.3rem; font-weight: 800; }
+.logo-area p { margin: 3px 0 0; color: var(--muted); font-weight: 700; font-size: .88rem; }
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: .2s; font-size: .88rem; }
 .btn-action:hover { background: #e2e8f0; transform: translateY(-1px); }
-.btn-print { background: var(--primary); color: white; border: none; }
+.btn-print { background: var(--primary); color: #fff; border: none; }
 .btn-print:hover { background: #1e40af; }
-.btn-logout { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+.btn-logout { background: #fee2e2; color: var(--red); border: 1px solid #fca5a5; }
 .btn-logout:hover { background: #fecaca; }
 
-#appScreen { padding: 20px; max-width: 1550px; margin: 0 auto; }
+#appScreen { padding: 1.5rem; max-width: 1600px; margin: 0 auto; }
 
-.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-.kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; border: 1px solid #e2e8f0; border-top: 4px solid #cbd5e1;}
-.kpi-val { font-size: 2.2rem; font-weight: 800; margin-top: 8px; }
-.kpi-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
+.hero { background: linear-gradient(120deg, #0f2a6b 0%, #1e3a8a 45%, #0284c7 100%); color: #fff; border-radius: 18px; padding: 1.6rem 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; box-shadow: 0 12px 30px rgba(30,58,138,.25); margin-bottom: 1.25rem; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; left: -60px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,.07); }
+.hero h2 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 800; }
+.hero p { margin: 0; opacity: .88; font-size: .95rem; line-height: 1.7; }
+.hero-ring { position: relative; z-index: 1; text-align: center; }
+.hero-ring b { display: block; font-size: 2.4rem; font-weight: 800; line-height: 1.1; }
+.hero-ring span { font-size: .82rem; opacity: .9; font-weight: 700; }
 
-.panel { background: var(--surface); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
-.table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0; }
+.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.kpi-card { background: var(--surface); padding: 1.1rem 1.3rem; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,.05); border: 1px solid var(--line); display: flex; align-items: center; gap: 14px; transition: .2s; }
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(15,23,42,.09); }
+.kpi-card.click { cursor: pointer; }
+.kpi-ico { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.kpi-label { font-size: .85rem; color: var(--muted); font-weight: 700; }
+.kpi-val { font-size: 1.9rem; font-weight: 800; line-height: 1.15; }
+.kpi-sub { font-size: .74rem; color: var(--muted); font-weight: 600; }
+
+.filters { background: var(--surface); border-radius: 14px; border: 1px solid var(--line); padding: 1.1rem 1.3rem; margin-bottom: 1.25rem; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+.filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.filters-head h3 { margin: 0; font-size: 1rem; color: var(--primary); }
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg label { font-weight: 700; color: #475569; font-size: .8rem; }
+.fg select, .fg input { padding: .6rem .7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: .92rem; background: #f8fafc; color: var(--text); font-weight: 600; width: 100%; }
+.fg select:focus, .fg input:focus { border-color: var(--primary-2); background: #fff; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.chip { border: 1px solid #cbd5e1; background: #fff; color: #334155; padding: 6px 14px; border-radius: 999px; font-family: 'Tajawal'; font-weight: 700; font-size: .82rem; cursor: pointer; transition: .15s; }
+.chip:hover { border-color: var(--primary-2); color: var(--primary-2); }
+.chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.chart-card { background: var(--surface); border-radius: 14px; border: 1px solid var(--line); padding: 1.1rem 1.2rem; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+.chart-card h4 { margin: 0 0 10px; font-size: .95rem; color: #334155; display: flex; align-items: center; gap: 8px; }
+.chart-box { position: relative; height: 210px; }
+
+.panel { background: var(--surface); border-radius: 16px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(15,23,42,.04); margin-bottom: 1.75rem; overflow: hidden; }
+.panel-head { padding: 1rem 1.3rem; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.panel-title { display: flex; align-items: center; gap: 12px; }
+.panel-title .pi { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #fff; }
+.panel-title h3 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.panel-title small { color: var(--muted); font-weight: 600; font-size: .8rem; }
+.count-pill { background: #eff6ff; color: var(--primary-2); font-weight: 800; padding: 3px 12px; border-radius: 999px; font-size: .85rem; margin-right: 6px; }
+.tp-red { border-top: 4px solid var(--red); } .tp-purple { border-top: 4px solid var(--purple); }
+
+.table-wrap { overflow-x: auto; max-height: 600px; overflow-y: auto; }
 table { width: 100%; border-collapse: collapse; text-align: right; }
-th, td { padding: 16px 15px; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; }
-th { background: #f8fafc; color: #475569; font-weight: 800; position: sticky; top: 0; }
+th { background: #f8fafc; color: #475569; padding: 13px 12px; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 5; font-weight: 800; font-size: .82rem; white-space: nowrap; cursor: pointer; user-select: none; }
+th:hover { background: #eef2f7; }
+th.nosort { cursor: default; }
+th .si { opacity: .35; margin-right: 4px; font-size: .7rem; }
+th.sorted .si { opacity: 1; color: var(--primary-2); }
+td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: .87rem; }
+tbody tr:hover { background: #f0f9ff; }
+.rowbar { box-shadow: inset -4px 0 0 var(--bar, transparent); }
+.row-urgent { background: #fff7f7; }
+.empty { text-align: center; padding: 34px; color: var(--muted); font-weight: 700; }
 
-.row-highlight-urgent { background: #fff7f7; border-right: 4px solid var(--red); }
-.row-highlight-urgent:hover { background: #fef2f2; }
+.badge { padding: 5px 11px; border-radius: 6px; font-weight: 800; font-size: .78rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.age-green { background: #dcfce7; color: #166534; } .age-yellow { background: #fef08a; color: #854d0e; } .age-red { background: #fee2e2; color: #991b1b; }
+.badge-done { background: #dcfce7; color: #16a34a; } .badge-warn { background: #fee2e2; color: #dc2626; }
+.st-Active { background: #fee2e2; color: #991b1b; } .st-Assigned { background: #dbeafe; color: #1d4ed8; } .st-PendingApproval { background: #ede9fe; color: #6d28d9; } .st-Approved { background: #dcfce7; color: #166534; } .st-other { background: #e2e8f0; color: #334155; }
+.last-text { display: block; font-weight: 700; font-size: .82rem; line-height: 1.4; max-width: 300px; }
+.last-date { display: block; font-size: .72rem; color: var(--muted); font-weight: 700; margin-top: 2px; }
 
-.btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; transition: 0.2s; }
-.btn-update:hover { background: #0284c7; color: white; }
+.btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; }
+.btn-update:hover { background: #0284c7; color: #fff; }
 
-.badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; }
-.badge-done { background: #dcfce7; color: #16a34a; }
-.badge-warn { background: #fee2e2; color: #dc2626; }
-
-#commentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
-.modal-content { background: white; padding: 30px; border-radius: 16px; width: 95%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
-
-.history-box { background: #f8fafc; padding: 15px; border-radius: 8px; max-height: 220px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #cbd5e1; }
-.comment-item { margin-bottom: 12px; padding: 10px; border-radius: 6px; background: white; border: 1px solid #e2e8f0; position: relative; }
+#commentModal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: #fff; padding: 28px; border-radius: 18px; width: 95%; max-width: 620px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); max-height: 92vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.order-info { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: .86rem; color: #475569; line-height: 1.9; font-weight: 600; }
+.history-box { background: #f8fafc; padding: 12px; border-radius: 10px; max-height: 210px; overflow-y: auto; margin-bottom: 18px; border: 1px solid #cbd5e1; }
+.comment-item { margin-bottom: 10px; padding: 10px; border-radius: 8px; background: #fff; border: 1px solid var(--line); }
 .comment-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.comment-date { color: #64748b; font-size: 0.8rem; font-weight: bold; }
-.comment-text { color: #0f172a; font-size: 0.95rem; font-weight: 700; line-height: 1.4; word-break: break-word; }
-
+.comment-date { color: var(--muted); font-size: .8rem; font-weight: 700; }
+.comment-text { color: var(--text); font-size: .93rem; font-weight: 700; line-height: 1.5; word-break: break-word; }
 .comment-actions { display: flex; gap: 8px; }
-.btn-inline-act { border: none; background: none; cursor: pointer; font-size: 0.9rem; padding: 2px 5px; transition: 0.2s; }
-.btn-inline-edit { color: var(--accent); }
-.btn-inline-edit:hover { color: var(--primary); }
-.btn-inline-delete { color: var(--red); }
-.btn-inline-delete:hover { color: #991b1b; }
-
-.quick-replies-label { font-weight: bold; color: #475569; margin-bottom: 8px; display: block; font-size: 0.9rem; }
-.quick-replies-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-.btn-quick { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.85rem; font-weight: 700; transition: 0.2s; }
+.btn-inline-act { border: none; background: none; cursor: pointer; font-size: .9rem; padding: 2px 5px; transition: .2s; }
+.btn-inline-edit { color: var(--accent); } .btn-inline-edit:hover { color: var(--primary); }
+.btn-inline-delete { color: var(--red); } .btn-inline-delete:hover { color: #991b1b; }
+.quick-replies-label { font-weight: 700; color: #475569; margin-bottom: 8px; display: block; font-size: .9rem; }
+.quick-replies-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.btn-quick { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; font-size: .84rem; font-weight: 700; transition: .2s; }
 .btn-quick:hover { background: #e2e8f0; border-color: #94a3b8; }
-
-#approvalFields { display: none; background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; animation: fadeIn 0.3s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+#approvalFields { display: none; background: #f0f9ff; border: 1px solid #bae6fd; padding: 14px; border-radius: 10px; margin-bottom: 14px; }
 .fields-row { display: flex; gap: 10px; }
 .fields-row div { flex: 1; }
-.fields-row label { display: block; font-size: 0.8rem; font-weight: bold; color: #0369a1; margin-bottom: 4px; }
-.input-sub { width: 100%; padding: 8px; border: 1px solid #bae6fd; border-radius: 6px; font-family: 'Tajawal'; font-size: 0.9rem; }
-
-textarea { width: 100%; height: 85px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; resize: none; margin-bottom: 15px; font-size: 1rem; }
-.btn-save { background: #16a34a; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; width: 100%; font-size: 1.1rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.fields-row label { display: block; font-size: .8rem; font-weight: 700; color: #0369a1; margin-bottom: 4px; }
+.input-sub { width: 100%; padding: 8px; border: 1px solid #bae6fd; border-radius: 6px; font-family: 'Tajawal'; font-size: .9rem; }
+textarea { width: 100%; height: 85px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; resize: none; margin-bottom: 14px; font-size: 1rem; }
+.btn-save { background: var(--green); color: #fff; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 800; font-family: 'Tajawal'; width: 100%; font-size: 1.05rem; transition: .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-save:hover { background: #15803d; }
+.btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+
+@media (max-width: 700px) { .header { padding: .7rem 1rem; } #appScreen { padding: .8rem; } .hero { padding: 1.2rem; } }
 
 @media print {
 @page { size: landscape; margin: 1cm; }
-body { background: white !important; font-size: 10pt; color: black; }
-.header, .grid-kpi, .quick-replies-label, .quick-replies-container, #approvalFields, textarea, .btn-save, .btn-update, #commentModal, .btn-inline-act { display: none !important; }
+body { background: #fff !important; font-size: 10pt; color: #000; }
+.header, .hero, .grid-kpi, .filters, .charts, .btn-update, #commentModal, .panel-title .pi, .noprint { display: none !important; }
 #appScreen { padding: 0; max-width: 100%; }
-.panel { border: none; box-shadow: none; padding: 0; }
-.table-wrap { border: none; overflow: visible; }
-table { width: 100%; border: 1px solid #000; }
-th, td { border: 1px solid #ddd !important; padding: 8px !important; color: black !important; background: none !important; }
-th { background: #eee !important; -webkit-print-color-adjust: exact; }
-.badge { background: none !important; border: none; color: black !important; padding: 0; font-weight: bold; }
-.row-highlight-urgent { background: none !important; border-right: none !important; }
+.panel { border: none !important; box-shadow: none; margin-bottom: 16px; }
+.table-wrap { overflow: visible; max-height: none; }
+table { border: 1px solid #000; }
+th, td { border: 1px solid #ddd !important; padding: 6px !important; color: #000 !important; background: none !important; }
+th { background: #eee !important; position: static; }
+.badge { background: none !important; color: #000 !important; padding: 0; }
+.rowbar { box-shadow: none; }
+.row-urgent { background: none !important; }
 }
 </style>
 </head>
@@ -114,54 +151,74 @@ th { background: #eee !important; -webkit-print-color-adjust: exact; }
 
 <div class="header">
 <div class="logo-area">
-<img src="TabukCluster.jpeg" alt="شعار التجمع" style="height: 60px; object-fit: contain;" onerror="this.style.display='none'">
+<img src="TabukCluster.jpeg" alt="شعار التجمع" style="height: 58px; object-fit: contain;" onerror="this.style.display='none'">
 <div>
-<h1>مرحباً، إدارة موقع: <span id="lblSiteName" style="color:var(--accent)"></span></h1>
-<p style="margin: 3px 0 0; color: #64748b; font-weight: bold; font-size: 0.9rem;">لوحة تحديث مبررات الأوامر المعلقة والمتأخرة</p>
+<h1>إدارة موقع: <span id="lblSiteName" style="color:var(--accent)"></span></h1>
+<p>لوحة متابعة الأعطال وتحديث المبررات</p>
 </div>
 </div>
 <div class="header-actions">
+<button class="btn-action" id="btnReload"><i class="fas fa-rotate"></i> تحديث</button>
 <button class="btn-action btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة كشف الأعطال</button>
 <button class="btn-action btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
 </div>
 </div>
 
+<div class="hero">
+<div>
+<h2><i class="fas fa-hospital"></i> أوامر العمل المفتوحة بموقعكم</h2>
+<p id="heroMsg">جاري تحميل البيانات...</p>
+</div>
+<div class="hero-ring"><b id="h-cover">0%</b><span>نسبة الأوامر الموثقة بإفادة</span></div>
+</div>
+
 <div class="grid-kpi">
-<div class="kpi-card" style="border-top-color: var(--accent);">
-<div class="kpi-label">إجمالي الأوامر المعلقة بموقعكم</div>
-<div class="kpi-val" id="kpi-site-total">0</div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#dbeafe;color:var(--primary-2)"><i class="fas fa-clipboard-list"></i></div><div><div class="kpi-label">إجمالي الأوامر المفتوحة</div><div class="kpi-val" id="kpi-site-total" style="color:var(--primary-2)">0</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">أعطال نشطة</div><div class="kpi-val" id="kpi-active" style="color:var(--red)">0</div><div class="kpi-sub">لم يبدأ الإجراء عليها</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#ede9fe;color:var(--purple)"><i class="fas fa-gears"></i></div><div><div class="kpi-label">تحت الإجراء</div><div class="kpi-val" id="kpi-progress" style="color:var(--purple)">0</div><div class="kpi-sub">مكلّف / بانتظار اعتماد</div></div></div>
+<div class="kpi-card click" onclick="quickSet('critical')"><div class="kpi-ico" style="background:#ffedd5;color:var(--orange)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">حرجة (+30 يوم)</div><div class="kpi-val" id="kpi-site-critical" style="color:var(--orange)">0</div><div class="kpi-sub">اضغط للفلترة</div></div></div>
+<div class="kpi-card click" onclick="quickSet('noreply')"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-comment-slash"></i></div><div><div class="kpi-label">تتطلب إفادتكم</div><div class="kpi-val" id="kpi-site-pending" style="color:var(--yellow)">0</div><div class="kpi-sub">اضغط للفلترة</div></div></div>
 </div>
-<div class="kpi-card" style="border-top-color: var(--red);">
-<div class="kpi-label">أعطال حرجة متجاوزة (30 يوم)</div>
-<div class="kpi-val" id="kpi-site-critical" style="color: var(--red);">0</div>
+
+<div class="filters noprint">
+<div class="filters-head">
+<h3><i class="fas fa-filter"></i> الفلاتر والبحث</h3>
+<button class="btn-action" onclick="resetFilters()"><i class="fas fa-eraser"></i> مسح الفلاتر</button>
 </div>
-<div class="kpi-card" style="border-top-color: var(--yellow);">
-<div class="kpi-label">أوامر تتطلب إفادة عاجلة منك</div>
-<div class="kpi-val" id="kpi-site-pending" style="color: var(--yellow);">0</div>
+<div class="filter-grid">
+<div class="fg" style="grid-column: span 2; min-width:200px;"><label><i class="fas fa-magnifying-glass"></i> بحث (رقم أمر / جهاز / فني / إفادة)</label><input type="search" id="fSearch" placeholder="اكتب للبحث..."></div>
+<div class="fg"><label><i class="fas fa-flag"></i> الحالة</label><select id="fStatus"><option value="All">كل الحالات</option></select></div>
+<div class="fg"><label><i class="fas fa-user-gear"></i> الفني</label><select id="fTech"><option value="All">كل الفنيين</option></select></div>
+<div class="fg"><label><i class="fas fa-clock"></i> التقادم</label><select id="fAge"><option value="All">كل الفترات</option><option value="green">حديثة (أقل من 5 أيام)</option><option value="yellow">متأخرة (5 إلى 30)</option><option value="red">حرجة (أكثر من 30)</option></select></div>
+<div class="fg"><label><i class="fas fa-comment-dots"></i> الإفادة</label><select id="fReply"><option value="All">الكل</option><option value="with">يوجد إفادة</option><option value="none">بانتظار الإفادة</option></select></div>
+</div>
+<div class="chips">
+<button class="chip" data-quick="noreply"><i class="fas fa-comment-slash"></i> بانتظار إفادتي</button>
+<button class="chip" data-quick="critical"><i class="fas fa-fire"></i> الحرجة فقط</button>
+<button class="chip" data-quick="critical_noreply"><i class="fas fa-bolt"></i> حرجة وبدون إفادة</button>
 </div>
 </div>
 
-<div class="panel">
-<div class="table-wrap">
-<table id="ordersTable">
-<thead>
-<tr>
-<th>رقم الأمر</th>
-<th>تاريخ الفتح (Fail Date)</th>
-<th>أيام التأخير</th>
-<th style="width: 30%;">الجهاز الطبي المتأثر</th>
-<th>الفني المسند إليه</th>
-<th>حالة التحديث لموقعكم</th>
-<th>آخر مبرر مسجل ومرفوع للأدمن</th>
-<th>إجراءات</th>
-</tr>
-</thead>
-<tbody id="tableBody">
-<tr><td colspan="8" style="text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم وتصفيتها الحية...</td></tr>
-</tbody>
-</table>
+<div class="charts">
+<div class="chart-card"><h4><i class="fas fa-comments" style="color:var(--green)"></i> حالة الإفادات</h4><div class="chart-box"><canvas id="chReply"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-hourglass-half" style="color:var(--yellow)"></i> توزيع التقادم</h4><div class="chart-box"><canvas id="chAge"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-user-gear" style="color:var(--accent)"></i> الأوامر حسب الفني</h4><div class="chart-box"><canvas id="chTech"></canvas></div></div>
 </div>
+
+<div class="panel tp-red">
+<div class="panel-head">
+<div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>الأعطال النشطة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر مفتوحة (Active) لم يبدأ الإجراء عليها</small></div></div>
 </div>
+<div class="table-wrap"><table id="table1"><thead id="head1"></thead><tbody id="body1"><tr><td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم...</td></tr></tbody></table></div>
+</div>
+
+<div class="panel tp-purple">
+<div class="panel-head">
+<div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-gears"></i></div><div><h3>أوامر عمل تحت الإجراء <span class="count-pill" id="c-t2">0</span></h3><small>مكلّف بها فني أو بانتظار الاعتماد</small></div></div>
+</div>
+<div class="table-wrap"><table id="table2"><thead id="head2"></thead><tbody id="body2"><tr><td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</td></tr></tbody></table></div>
+</div>
+
 </div>
 
 <div id="commentModal">
@@ -170,33 +227,28 @@ th { background: #eee !important; -webkit-print-color-adjust: exact; }
 <h3 style="margin:0; color:var(--primary);">إدارة تحديثات الأمر: <span id="modalOrderId" style="color:var(--accent);"></span></h3>
 <i class="fas fa-times" style="cursor: pointer; color: var(--red); font-size: 1.5rem;" onclick="window.closeModal()"></i>
 </div>
+<div class="order-info" id="modalInfo"></div>
 
-<label style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block; font-size: 0.95rem;">السجل التاريخي للمبررات المرفوعة سابقا:</label>
+<label style="font-weight: 700; color: #475569; margin-bottom: 8px; display: block; font-size: .95rem;">السجل التاريخي للمبررات المرفوعة سابقاً:</label>
 <div class="history-box" id="modalHistory"></div>
 
 <div id="inputSection">
 <span class="quick-replies-label"><i class="fas fa-bolt"></i> ردود سريعة لتوفير وقتكم:</span>
 <div class="quick-replies-container">
-<button class="btn-quick" onclick="applyQuickReply('بانتظار وصول قطع الغيار من الشركة الوكيلة')">📦 بانتظار قطع غيار</button>
-<button class="btn-quick" onclick="applyQuickReply('تم الرفع للوكيل المعتمد وبانتظار العرض الفني للفحص')">🏢 تم الرفع للوكيل</button>
-<button class="btn-quick" onclick="applyQuickReply('الجهاز متوقف وبانتظار تعميد الإدارة المالية بالتجمع')">⏳ بانتظار تعميد التجمع</button>
+<button class="btn-quick" data-quick="بانتظار وصول قطع الغيار من الشركة الوكيلة">📦 بانتظار قطع غيار</button>
+<button class="btn-quick" data-quick="تم الرفع للوكيل المعتمد وبانتظار العرض الفني للفحص">🏢 تم الرفع للوكيل</button>
+<button class="btn-quick" data-quick="الجهاز متوقف وبانتظار تعميد الإدارة المالية بالتجمع">⏳ بانتظار تعميد التجمع</button>
 <button class="btn-quick" onclick="selectApprovalReply()">✅ تم التعميد (إدخال رقم المرجع)</button>
 </div>
 
 <div id="approvalFields">
 <div class="fields-row">
-<div>
-<label>رقم التعميد / المرجع:</label>
-<input type="text" id="appNum" class="input-sub" placeholder="مثال: PO-9988">
-</div>
-<div>
-<label>تاريخ التعميد الفعلي:</label>
-<input type="date" id="appDate" class="input-sub">
-</div>
+<div><label>رقم التعميد / المرجع:</label><input type="text" id="appNum" class="input-sub" placeholder="مثال: PO-9988"></div>
+<div><label>تاريخ التعميد الفعلي:</label><input type="date" id="appDate" class="input-sub"></div>
 </div>
 </div>
 
-<label id="lblWriteType" style="font-weight: bold; color: #475569; margin-bottom: 8px; display: block; font-size: 0.95rem;">إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:</label>
+<label id="lblWriteType" style="font-weight: 700; color: #475569; margin-bottom: 8px; display: block; font-size: .95rem;">إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:</label>
 <textarea id="modalNewComment" placeholder="اكتب مبررات التأخير أو كمل على الرد السريع هنا..." maxlength="1000"></textarea>
 
 <button class="btn-save" id="btnSaveComment" onclick="saveCommentData()"><i class="fas fa-save"></i> حفظ المبرر وإرساله فوراً للأدمن</button>
@@ -212,208 +264,290 @@ import { collection, query, where, getDocs, doc, updateDoc } from "https://www.g
 const { profile } = await requireRole(['manager']);
 const currentSite = profile.site;
 
+const IN_PROGRESS = ['Assigned', 'Pending for Approval', 'Approved'];
+const STATUS_AR = { 'Active': 'نشط', 'Assigned': 'مكلّف', 'Pending for Approval': 'بانتظار الاعتماد', 'Approved': 'معتمد' };
+const STATUS_CLS = { 'Active': 'st-Active', 'Assigned': 'st-Assigned', 'Pending for Approval': 'st-PendingApproval', 'Approved': 'st-Approved' };
+const AGE_COL = { green: '#16a34a', yellow: '#eab308', red: '#dc2626' };
+const COLS = [
+{ key: 'id', label: 'رقم الأمر' },
+{ key: 'agingDays', label: 'تاريخ الفتح / التأخير' },
+{ key: 'status', label: 'الحالة' },
+{ key: 'device', label: 'الجهاز الطبي المتأثر' },
+{ key: 'tech', label: 'الفني المسند إليه' },
+{ key: 'hasUpdate', label: 'حالة الإفادة' },
+{ key: 'lastUpdate', label: 'آخر مبرر مسجل' },
+{ key: null, label: 'إجراءات' }
+];
+
 let currentEditingOrderId = "";
 let currentCommentEditIndex = null;
 let LOCAL_ORDERS = [];
+let VIEW = { 1: [], 2: [] };
+let QUICK = null;
+const SORT = { 1: { key: 'agingDays', dir: -1 }, 2: { key: 'agingDays', dir: -1 } };
+const charts = {};
+const $ = id => document.getElementById(id);
 
-document.getElementById('lblSiteName').textContent = currentSite;
-document.getElementById('btnLogout').addEventListener('click', logout);
-loadSiteOrders();
+$('lblSiteName').textContent = currentSite;
+$('btnLogout').addEventListener('click', logout);
+$('btnReload').addEventListener('click', loadSiteOrders);
 
 function calculateDays(v) {
-if(!v) return 0;
+if (!v) return 0;
 let d = null;
-let s = String(v).trim();
-if(s.match(/^\d{4}-\d{2}-\d{2}/)) {
-d = new Date(s);
+const s = String(v).trim();
+if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+d = new Date(s.replace(' ', 'T'));
 } else {
-let dPart = s.split(' ')[0];
-let parts = dPart.split(/[\/\-\.]/);
-if(parts.length >= 3) {
-let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
+const parts = s.split(' ')[0].split(/[\/\-\.]/);
+if (parts.length >= 3) {
+const p0 = parseInt(parts[0]), p1 = parseInt(parts[1]) - 1, p2 = parseInt(parts[2]);
 if (p0 > 1900) d = new Date(p0, p1, p2);
 else if (p2 > 1900) d = new Date(p2, p1, p0);
 }
 }
-if(!d || isNaN(d.getTime())) return 0;
-const diff = Date.now() - d.getTime();
-return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+if (!d || isNaN(d.getTime())) return 0;
+return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
 }
 
 async function loadSiteOrders() {
-const tbody = document.getElementById('tableBody');
 try {
 const q = query(collection(db, "pending_orders"), where("site", "==", currentSite), where("isCompleted", "==", false));
 const snapshot = await getDocs(q);
-
 LOCAL_ORDERS = [];
-let rowsHTML = "";
-let total = 0, critical = 0, pendingFeedback = 0;
-
-if(snapshot.empty) {
-tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color:var(--green); font-weight:bold; padding: 40px; font-size:1.1rem;"><i class="fas fa-check-circle"></i> ممتاز جداً! لا توجد أي أوامر عمل متأخرة أو نواقص معلقة لموقعكم حالياً.</td></tr>';
-updateKPIs(0, 0, 0);
-return;
-}
-
-snapshot.forEach((docSnap) => {
-const data = docSnap.data();
-data.docId = docSnap.id;
-data.calculatedAge = calculateDays(data.failDate || data.startDate || data.createdAt);
-LOCAL_ORDERS.push(data);
+snapshot.forEach(docSnap => {
+const r = docSnap.data();
+r.docId = docSnap.id;
+r.agingDays = calculateDays(r.failDate || r.startDate || r.createdAt);
+r.ageCat = r.agingDays < 5 ? 'green' : (r.agingDays <= 30 ? 'yellow' : 'red');
+r.comments = Array.isArray(r.comments) ? r.comments : [];
+r.hasUpdate = r.comments.length > 0;
+r.lastComment = r.hasUpdate ? r.comments[r.comments.length - 1] : null;
+r.lastUpdate = r.lastComment ? String(r.lastComment.text || '') : '';
+r.status = r.status || 'Active';
+r.group = IN_PROGRESS.includes(r.status) ? 2 : 1;
+r._search = [r.id, r.device, r.tech, r.lastUpdate].join(' ').toLowerCase();
+LOCAL_ORDERS.push(r);
 });
-
-LOCAL_ORDERS.sort((a, b) => {
-const aHas = (a.comments && a.comments.length > 0) ? 1 : 0;
-const bHas = (b.comments && b.comments.length > 0) ? 1 : 0;
-if (aHas !== bHas) return aHas - bHas;
-return b.calculatedAge - a.calculatedAge;
-});
-
-LOCAL_ORDERS.forEach((data) => {
-total++;
-if(data.calculatedAge > 30) critical++;
-
-const hasComments = data.comments && data.comments.length > 0;
-if(!hasComments) pendingFeedback++;
-
-const statusBadge = hasComments
-? `<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>`
-: `<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة عاجل</span>`;
-
-const last = hasComments ? data.comments[data.comments.length-1] : null;
-const lastCommentText = hasComments
-? `<strong style="color:var(--text); font-size:0.85rem;">${esc(last.text)}</strong><br><small style="color:#64748b;">${esc(last.date)}</small>`
-: `<span style="color:var(--red); font-weight:bold;">لا يوجد أي تبرير مرفوع ⚠️</span>`;
-
-const rowClass = !hasComments ? 'row-highlight-urgent' : '';
-const device = String(data.device || '');
-
-rowsHTML += `
-<tr class="${rowClass}">
-<td style="font-weight:bold; color:var(--primary);">${esc(data.id)}</td>
-<td style="direction:ltr;">${esc(data.failDate || data.startDate || '-')}</td>
-<td><span style="font-weight:800; color:${data.calculatedAge > 30 ? 'var(--red)':'var(--text)'}">${data.calculatedAge} يوم</span></td>
-<td title="${esc(device)}">${esc(device.substring(0, 45))}...</td>
-<td>${esc(data.tech)}</td>
-<td>${statusBadge}</td>
-<td>${lastCommentText}</td>
-<td>
-<button class="btn-update" data-order="${esc(data.id)}">
-<i class="fas fa-comments"></i> إدارة الردود
-</button>
-</td>
-</tr>
-`;
-});
-
-tbody.innerHTML = rowsHTML;
-tbody.querySelectorAll('.btn-update').forEach(b => b.addEventListener('click', () => window.openModal(b.dataset.order)));
-updateKPIs(total, critical, pendingFeedback);
-
+fillSelect('fStatus', uniq('status'), s => STATUS_AR[s] || s);
+fillSelect('fTech', uniq('tech'));
+applyFilters();
 } catch (error) {
 console.error(error);
-tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color:var(--red); padding: 20px;">حدث خلل أثناء جلب البيانات المباشرة من السحابة.</td></tr>';
+$('body1').innerHTML = '<tr><td colspan="8" class="empty" style="color:var(--red)">حدث خلل أثناء جلب البيانات المباشرة من السحابة.</td></tr>';
+$('body2').innerHTML = '';
 }
 }
 
-function updateKPIs(total, critical, pending) {
-document.getElementById('kpi-site-total').textContent = total;
-document.getElementById('kpi-site-critical').textContent = critical;
-document.getElementById('kpi-site-pending').textContent = pending;
+function uniq(k) { return [...new Set(LOCAL_ORDERS.map(r => r[k]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ar')); }
+function fillSelect(id, values, labeler) {
+const sel = $(id); const cur = sel.value;
+while (sel.options.length > 1) sel.remove(1);
+values.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = labeler ? labeler(v) : v; sel.appendChild(o); });
+if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 
-window.openModal = function(orderId) {
+function getFiltered() {
+const q = $('fSearch').value.trim().toLowerCase();
+const st = $('fStatus').value, tech = $('fTech').value, age = $('fAge').value, rep = $('fReply').value;
+return LOCAL_ORDERS.filter(r => {
+if (q && !r._search.includes(q)) return false;
+if (st !== 'All' && r.status !== st) return false;
+if (tech !== 'All' && r.tech !== tech) return false;
+if (age !== 'All' && r.ageCat !== age) return false;
+if (rep === 'with' && !r.hasUpdate) return false;
+if (rep === 'none' && r.hasUpdate) return false;
+if (QUICK === 'noreply' && r.hasUpdate) return false;
+if (QUICK === 'critical' && r.ageCat !== 'red') return false;
+if (QUICK === 'critical_noreply' && !(r.ageCat === 'red' && !r.hasUpdate)) return false;
+return true;
+});
+}
+
+function applyFilters() {
+const data = getFiltered();
+VIEW[1] = data.filter(r => r.group === 1);
+VIEW[2] = data.filter(r => r.group === 2);
+renderTable(1); renderTable(2);
+updateKPIs();
+renderCharts(data);
+}
+
+function sortRows(rows, s) {
+return rows.slice().sort((a, b) => {
+const x = a[s.key], y = b[s.key];
+if (s.key === 'agingDays') return (x - y) * s.dir;
+if (s.key === 'hasUpdate') return ((x ? 1 : 0) - (y ? 1 : 0)) * s.dir;
+return String(x || '').localeCompare(String(y || ''), 'ar') * s.dir;
+});
+}
+
+function renderHead(n) {
+const s = SORT[n];
+const tr = document.createElement('tr');
+COLS.forEach(c => {
+const th = document.createElement('th');
+th.className = (c.key ? '' : 'nosort') + (c.key && s.key === c.key ? ' sorted' : '');
+const icon = c.key && s.key === c.key ? (s.dir === 1 ? 'fa-arrow-up' : 'fa-arrow-down') : 'fa-sort';
+th.innerHTML = esc(c.label) + (c.key ? ' <i class="fas ' + icon + ' si"></i>' : '');
+if (c.key) th.addEventListener('click', () => {
+if (SORT[n].key === c.key) SORT[n].dir *= -1; else { SORT[n].key = c.key; SORT[n].dir = (c.key === 'agingDays') ? -1 : 1; }
+renderTable(n);
+});
+tr.appendChild(th);
+});
+const head = $('head' + n); head.innerHTML = ''; head.appendChild(tr);
+}
+
+function renderTable(n) {
+renderHead(n);
+const tbody = $('body' + n);
+tbody.innerHTML = '';
+const rows = sortRows(VIEW[n], SORT[n]);
+$('c-t' + n).textContent = rows.length;
+if (!rows.length) {
+tbody.innerHTML = '<tr><td colspan="8" class="empty"><i class="far fa-face-smile"></i> ' + (LOCAL_ORDERS.length ? 'لا توجد أوامر مطابقة في هذا الجدول.' : 'ممتاز جداً! لا توجد أي أوامر عمل معلقة لموقعكم حالياً.') + '</td></tr>';
+return;
+}
+rows.forEach(r => {
+const device = String(r.device || '');
+const tr = document.createElement('tr');
+tr.className = 'rowbar' + (!r.hasUpdate ? ' row-urgent' : '');
+tr.style.setProperty('--bar', AGE_COL[r.ageCat]);
+tr.innerHTML =
+'<td style="font-weight:800; color:var(--primary);">' + esc(r.id) + '</td>' +
+'<td><span style="direction:ltr; display:inline-block; font-size:.8rem; color:#475569; font-weight:700;">' + esc(String(r.failDate || r.startDate || '-').substring(0, 16)) + '</span><br><span class="badge age-' + r.ageCat + '" style="margin-top:4px;">' + r.agingDays + ' يوم</span></td>' +
+'<td><span class="badge ' + (STATUS_CLS[r.status] || 'st-other') + '">' + esc(STATUS_AR[r.status] || r.status) + '</span></td>' +
+'<td title="' + esc(device) + '">' + esc(device.length > 45 ? device.substring(0, 45) + '...' : device) + '</td>' +
+'<td>' + esc(r.tech || '-') + '</td>' +
+'<td>' + (r.hasUpdate ? '<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>' : '<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
+'<td>' + (r.lastComment ? '<span class="last-text">' + esc(r.lastComment.text) + '</span><span class="last-date"><i class="far fa-clock"></i> ' + esc(r.lastComment.date) + '</span>' : '<span style="color:var(--red); font-weight:800; font-size:.8rem;">لا يوجد أي تبرير مرفوع</span>') + '</td>' +
+'<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button></td>';
+tr.querySelector('.btn-update').addEventListener('click', () => window.openModal(r.id));
+tbody.appendChild(tr);
+});
+}
+
+function updateKPIs() {
+const all = LOCAL_ORDERS;
+const total = all.length;
+const crit = all.filter(r => r.ageCat === 'red').length;
+const noRep = all.filter(r => !r.hasUpdate).length;
+$('kpi-site-total').textContent = total;
+$('kpi-active').textContent = all.filter(r => r.group === 1).length;
+$('kpi-progress').textContent = all.filter(r => r.group === 2).length;
+$('kpi-site-critical').textContent = crit;
+$('kpi-site-pending').textContent = noRep;
+const cover = total ? Math.round((total - noRep) / total * 100) : 100;
+$('h-cover').textContent = cover + '%';
+$('heroMsg').textContent = total === 0 ? 'لا توجد أوامر مفتوحة بموقعكم حالياً. شكراً لجهودكم.' : (noRep > 0 ? ('لديكم ' + noRep + ' أمر بانتظار إفادتكم، ' + crit + ' منها/منهم حرج تجاوز 30 يوماً في الإجمالي. يرجى تحديث المبررات لدعم المتابعة الإدارية.') : 'جميع الأوامر المفتوحة موثقة بإفادة. شكراً لتعاونكم.');
+}
+
+function draw(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); }
+function renderCharts(data) {
+if (typeof Chart === 'undefined') return;
+Chart.defaults.font.family = 'Tajawal'; Chart.defaults.font.weight = '600';
+const w = data.filter(r => r.hasUpdate).length;
+draw('chReply', { type: 'doughnut', data: { labels: ['يوجد إفادة', 'بانتظار الإفادة'], datasets: [{ data: [w, data.length - w], backgroundColor: ['#16a34a', '#dc2626'], borderWidth: 2, borderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' } } } });
+const g = data.filter(r => r.ageCat === 'green').length, y = data.filter(r => r.ageCat === 'yellow').length, rd = data.filter(r => r.ageCat === 'red').length;
+draw('chAge', { type: 'bar', data: { labels: ['حديثة (< 5)', 'متأخرة (5-30)', 'حرجة (+30)'], datasets: [{ data: [g, y, rd], backgroundColor: ['#16a34a', '#eab308', '#dc2626'], borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } });
+const tc = {};
+data.forEach(r => { const k = r.tech || 'غير محدد'; tc[k] = (tc[k] || 0) + 1; });
+const tt = Object.entries(tc).sort((a, b) => b[1] - a[1]).slice(0, 6);
+draw('chTech', { type: 'bar', data: { labels: tt.map(e => e[0].length > 18 ? e[0].substring(0, 18) + '…' : e[0]), datasets: [{ data: tt.map(e => e[1]), backgroundColor: '#0284c7', borderRadius: 4 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } } });
+}
+
+// ===== الفلاتر =====
+['fStatus', 'fTech', 'fAge', 'fReply'].forEach(id => $(id).addEventListener('change', applyFilters));
+let tm; $('fSearch').addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(applyFilters, 200); });
+function syncChips() { document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset.quick === QUICK)); }
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => { QUICK = (QUICK === c.dataset.quick) ? null : c.dataset.quick; syncChips(); applyFilters(); }));
+window.quickSet = (q) => { QUICK = (QUICK === q) ? null : q; syncChips(); applyFilters(); };
+window.resetFilters = () => {
+$('fSearch').value = '';
+['fStatus', 'fTech', 'fAge', 'fReply'].forEach(id => { $(id).value = 'All'; });
+QUICK = null; syncChips(); applyFilters();
+};
+
+// ===== نافذة الردود =====
+window.openModal = function (orderId) {
 currentEditingOrderId = orderId;
 currentCommentEditIndex = null;
-document.getElementById('modalOrderId').textContent = orderId;
-document.getElementById('modalNewComment').value = "";
-document.getElementById('approvalFields').style.display = 'none';
-document.getElementById('lblWriteType').textContent = "إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:";
-document.getElementById('btnSaveComment').innerHTML = '<i class="fas fa-save"></i> حفظ المبرر وإرساله فوراً للأدمن';
-
+$('modalOrderId').textContent = orderId;
+$('modalNewComment').value = "";
+$('approvalFields').style.display = 'none';
+$('lblWriteType').textContent = "إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:";
+$('btnSaveComment').innerHTML = '<i class="fas fa-save"></i> حفظ المبرر وإرساله فوراً للأدمن';
 const order = LOCAL_ORDERS.find(o => o.id === orderId);
+$('modalInfo').innerHTML = '<b>الجهاز:</b> ' + esc(order.device) + '<br><b>الحالة:</b> ' + esc(STATUS_AR[order.status] || order.status) + ' &nbsp;|&nbsp; <b>الفني:</b> ' + esc(order.tech || '-') + ' &nbsp;|&nbsp; <b>التأخير:</b> ' + order.agingDays + ' يوم';
 renderCommentsList(order);
-
-document.getElementById('commentModal').style.display = 'flex';
-}
+$('commentModal').style.display = 'flex';
+};
 
 function renderCommentsList(order) {
-const historyBox = document.getElementById('modalHistory');
+const box = $('modalHistory');
+box.innerHTML = '';
 if (order.comments && order.comments.length > 0) {
-let commentsHTML = "";
 order.comments.forEach((c, index) => {
-commentsHTML += `
-<div class="comment-item">
-<div class="comment-meta">
-<span class="comment-date"><i class="fas fa-clock"></i> ${esc(c.date)}</span>
-<div class="comment-actions">
-<button class="btn-inline-act btn-inline-edit" onclick="window.editCommentTrigger(${index})" title="تعديل هذا النص"><i class="fas fa-edit"></i></button>
-<button class="btn-inline-act btn-inline-delete" onclick="window.deleteCommentTrigger(${index})" title="مسح هذا التحديث"><i class="fas fa-trash-alt"></i></button>
-</div>
-</div>
-<div class="comment-text">${esc(c.text)}</div>
-</div>
-`;
+const item = document.createElement('div');
+item.className = 'comment-item';
+item.innerHTML = '<div class="comment-meta"><span class="comment-date"><i class="fas fa-clock"></i> ' + esc(c.date) + '</span>' +
+'<div class="comment-actions"><button class="btn-inline-act btn-inline-edit" title="تعديل هذا النص"><i class="fas fa-edit"></i></button>' +
+'<button class="btn-inline-act btn-inline-delete" title="مسح هذا التحديث"><i class="fas fa-trash-alt"></i></button></div></div>' +
+'<div class="comment-text">' + esc(c.text) + '</div>';
+item.querySelector('.btn-inline-edit').addEventListener('click', () => window.editCommentTrigger(index));
+item.querySelector('.btn-inline-delete').addEventListener('click', () => window.deleteCommentTrigger(index));
+box.appendChild(item);
 });
-historyBox.innerHTML = commentsHTML;
 } else {
-historyBox.innerHTML = '<div style="color:#94a3b8; text-align:center; padding-top:40px;">لا توجد مبررات سابقة مسجلة لهذا الأمر بموقعكم.</div>';
+box.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:30px 0;">لا توجد مبررات سابقة مسجلة لهذا الأمر بموقعكم.</div>';
 }
 }
 
-window.closeModal = function() {
-document.getElementById('commentModal').style.display = 'none';
+window.closeModal = function () { $('commentModal').style.display = 'none'; };
+$('commentModal').addEventListener('click', e => { if (e.target.id === 'commentModal') window.closeModal(); });
+
+window.applyQuickReply = function (text) {
+$('approvalFields').style.display = 'none';
+$('modalNewComment').value = text;
+};
+document.querySelectorAll('.btn-quick[data-quick]').forEach(b => b.addEventListener('click', () => window.applyQuickReply(b.dataset.quick)));
+
+window.selectApprovalReply = function () {
+$('modalNewComment').value = "";
+$('approvalFields').style.display = 'block';
+$('appNum').value = "";
+$('appDate').value = "";
+};
+
+window.saveCommentData = async function () {
+let text = $('modalNewComment').value.trim();
+const appVisible = $('approvalFields').style.display === 'block';
+if (appVisible) {
+const num = $('appNum').value.trim();
+const dt = $('appDate').value;
+if (!num || !dt) { alert("برجاء تعبئة رقم وتاريخ التعميد المرجعي للتوثيق الإداري."); return; }
+text = '[تم التعميد رسميًا] - بموجب تعميد رقم: (' + num + ') الصادر بتاريخ: ' + dt + '. ' + text;
 }
+if (!text) { alert("الرجاء كتابة أو اختيار نص التحديث والمبرر أولاً."); return; }
 
-window.applyQuickReply = function(text) {
-document.getElementById('approvalFields').style.display = 'none';
-document.getElementById('modalNewComment').value = text;
-}
-
-window.selectApprovalReply = function() {
-document.getElementById('modalNewComment').value = "";
-document.getElementById('approvalFields').style.display = 'block';
-document.getElementById('appNum').value = "";
-document.getElementById('appDate').value = "";
-}
-
-window.saveCommentData = async function() {
-let text = document.getElementById('modalNewComment').value.trim();
-const appFieldsVisible = document.getElementById('approvalFields').style.display === 'block';
-
-if (appFieldsVisible) {
-const num = document.getElementById('appNum').value.trim();
-const dt = document.getElementById('appDate').value;
-if(!num || !dt) { alert("برجاء تعبئة رقم وتاريخ التعميد المرجعي للتوثيق الإداري."); return; }
-text = `[تم التعميد رسميًا] - بموجب تعميد رقم: (${num}) الصادر بتاريخ: ${dt}. ` + text;
-}
-
-if(!text) { alert("الرجاء كتابة أو اختيار نص التحديث والمبرر أولاً."); return; }
-
-const btn = document.getElementById('btnSaveComment');
+const btn = $('btnSaveComment');
 btn.disabled = true;
 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري مزامنة وتحديث سحابة التجمع...';
-
 try {
 const order = LOCAL_ORDERS.find(o => o.id === currentEditingOrderId);
 const orderRef = doc(db, "pending_orders", order.docId);
-
-let updatedCommentsArray = order.comments ? [...order.comments] : [];
+const updated = order.comments ? [...order.comments] : [];
 const stamp = new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
-
 if (currentCommentEditIndex === null) {
-updatedCommentsArray.push({ text: text, date: stamp, author: profile.email });
+updated.push({ text: text, date: stamp, author: profile.email });
 } else {
-updatedCommentsArray[currentCommentEditIndex].text = text;
-updatedCommentsArray[currentCommentEditIndex].date = stamp + " (معدل)";
+updated[currentCommentEditIndex].text = text;
+updated[currentCommentEditIndex].date = stamp + " (معدل)";
 }
-
-await updateDoc(orderRef, { comments: updatedCommentsArray });
-
+await updateDoc(orderRef, { comments: updated });
 window.closeModal();
 loadSiteOrders();
-
 } catch (error) {
 console.error(error);
 alert("حدث خلل في السيرفر أثناء الرفع والتحديث، تحقق من الاتصال بالشبكة.");
@@ -421,42 +555,36 @@ alert("حدث خلل في السيرفر أثناء الرفع والتحديث�
 btn.disabled = false;
 btn.innerHTML = '<i class="fas fa-save"></i> حفظ المبرر وإرساله فوراً للأدمن';
 }
-}
+};
 
-window.editCommentTrigger = function(index) {
+window.editCommentTrigger = function (index) {
 const order = LOCAL_ORDERS.find(o => o.id === currentEditingOrderId);
-const targetComment = order.comments[index];
-
 currentCommentEditIndex = index;
-document.getElementById('modalNewComment').value = targetComment.text;
-document.getElementById('approvalFields').style.display = 'none';
+$('modalNewComment').value = order.comments[index].text;
+$('approvalFields').style.display = 'none';
+$('lblWriteType').textContent = "تعديل وتصحيح نص المبرر المختار:";
+$('btnSaveComment').innerHTML = '<i class="fas fa-edit"></i> حفظ التعديلات الآن وإرسالها للأدمن';
+$('modalNewComment').focus();
+};
 
-document.getElementById('lblWriteType').textContent = "تعديل وتصحيح نص المبرر المختار:";
-document.getElementById('btnSaveComment').innerHTML = '<i class="fas fa-edit"></i> حفظ التعديلات الآن وإرسالها للأدمن';
-document.getElementById('modalNewComment').focus();
-}
-
-window.deleteCommentTrigger = async function(index) {
-if(!confirm("هل أنت متأكد من مسح هذا التبرير نهائياً من السجل المرسل للأدمن؟ لا يمكن التراجع عن هذا الإجراء.")) return;
-
+window.deleteCommentTrigger = async function (index) {
+if (!confirm("هل أنت متأكد من مسح هذا التبرير نهائياً من السجل المرسل للأدمن؟ لا يمكن التراجع عن هذا الإجراء.")) return;
 try {
 const order = LOCAL_ORDERS.find(o => o.id === currentEditingOrderId);
 const orderRef = doc(db, "pending_orders", order.docId);
-
-let updatedCommentsArray = [...order.comments];
-updatedCommentsArray.splice(index, 1);
-
-await updateDoc(orderRef, { comments: updatedCommentsArray });
-
-order.comments = updatedCommentsArray;
+const updated = [...order.comments];
+updated.splice(index, 1);
+await updateDoc(orderRef, { comments: updated });
+order.comments = updated;
 renderCommentsList(order);
 loadSiteOrders();
-
 } catch (error) {
 console.error(error);
 alert("تعذر مسح الكومنت، تحقق من الصلاحيات والاتصال.");
 }
-}
+};
+
+loadSiteOrders();
 </script>
 </body>
 </html>
