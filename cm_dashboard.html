@@ -104,6 +104,26 @@ tbody tr:hover { background: #f0f9ff; }
 .pbar { position: relative; width: 110px; height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }
 .pbar i { position: absolute; right: 0; top: 0; bottom: 0; border-radius: 99px; }
 
+.dev-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: .8rem 1.3rem; border-bottom: 1px solid var(--line); background: #f8fafc; }
+.legend { margin-right: auto; font-size: .78rem; color: var(--muted); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.lg { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #cbd5e1; margin-right: 8px; }
+.lg-w { background: #fff; } .lg-y { background: #fef08a; } .lg-r { background: #fecaca; }
+tbody tr.rw-y { background: #fef9c3; } tbody tr.rw-r { background: #fee2e2; }
+tbody tr.rw-y:hover, tbody tr.rw-r:hover { filter: brightness(.96); }
+.print-only { display: none; }
+#tActive td, #tActive th { padding-top: 8px; padding-bottom: 8px; }
+@media print {
+@page { size: A4 landscape; margin: 10mm; }
+body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
+body.pd .header, body.pd #emptyState, body.pd #dashboard > :not(#pDevices), body.pd .noprint { display: none !important; }
+body.pd .container { margin: 0; padding: 0; max-width: 100%; }
+body.pd .panel { border: none; box-shadow: none; }
+body.pd .table-wrap { max-height: none; overflow: visible; }
+body.pd .print-only { display: block; padding: 6px 4px 10px; font-weight: 700; font-size: .85rem; color: #334155; }
+body.pd th { position: static; cursor: default; }
+body.pd td, body.pd th { font-size: 9.5pt; padding: 4px 8px; border: 1px solid #cbd5e1; }
+body.pd tr { page-break-inside: avoid; }
+}
 #emptyState { text-align: center; padding: 6rem 1rem; color: #94a3b8; }
 
 @media (max-width: 700px) { .header { padding: .7rem 1rem; } .container { padding: 0 .8rem; } .hero { padding: 1.2rem; } .charts { grid-template-columns: 1fr; } }
@@ -152,8 +172,8 @@ tbody tr:hover { background: #f0f9ff; }
 <div class="grid-kpi">
 <div class="kpi-card"><div class="kpi-ico" style="background:#dbeafe;color:var(--primary-2)"><i class="fas fa-clipboard-list"></i></div><div><div class="kpi-label">إجمالي البلاغات</div><div class="kpi-val" id="kpi-total" style="color:var(--primary-2)">0</div><div class="kpi-sub">Total Corrective WOs</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#dcfce7;color:var(--green)"><i class="fas fa-circle-check"></i></div><div><div class="kpi-label">تم الإنجاز</div><div class="kpi-val" id="kpi-closed" style="color:var(--green)">0</div><div class="kpi-sub" id="kpi-rate-sub">Signed Off</div></div></div>
-<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">أعطال نشطة</div><div class="kpi-val" id="kpi-active" style="color:var(--red)">0</div><div class="kpi-sub">بانتظار بدء الإجراء</div></div></div>
-<div class="kpi-card"><div class="kpi-ico" style="background:#ede9fe;color:var(--purple)"><i class="fas fa-gears"></i></div><div><div class="kpi-label">تحت الإجراء</div><div class="kpi-val" id="kpi-progress" style="color:var(--purple)">0</div><div class="kpi-sub">مكلّف / بانتظار اعتماد</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">أجهزة متعطلة</div><div class="kpi-val" id="kpi-active" style="color:var(--red)">0</div><div class="kpi-sub">Active + Assigned</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#ede9fe;color:var(--purple)"><i class="fas fa-gears"></i></div><div><div class="kpi-label">تحت الإجراء</div><div class="kpi-val" id="kpi-progress" style="color:var(--purple)">0</div><div class="kpi-sub">بانتظار الاعتماد</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#ffedd5;color:var(--orange)"><i class="fas fa-bolt"></i></div><div><div class="kpi-label">متوسط الاستجابة</div><div class="kpi-val" id="kpi-resp" style="color:var(--orange)">0</div><div class="kpi-sub">أيام (Fail → Start)</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#cffafe;color:var(--cyan)"><i class="fas fa-stopwatch"></i></div><div><div class="kpi-label">متوسط الإصلاح</div><div class="kpi-val" id="kpi-fix" style="color:var(--cyan)">0</div><div class="kpi-sub">أيام (Fail → Closed)</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">مفتوحة متأخرة (+7 أيام)</div><div class="kpi-val" id="kpi-late" style="color:var(--yellow)">0</div><div class="kpi-sub">تحتاج تصعيد</div></div></div>
@@ -192,6 +212,34 @@ tbody tr:hover { background: #f0f9ff; }
 <div class="chart-card"><h4><i class="fas fa-user-gear" style="color:var(--green)"></i> أعلى الفنيين إنجازاً (Top 10)</h4><div class="chart-box"><canvas id="chTech"></canvas></div></div>
 </div>
 
+<div class="panel tp-orange">
+<div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--orange)"><i class="fas fa-rotate"></i></div><div><h3>سجل الأجهزة المتكررة <span class="count-pill" id="c-lemon">0</span></h3><small>Lemons - أجهزة تكرر عطلها 3 مرات فأكثر (حسب السيريال)</small></div></div></div>
+<div class="table-wrap" style="max-height:320px"><table id="tLemon"><thead></thead><tbody></tbody></table></div>
+</div>
+
+<div class="panel tp-red" id="pDevices">
+<div class="panel-head">
+<div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>الأجهزة المتعطلة <span class="count-pill" id="c-active">0</span></h3><small>أعطال Active + أوامر Assigned - مرتبة من الأقدم إلى الأحدث</small></div></div>
+<div class="panel-tools noprint"><button class="btn-action" onclick="exportOpen(1)"><i class="fas fa-file-excel" style="color:#16a34a"></i> Excel</button><button class="btn-action btn-primary" onclick="printDevices()"><i class="fas fa-print"></i> طباعة</button></div>
+</div>
+<div class="dev-tools noprint">
+<input type="search" id="dSearch" class="table-search" placeholder="بحث في الجدول...">
+<select id="dAge" class="table-search" style="width:auto"><option value="All">كل الفترات</option><option value="w">أبيض (حتى 5 أيام)</option><option value="y">أصفر (أكثر من 5 إلى 30)</option><option value="r">أحمر (أكثر من 30)</option></select>
+<select id="dStat" class="table-search" style="width:auto"><option value="All">Active + Assigned</option><option value="active">Active فقط</option><option value="assigned">Assigned فقط</option></select>
+<span class="legend"><i class="lg lg-w"></i> حتى 5 أيام <i class="lg lg-y"></i> 5 إلى 30 <i class="lg lg-r"></i> أكثر من 30</span>
+</div>
+<div class="print-only" id="pdInfo"></div>
+<div class="table-wrap" id="devWrap"><table id="tActive"><thead></thead><tbody></tbody></table></div>
+</div>
+
+<div class="panel tp-purple">
+<div class="panel-head">
+<div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-gears"></i></div><div><h3>أوامر عمل تحت الإجراء <span class="count-pill" id="c-prog">0</span></h3><small>بانتظار الاعتماد (Pending for Approval / Approved)</small></div></div>
+<div class="panel-tools"><button class="btn-action" onclick="exportOpen(2)"><i class="fas fa-file-excel" style="color:#16a34a"></i> Excel</button></div>
+</div>
+<div class="table-wrap"><table id="tProg"><thead></thead><tbody></tbody></table></div>
+</div>
+
 <div class="panel tp-blue">
 <div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--primary-2)"><i class="fas fa-hospital"></i></div><div><h3>تقييم المواقع <span class="count-pill" id="c-site">0</span></h3><small>Sites Performance</small></div></div></div>
 <div class="table-wrap"><table id="tSite"><thead></thead><tbody></tbody></table></div>
@@ -205,33 +253,12 @@ tbody tr:hover { background: #f0f9ff; }
 <div class="table-wrap"><table id="tTech"><thead></thead><tbody></tbody></table></div>
 </div>
 
-<div class="panel tp-orange">
-<div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--orange)"><i class="fas fa-rotate"></i></div><div><h3>سجل الأجهزة المتكررة <span class="count-pill" id="c-lemon">0</span></h3><small>Lemons - أجهزة تكرر عطلها 3 مرات فأكثر (حسب السيريال)</small></div></div></div>
-<div class="table-wrap" style="max-height:320px"><table id="tLemon"><thead></thead><tbody></tbody></table></div>
-</div>
-
-<div class="panel tp-red">
-<div class="panel-head">
-<div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>الأعطال النشطة <span class="count-pill" id="c-active">0</span></h3><small>أوامر مفتوحة بحالة Active لم يبدأ الإجراء عليها</small></div></div>
-<div class="panel-tools"><button class="btn-action" onclick="exportOpen(1)"><i class="fas fa-file-excel" style="color:#16a34a"></i> Excel</button></div>
-</div>
-<div class="table-wrap"><table id="tActive"><thead></thead><tbody></tbody></table></div>
-</div>
-
-<div class="panel tp-purple">
-<div class="panel-head">
-<div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-gears"></i></div><div><h3>أوامر عمل تحت الإجراء <span class="count-pill" id="c-prog">0</span></h3><small>مكلّف بها فني أو بانتظار الاعتماد (Assigned / Pending for Approval / Approved)</small></div></div>
-<div class="panel-tools"><button class="btn-action" onclick="exportOpen(2)"><i class="fas fa-file-excel" style="color:#16a34a"></i> Excel</button></div>
-</div>
-<div class="table-wrap"><table id="tProg"><thead></thead><tbody></tbody></table></div>
-</div>
-
 </div>
 </div>
 
 <script>
 const FILE_URL = 'data/CM.xlsx';
-const IN_PROGRESS = ['assigned', 'pending for approval', 'approved'];
+const IN_PROGRESS = ['pending for approval', 'approved'];
 let RAW_DATA = [];
 let VIEW = [];
 let QUICK = null;
@@ -293,6 +320,7 @@ cls: String(get('Classification') || '').trim()
 };
 o.age = (o.isOpen && dFail) ? Math.max(0, Math.floor((Date.now() - dFail.getTime()) / DAY)) : 0;
 o.group = !o.isOpen ? 0 : (IN_PROGRESS.includes(status.toLowerCase()) ? 2 : 1);
+o.ageCls = o.age <= 5 ? 'w' : (o.age <= 30 ? 'y' : 'r');
 o._search = [o.id, o.device, o.serial, o.tech, o.site, o.dept].join(' ').toLowerCase();
 return o;
 });
@@ -326,6 +354,8 @@ if (cl.length) { fill('fCls', cl); $('fgCls').style.display = ''; }
 ['fSite', 'fDept', 'fTech', 'fStatus', 'fCls', 'fFrom', 'fTo'].forEach(id => $(id).addEventListener('change', updateDashboard));
 let tm; $('fSearch').addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(updateDashboard, 200); });
 $('techSearch').addEventListener('input', () => renderTable('tTech'));
+$('dSearch').addEventListener('input', () => renderTable('tActive'));
+['dAge', 'dStat'].forEach(id => $(id).addEventListener('change', () => renderTable('tActive')));
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
 QUICK = (QUICK === c.dataset.quick) ? null : c.dataset.quick;
 document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset.quick === QUICK));
@@ -517,6 +547,15 @@ const lemonCols = [
 { key: 'c', label: 'عدد الأعطال', f: r => '<span class="badge age-red">' + r.c + ' أعطال</span>' },
 { key: 'site', label: 'الموقع', f: r => esc(r.site) }
 ];
+const devCols = [
+{ key: 'id', label: 'رقم الأمر', f: r => '<b style="color:#1e3a8a">' + esc(r.id) + '</b>' },
+{ key: 'device', label: 'الجهاز', f: r => '<span title="' + esc(r.device) + '">' + esc(String(r.device).substring(0, 34)) + '</span>' },
+{ key: 'site', label: 'الموقع', f: r => esc(r.site) },
+{ key: 'dept', label: 'القسم', f: r => esc(r.dept) },
+{ key: 'status', label: 'الحالة', f: r => '<span class="badge ' + stClass(r.status) + '">' + esc(r.status) + '</span>' },
+{ key: 'dFailN', label: 'تاريخ العطل', f: r => esc(fmtDate(r.dFail)) },
+{ key: 'age', label: 'الأيام', f: r => '<b>' + r.age + '</b>' }
+];
 const openCols = [
 { key: 'id', label: 'رقم الأمر', f: r => '<b style="color:#1e3a8a">' + esc(r.id) + '</b>' },
 { key: 'dFailN', label: 'تاريخ العطل', f: r => esc(fmtDate(r.dFail)) },
@@ -536,7 +575,7 @@ const lem = {};
 data.filter(r => r.serial && String(r.serial).length > 3).forEach(r => { if (!lem[r.serial]) lem[r.serial] = { device: r.device, serial: r.serial, site: r.site, c: 0 }; lem[r.serial].c++; });
 TBL.tLemon = { cols: lemonCols, rows: Object.values(lem).filter(x => x.c >= 3), def: { key: 'c', dir: -1 }, count: 'c-lemon', emptyMsg: 'لا توجد أجهزة تكرر عطلها 3 مرات أو أكثر' };
 const openRows = data.filter(r => r.isOpen).map(r => { r.dFailN = r.dFail ? r.dFail.getTime() : 0; return r; });
-TBL.tActive = { cols: openCols, rows: openRows.filter(r => r.group === 1), def: { key: 'age', dir: -1 }, count: 'c-active', bar: true, emptyMsg: 'لا توجد أعطال نشطة حالياً' };
+TBL.tActive = { cols: devCols, rows: openRows.filter(r => r.group === 1), def: { key: 'age', dir: -1 }, count: 'c-active', rowCls: true, dev: true, emptyMsg: 'لا توجد أجهزة متعطلة مطابقة' };
 TBL.tProg = { cols: openCols, rows: openRows.filter(r => r.group === 2), def: { key: 'age', dir: -1 }, count: 'c-prog', bar: true, emptyMsg: 'لا توجد أوامر تحت الإجراء' };
 Object.keys(TBL).forEach(id => { if (!SORTS[id]) SORTS[id] = { key: TBL[id].def.key, dir: TBL[id].def.dir }; renderTable(id); });
 }
@@ -552,6 +591,11 @@ let x = a[s.key], y = b[s.key];
 if (typeof x === 'number' || typeof y === 'number' || x == null || y == null) return ((x == null ? -1 : x) - (y == null ? -1 : y)) * s.dir;
 return String(x).localeCompare(String(y), 'ar') * s.dir;
 });
+if (T.dev) {
+const q = $('dSearch').value.trim().toLowerCase(), ag = $('dAge').value, st = $('dStat').value;
+rows = rows.filter(r => (!q || r._search.includes(q)) && (ag === 'All' || r.ageCls === ag) && (st === 'All' || r.status.toLowerCase() === st));
+}
+T.shown = rows;
 $(T.count).textContent = rows.length;
 const thead = tbl.querySelector('thead'); thead.innerHTML = '';
 const tr = document.createElement('tr');
@@ -570,6 +614,7 @@ const html = [];
 rows.forEach(r => {
 let bar = '';
 if (T.bar) { bar = ' class="rowbar" style="--bar:' + (r.age < 5 ? '#16a34a' : (r.age <= 30 ? '#eab308' : '#dc2626')) + '"'; }
+if (T.rowCls && r.ageCls !== 'w') bar = ' class="rw-' + r.ageCls + '"';
 html.push('<tr' + bar + '>' + T.cols.map(c => '<td>' + c.f(r) + '</td>').join('') + '</tr>');
 });
 tb.innerHTML = html.join('');
@@ -586,7 +631,7 @@ function rowOut(r) {
 return { 'رقم الأمر': r.id, 'تاريخ العطل': fmtDate(r.dFail), 'الموقع': r.site, 'القسم': r.dept, 'الجهاز': r.device, 'السيريال': r.serial, 'الفني': r.tech, 'الحالة': r.status, 'أيام التأخير': r.isOpen ? r.age : '', 'زمن الاستجابة (يوم)': r.resp ? +r.resp.toFixed(2) : '', 'زمن الإصلاح (يوم)': r.fix ? +r.fix.toFixed(2) : '' };
 }
 window.exportAll = () => { if (!VIEW.length) { alert('لا توجد بيانات'); return; } saveXlsx(VIEW.map(rowOut), 'CM', 'cm_orders'); };
-window.exportOpen = (g) => { const rows = VIEW.filter(r => r.group === g); if (!rows.length) { alert('لا توجد بيانات'); return; } saveXlsx(rows.map(rowOut), g === 1 ? 'Active' : 'InProgress', g === 1 ? 'cm_active' : 'cm_in_progress'); };
+window.exportOpen = (g) => { const T = g === 1 ? TBL.tActive : TBL.tProg; const rows = (T && T.shown ? T.shown : VIEW.filter(r => r.group === g)).slice().sort((a, b) => b.age - a.age); if (!rows.length) { alert('لا توجد بيانات'); return; } saveXlsx(rows.map(rowOut), g === 1 ? 'Broken' : 'InProgress', g === 1 ? 'cm_broken_devices' : 'cm_in_progress'); };
 
 // ============ Report label + print ============
 let REPORT_LABEL = '';
@@ -603,6 +648,20 @@ REPORT_LABEL = same ? la : (la + ' - ' + lb);
 $('reportMonthLabel').textContent = (same ? 'تقرير شهر ' : 'تقرير الفترة ') + REPORT_LABEL;
 document.title = 'مؤشرات الصيانة التصحيحية (CM) - ' + REPORT_LABEL;
 }
+
+window.printDevices = () => {
+const T = TBL.tActive;
+if (!T || !T.shown || !T.shown.length) { alert('لا توجد بيانات للطباعة'); return; }
+const parts = [];
+const site = $('fSite').value; if (site !== 'All') parts.push('الموقع: ' + site);
+const ag = $('dAge'); if (ag.value !== 'All') parts.push('الفترة: ' + ag.options[ag.selectedIndex].text);
+const st = $('dStat'); if (st.value !== 'All') parts.push('الحالة: ' + st.options[st.selectedIndex].text);
+$('pdInfo').textContent = 'كشف الأجهزة المتعطلة (' + T.shown.length + ') - مرتبة من الأقدم للأحدث - ' + new Date().toLocaleDateString('en-GB') + (parts.length ? ' | ' + parts.join(' | ') : '');
+document.body.classList.add('pd');
+const done = () => { document.body.classList.remove('pd'); window.removeEventListener('afterprint', done); };
+window.addEventListener('afterprint', done);
+window.print();
+};
 
 function openReport() {
 const siteVal = $('fSite').value;
