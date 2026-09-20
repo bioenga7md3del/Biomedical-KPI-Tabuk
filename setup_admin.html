@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إنشاء حساب الأدمن (مرة واحدة)</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Tajawal', sans-serif; background: #f1f5f9; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: #0f172a; }
+.card { background: #fff; padding: 35px; border-radius: 16px; width: 100%; max-width: 440px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-top: 5px solid #1e3a8a; }
+h1 { margin: 0 0 8px; color: #1e3a8a; font-size: 1.5rem; text-align: center; }
+p.sub { text-align: center; color: #64748b; margin: 0 0 25px; font-size: 0.95rem; line-height: 1.6; }
+label { display: block; font-weight: bold; color: #475569; margin-bottom: 5px; font-size: 0.95rem; }
+input { width: 100%; padding: 12px; margin-bottom: 18px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; background: #f8fafc; }
+input[readonly] { background: #e2e8f0; color: #475569; direction: ltr; text-align: left; }
+button { width: 100%; background: #1e3a8a; color: #fff; border: none; padding: 14px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; }
+button:disabled { background: #94a3b8; cursor: not-allowed; }
+#msg { display: none; margin-top: 15px; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 0.95rem; }
+.err { background: #fee2e2; color: #dc2626; }
+.ok { background: #dcfce7; color: #166534; }
+.warn { background: #fffbeb; color: #854d0e; border: 1px solid #fde68a; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-top: 20px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="card">
+<h1>إنشاء حساب الأدمن</h1>
+<p class="sub">صفحة لمرة واحدة لتسجيل حساب الإدارة المركزية. البريد ثابت ولا يمكن تغييره.</p>
+
+<label>البريد الإلكتروني</label>
+<input type="email" id="email" readonly>
+
+<label>كلمة المرور (8 أحرف على الأقل)</label>
+<input type="password" id="pass" autocomplete="new-password">
+
+<label>تأكيد كلمة المرور</label>
+<input type="password" id="pass2" autocomplete="new-password">
+
+<button id="btn">إنشاء الحساب</button>
+<div id="msg"></div>
+
+<div class="warn">بعد نجاح الإنشاء سيتم تحويلك للوحة الإدارة. ثم احذف ملف <b>setup_admin.html</b> من المستودع حتى لا تبقى الصفحة منشورة.</div>
+</div>
+
+<script type="module">
+import { auth, ADMIN_EMAIL } from "./firebase-init.js";
+import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+const emailEl = document.getElementById('email');
+const msg = document.getElementById('msg');
+const btn = document.getElementById('btn');
+emailEl.value = ADMIN_EMAIL;
+
+function show(text, cls) { msg.className = cls; msg.textContent = text; msg.style.display = 'block'; }
+
+async function create() {
+  const p1 = document.getElementById('pass').value;
+  const p2 = document.getElementById('pass2').value;
+  msg.style.display = 'none';
+  if (p1.length < 8) { show('كلمة المرور يجب ألا تقل عن 8 أحرف', 'err'); return; }
+  if (p1 !== p2) { show('كلمتا المرور غير متطابقتين', 'err'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'جاري الإنشاء...';
+  try {
+    await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, p1);
+    show('تم إنشاء الحساب بنجاح، جاري التحويل...', 'ok');
+    setTimeout(() => { location.href = 'admin.html'; }, 1200);
+  } catch (e) {
+    let m = 'تعذر إنشاء الحساب';
+    if (e.code === 'auth/email-already-in-use') m = 'الحساب موجود بالفعل، ارجع للصفحة الرئيسية وسجّل الدخول';
+    else if (e.code === 'auth/operation-not-allowed') m = 'فعّل Email/Password من Firebase Authentication أولاً';
+    else if (e.code === 'auth/weak-password') m = 'كلمة المرور ضعيفة';
+    else if (e.code === 'auth/network-request-failed') m = 'تعذر الاتصال بالشبكة';
+    show(m, 'err');
+    btn.disabled = false;
+    btn.textContent = 'إنشاء الحساب';
+  }
+}
+
+btn.addEventListener('click', create);
+document.getElementById('pass2').addEventListener('keypress', e => { if (e.key === 'Enter') create(); });
+</script>
+</body>
+</html>
