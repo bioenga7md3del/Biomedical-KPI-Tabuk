@@ -1,606 +1,574 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>مؤشرات الصيانة الوقائية (PPM) - تجمع تبوك</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>مؤشرات الصيانة الوقائية (PPM) - تجمع تبوك</title>
 
-    <style>
-        :root { 
-            --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; 
-            --primary: #1e3a8a; --secondary: #64748b;
-            --ppm-color: #16a34a; --warn-color: #eab308; --danger-color: #dc2626;
-        }
-        * { box-sizing: border-box; outline: none; text-decoration: none; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; scroll-behavior: smooth; }
-        
-        /* Header */
-        .header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .logo-img { height: 60px; object-fit: contain; } 
-        .header-titles { display: flex; align-items: center; gap: 15px; }
-        .header-titles h1 { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 800; }
-        .header-titles p { margin: 2px 0 0; font-size: 1rem; color: var(--ppm-color); font-weight: 700; }
-        
-        .header-actions { display: flex; gap: 10px; align-items: center; }
-        .btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 6px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
-        .btn-action:hover { background: #e2e8f0; }
-        
-        /* Excel Export Button */
-        .btn-excel { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
-        .btn-excel:hover { background: #dcfce7; }
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-        .status-badge { padding: 6px 12px; border-radius: 99px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; }
-        .st-loading { background: #e0f2fe; color: #0284c7; }
-        .st-success { background: #dcfce7; color: #16a34a; }
-        .st-error { background: #fee2e2; color: #dc2626; }
+<style>
+:root {
+--primary: #1e3a8a; --primary-2: #2563eb; --bg: #eef2f7; --surface: #fff; --text: #0f172a;
+--muted: #64748b; --line: #e2e8f0; --green: #16a34a; --yellow: #d99e04; --red: #dc2626;
+--purple: #7c3aed; --orange: #ea580c; --cyan: #0891b2;
+}
+* { box-sizing: border-box; outline: none; text-decoration: none; }
+body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
 
-        /* Container */
-        .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
+.header { background: var(--surface); padding: .8rem 2rem; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(15,23,42,.05); gap: 12px; flex-wrap: wrap; }
+.logo-img { height: 58px; object-fit: contain; }
+.header-titles { display: flex; align-items: center; gap: 14px; }
+.header-titles h1 { margin: 0; font-size: 1.3rem; color: var(--primary); font-weight: 800; }
+.header-titles p { margin: 2px 0 0; font-size: .95rem; color: var(--green); font-weight: 700; }
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: .2s; font-size: .88rem; }
+.btn-action:hover { background: #e2e8f0; transform: translateY(-1px); }
+.btn-primary { background: var(--green); color: #fff; border: none; }
+.btn-primary:hover { background: #15803d; box-shadow: 0 4px 12px rgba(22,163,74,.3); }
+.status-badge { padding: 6px 12px; border-radius: 99px; font-size: .85rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.st-loading { background: #e0f2fe; color: #0284c7; }
+.st-success { background: #dcfce7; color: #16a34a; }
+.st-error { background: #fee2e2; color: #dc2626; }
 
-        /* Controls */
-        .controls-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .control-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; min-width: 250px; }
-        .control-label { font-size: 0.9rem; font-weight: 700; color: var(--secondary); }
-        .form-input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: 'Tajawal'; font-size: 1rem; width: 100%; }
+.container { max-width: 1600px; margin: 1.5rem auto; padding: 0 1.5rem; }
 
-        /* KPIs */
-        .grid-kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-        @media(max-width: 1024px) { .grid-kpi { grid-template-columns: repeat(2, 1fr); } }
-        @media(max-width: 600px) { .grid-kpi { grid-template-columns: 1fr; } }
-        
-        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-top: 5px solid #cbd5e1; display: flex; flex-direction: column; transition: 0.3s; }
-        .kpi-val { font-size: 2.8rem; font-weight: 800; color: #1e293b; margin: 10px 0; }
-        .kpi-label { font-size: 1rem; color: var(--secondary); font-weight: 700; display: flex; justify-content: space-between; }
-        .kpi-sub { font-size: 0.85rem; color: #94a3b8; margin-top: auto; }
-        
-        /* Interactive Card Hover */
-        .interactive-card { cursor: pointer; position: relative; }
-        .interactive-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .interactive-card:hover::after { content: 'اضغط للفلترة والنزول للجدول \f063'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; bottom: 10px; left: 15px; font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; }
+.hero { background: linear-gradient(120deg, #064e3b 0%, #15803d 45%, #0284c7 100%); color: #fff; border-radius: 18px; padding: 1.6rem 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; box-shadow: 0 12px 30px rgba(6,78,59,.25); margin-bottom: 1.25rem; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; left: -60px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,.07); }
+.hero h2 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 800; }
+.hero p { margin: 0; opacity: .9; font-size: .95rem; }
+.hero-stats { display: flex; gap: 2rem; flex-wrap: wrap; position: relative; z-index: 1; }
+.hero-stat { text-align: center; }
+.hero-stat b { display: block; font-size: 2rem; font-weight: 800; line-height: 1.1; }
+.hero-stat span { font-size: .82rem; opacity: .9; font-weight: 700; }
 
-        /* Panels */
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 2rem; }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.8rem; }
-        .panel-title { font-size: 1.1rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.6rem; }
-        
-        .table-wrap { overflow-x: auto; max-height: 500px; } 
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 0.95rem; }
-        th { text-align: right; padding: 1rem; background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
-        td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-        tr:hover { background: #f8fafc; }
+.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.kpi-card { background: var(--surface); padding: 1.1rem 1.3rem; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,.05); border: 1px solid var(--line); display: flex; align-items: center; gap: 14px; transition: .2s; }
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(15,23,42,.09); }
+.kpi-card.click { cursor: pointer; }
+.kpi-ico { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.kpi-label { font-size: .85rem; color: var(--muted); font-weight: 700; }
+.kpi-val { font-size: 1.9rem; font-weight: 800; line-height: 1.15; }
+.kpi-sub { font-size: .75rem; color: var(--muted); font-weight: 600; }
 
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; }
-        .table-search { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; width: 250px; outline: none; }
-        .table-search:focus { border-color: var(--primary); }
+.filters { background: var(--surface); border-radius: 14px; border: 1px solid var(--line); padding: 1.1rem 1.3rem; margin-bottom: 1.25rem; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+.filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.filters-head h3 { margin: 0; font-size: 1rem; color: var(--primary); }
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg label { font-weight: 700; color: #475569; font-size: .8rem; }
+.fg select, .fg input { padding: .6rem .7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: .92rem; background: #f8fafc; color: var(--text); font-weight: 600; width: 100%; }
+.fg select:focus, .fg input:focus { border-color: var(--primary-2); background: #fff; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.chip { border: 1px solid #cbd5e1; background: #fff; color: #334155; padding: 6px 14px; border-radius: 999px; font-family: 'Tajawal'; font-weight: 700; font-size: .82rem; cursor: pointer; transition: .15s; }
+.chip:hover { border-color: var(--primary-2); color: var(--primary-2); }
+.chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+.active-filters { margin-top: 10px; font-size: .82rem; color: var(--muted); font-weight: 700; }
 
-        #emptyState { text-align: center; padding: 6rem 1rem; color: #94a3b8; }
-    </style>
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.chart-card { background: var(--surface); border-radius: 14px; border: 1px solid var(--line); padding: 1.1rem 1.2rem; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+.chart-card.wide { grid-column: 1 / -1; }
+.chart-card h4 { margin: 0 0 10px; font-size: .95rem; color: #334155; display: flex; align-items: center; gap: 8px; }
+.chart-box { position: relative; height: 270px; }
+
+.panel { background: var(--surface); border-radius: 16px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(15,23,42,.04); margin-bottom: 1.75rem; overflow: hidden; }
+.panel-head { padding: 1rem 1.3rem; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.panel-title { display: flex; align-items: center; gap: 12px; }
+.panel-title .pi { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #fff; }
+.panel-title h3 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.panel-title small { color: var(--muted); font-weight: 600; font-size: .8rem; }
+.count-pill { background: #eff6ff; color: var(--primary-2); font-weight: 800; padding: 3px 12px; border-radius: 999px; font-size: .85rem; margin-right: 6px; }
+.panel-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.table-search { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; width: 220px; font-size: .88rem; background: #f8fafc; }
+.table-search:focus { border-color: var(--primary-2); background: #fff; }
+.tp-red { border-top: 4px solid var(--red); } .tp-yellow { border-top: 4px solid #eab308; } .tp-blue { border-top: 4px solid var(--primary-2); } .tp-cyan { border-top: 4px solid var(--cyan); }
+
+.table-wrap { overflow-x: auto; max-height: 560px; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; text-align: right; }
+th { background: #f8fafc; color: #475569; padding: 13px 12px; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 5; font-weight: 800; font-size: .82rem; white-space: nowrap; cursor: pointer; user-select: none; }
+th:hover { background: #eef2f7; }
+th .si { opacity: .35; margin-right: 4px; font-size: .7rem; }
+th.sorted .si { opacity: 1; color: var(--primary-2); }
+td { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: .87rem; }
+tbody tr:hover { background: #f0f9ff; }
+.rowbar { box-shadow: inset -4px 0 0 var(--bar, transparent); }
+.empty { text-align: center; padding: 30px; color: var(--muted); font-weight: 700; }
+
+.badge { padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: .78rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.b-green { background: #dcfce7; color: #166534; } .b-yellow { background: #fef08a; color: #854d0e; } .b-red { background: #fee2e2; color: #991b1b; } .b-blue { background: #dbeafe; color: #1d4ed8; } .b-gray { background: #e2e8f0; color: #334155; }
+.pbar { position: relative; width: 110px; height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }
+.pbar i { position: absolute; right: 0; top: 0; bottom: 0; border-radius: 99px; }
+
+#emptyState { text-align: center; padding: 6rem 1rem; color: #94a3b8; }
+
+@media (max-width: 700px) { .header { padding: .7rem 1rem; } .container { padding: 0 .8rem; } .hero { padding: 1.2rem; } .charts { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 
 <header class="header">
-    <div class="header-titles">
-        <img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
-        <div>
-            <h1>مؤشرات الصيانة الوقائية (PPM)</h1>
-            <p>متابعة إنجاز الخطط المجدولة</p>
-        </div>
-    </div>
-    <div class="header-actions">
-        <div id="statusBadge" class="status-badge st-loading">
-            <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
-        </div>
-        <button class="btn-action" style="background: var(--ppm-color); color: white; border: none;" onclick="openReport()">
-            <i class="fas fa-print"></i> طباعة التقرير
-        </button>
-        <a href="index.html" class="btn-action">
-            <i class="fas fa-home"></i> الرئيسية
-        </a>
-    </div>
+<div class="header-titles">
+<img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.style.display='none'"/>
+<div>
+<h1>مؤشرات الصيانة الوقائية (PPM)</h1>
+<p>متابعة الالتزام بخطة الصيانة المجدولة</p>
+</div>
+</div>
+<div class="header-actions">
+<div id="statusBadge" class="status-badge st-loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+<button class="btn-action" onclick="exportAll()"><i class="fas fa-file-excel" style="color:#16a34a"></i> تصدير Excel</button>
+<button class="btn-action btn-primary" onclick="openReport()"><i class="fas fa-print"></i> طباعة التقرير</button>
+<a href="index.html" class="btn-action"><i class="fas fa-home"></i> الرئيسية</a>
+</div>
 </header>
 
 <div class="container">
 
-    <div class="controls-card" id="controlsArea" style="display:none">
-        <div class="control-group">
-            <div class="control-label">شهر التقرير (يستثني الشهور القادمة تلقائياً)</div>
-            <input type="month" id="monthFilter" class="form-input">
-        </div>
-        <div class="control-group">
-            <div class="control-label">تصفية حسب الموقع</div>
-            <select id="siteFilter" class="form-input">
-                <option value="All">-- كل المواقع --</option>
-            </select>
-        </div>
-    </div>
+<div id="emptyState">
+<i class="fas fa-server" style="font-size:4rem; margin-bottom:1rem; color:#cbd5e1"></i>
+<h3>جاري الاتصال بالبيانات...</h3>
+<p>جاري قراءة ملف data/PPM.xlsx</p>
+</div>
 
-    <div id="emptyState">
-        <i class="fas fa-server" style="font-size:4rem; margin-bottom:1rem; color:#cbd5e1"></i>
-        <h3>جاري الاتصال بالبيانات...</h3>
-        <p>جاري قراءة ملف data/PPM.xlsx</p>
-    </div>
+<div id="dashboard" style="display:none">
 
-    <div id="dashboard" style="display:none">
-        
-        <div class="grid-kpi">
-            <div class="kpi-card" style="border-top-color: #3b82f6;">
-                <div class="kpi-label">الإجمالي المستحق</div>
-                <div class="kpi-val" id="kpi-total">0</div>
-                <div class="kpi-sub">Total Scheduled</div>
-            </div>
-            <div class="kpi-card" style="border-top-color: #16a34a;">
-                <div class="kpi-label">تم الإنجاز (Done)</div>
-                <div class="kpi-val" id="kpi-closed" style="color:#16a34a">0</div>
-                <div class="kpi-sub"><span id="kpi-rate">0%</span> نسبة الإنجاز</div>
-            </div>
-            <div class="kpi-card interactive-card" style="border-top-color: #eab308;" onclick="filterLogs('progress')">
-                <div class="kpi-label">مجدول / تحت الإجراء ⏳</div>
-                <div class="kpi-val" id="kpi-prog" style="color:#ca8a04">0</div>
-                <div class="kpi-sub">تاريخ الاستحقاق بالمستقبل أو جاري العمل</div>
-            </div>
-            <div class="kpi-card interactive-card" style="border-top-color: #ef4444;" onclick="filterLogs('delayed')">
-                <div class="kpi-label">متأخر / متجاوز ❌</div>
-                <div class="kpi-val" id="kpi-delayed" style="color:#dc2626">0</div>
-                <div class="kpi-sub">انتهى تاريخ الاستحقاق ولم يُنجز</div>
-            </div>
-        </div>
+<div class="hero">
+<div>
+<h2><i class="fas fa-calendar-check"></i> الالتزام بخطة الصيانة الوقائية</h2>
+<p id="heroSub">-</p>
+</div>
+<div class="hero-stats">
+<div class="hero-stat"><b id="h-total">0</b><span>إجمالي المستحق</span></div>
+<div class="hero-stat"><b id="h-rate">0%</b><span>نسبة الالتزام</span></div>
+<div class="hero-stat"><b id="h-delayed">0</b><span>أوامر متأخرة</span></div>
+</div>
+</div>
 
-        <div class="grid-2">
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title" id="mainChartTitle">نسبة الالتزام بالخطة حسب الموقع</div>
-                </div>
-                <div style="height:300px"><canvas id="chartMain"></canvas></div>
-            </div>
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">تصنيف حالات أوامر الصيانة</div>
-                </div>
-                <div style="height:250px; width:250px; margin:0 auto"><canvas id="chartDonut"></canvas></div>
-            </div>
-        </div>
+<div class="grid-kpi">
+<div class="kpi-card"><div class="kpi-ico" style="background:#dbeafe;color:var(--primary-2)"><i class="fas fa-clipboard-list"></i></div><div><div class="kpi-label">الإجمالي المستحق</div><div class="kpi-val" id="kpi-total" style="color:var(--primary-2)">0</div><div class="kpi-sub">Total Scheduled</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#dcfce7;color:var(--green)"><i class="fas fa-circle-check"></i></div><div><div class="kpi-label">تم الإنجاز</div><div class="kpi-val" id="kpi-done" style="color:var(--green)">0</div><div class="kpi-sub" id="kpi-done-sub">Signed Off</div></div></div>
+<div class="kpi-card" id="kpiTarget"><div class="kpi-ico" id="kpiTargetIco" style="background:#dcfce7;color:var(--green)"><i class="fas fa-bullseye"></i></div><div><div class="kpi-label">نسبة الالتزام مقابل المستهدف</div><div class="kpi-val" id="kpi-rate" style="color:var(--green)">0%</div><div class="kpi-sub" id="kpi-gap">المستهدف 90%</div></div></div>
+<div class="kpi-card click" onclick="setCat('delayed')"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">متأخر / متجاوز</div><div class="kpi-val" id="kpi-delayed" style="color:var(--red)">0</div><div class="kpi-sub">انتهى استحقاقه ولم يُنجز (اضغط للفلترة)</div></div></div>
+<div class="kpi-card click" onclick="setCat('progress')"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-hourglass-half"></i></div><div><div class="kpi-label">مجدول / تحت الإجراء</div><div class="kpi-val" id="kpi-prog" style="color:var(--yellow)">0</div><div class="kpi-sub">قادم أو جاري العمل (اضغط للفلترة)</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#ffedd5;color:var(--orange)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">أقدم أمر متأخر</div><div class="kpi-val" id="kpi-oldest" style="color:var(--orange)">0</div><div class="kpi-sub">يوم منذ الاستحقاق</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#cffafe;color:var(--cyan)"><i class="fas fa-stopwatch"></i></div><div><div class="kpi-label">متوسط تأخر التنفيذ</div><div class="kpi-val" id="kpi-lag" style="color:var(--cyan)">-</div><div class="kpi-sub">أيام بين الاستحقاق والإقفال (للمنجز)</div></div></div>
+</div>
 
-        <div class="panel">
-            <div class="panel-header"><div class="panel-title"><i class="fas fa-hospital"></i> تقييم المواقع (Sites Performance)</div></div>
-            <div class="table-wrap">
-                <table id="siteTable">
-                    <thead>
-                        <tr>
-                            <th>الموقع</th>
-                            <th>الإجمالي</th>
-                            <th>المنجز ✅</th>
-                            <th>مجدول/تحت الإجراء ⏳</th>
-                            <th>متأخر ❌</th>
-                            <th>نسبة الإنجاز %</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
+<div class="filters">
+<div class="filters-head">
+<h3><i class="fas fa-filter"></i> الفلاتر والبحث</h3>
+<button class="btn-action" onclick="resetFilters()"><i class="fas fa-eraser"></i> مسح الفلاتر</button>
+</div>
+<div class="filter-grid">
+<div class="fg"><label><i class="fas fa-calendar"></i> شهر التقرير (حتى نهاية الشهر)</label><input type="month" id="monthFilter"></div>
+<div class="fg" style="grid-column: span 2; min-width:200px;"><label><i class="fas fa-magnifying-glass"></i> بحث (رقم أمر / جهاز / فني / موقع)</label><input type="search" id="fSearch" placeholder="اكتب للبحث..."></div>
+<div class="fg"><label><i class="fas fa-hospital"></i> الموقع</label><select id="fSite"><option value="All">كل المواقع</option></select></div>
+<div class="fg"><label><i class="fas fa-building"></i> القسم</label><select id="fDept"><option value="All">كل الأقسام</option></select></div>
+<div class="fg"><label><i class="fas fa-user-gear"></i> الفني</label><select id="fTech"><option value="All">كل الفنيين</option></select></div>
+<div class="fg"><label><i class="fas fa-flag"></i> حالة النظام</label><select id="fStatus"><option value="All">كل الحالات</option></select></div>
+<div class="fg"><label><i class="fas fa-list-check"></i> موقف الأمر</label><select id="fCat"><option value="All">الكل</option><option value="done">منجز</option><option value="progress">مجدول / تحت الإجراء</option><option value="delayed">متأخر</option></select></div>
+</div>
+<div class="chips">
+<button class="chip" data-quick="open"><i class="fas fa-folder-open"></i> غير المنجز فقط</button>
+<button class="chip" data-quick="over30"><i class="fas fa-fire"></i> متأخر أكثر من 30 يوم</button>
+<button class="chip" data-quick="unassigned"><i class="fas fa-user-slash"></i> لم يُستلم بعد (Assigned)</button>
+<button class="chip" data-quick="thismonth"><i class="fas fa-calendar-day"></i> مستحق هذا الشهر</button>
+</div>
+<div class="active-filters" id="activeFilters"></div>
+</div>
 
-        <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title"><i class="fas fa-user-md"></i> تقييم الفنيين (Technicians)</div>
-                <input type="text" id="techSearchInput" class="table-search" placeholder="بحث باسم الفني..." onkeyup="filterTechTable()">
-            </div>
-            <div class="table-wrap">
-                <table id="techTable">
-                    <thead>
-                        <tr>
-                            <th>الفني</th>
-                            <th>الإجمالي</th>
-                            <th>المنجز ✅</th>
-                            <th>مجدول/تحت الإجراء ⏳</th>
-                            <th>متأخر ❌</th>
-                            <th>نسبة الإنجاز %</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
+<div class="charts">
+<div class="chart-card wide"><h4><i class="fas fa-chart-column" style="color:var(--primary-2)"></i> الأداء الشهري: المستحق مقابل المنجز ونسبة الالتزام</h4><div class="chart-box"><canvas id="chTrend"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-hospital" style="color:var(--green)"></i> نسبة الالتزام حسب الموقع (المستهدف 90%)</h4><div class="chart-box"><canvas id="chSite"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-chart-pie" style="color:var(--yellow)"></i> تصنيف حالات الأوامر</h4><div class="chart-box"><canvas id="chDonut"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-hourglass-end" style="color:var(--red)"></i> أعمار الأوامر المتأخرة</h4><div class="chart-box"><canvas id="chAge"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-user-gear" style="color:var(--cyan)"></i> عبء الفنيين (أعلى 10)</h4><div class="chart-box"><canvas id="chTech"></canvas></div></div>
+</div>
 
-        <div class="panel" id="logsPanel">
-            <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
-                <div class="panel-title" style="color:#1e293b">
-                    <i class="fas fa-list-ul" style="color:#b91c1c"></i> سجل الأوامر 
-                    <span id="logsFilterLabel" style="color:#b91c1c; margin-right:5px">(غير المنجزة)</span>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button id="btnShowAllLogs" class="btn-action" style="display:none; color:#dc2626; border-color:#fca5a5" onclick="filterLogs('all')">
-                        <i class="fas fa-times"></i> إلغاء الفلتر
-                    </button>
-                    <button class="btn-action btn-excel" onclick="exportLogsToExcel()">
-                        <i class="fas fa-file-excel"></i> تنزيل إكسل
-                    </button>
-                </div>
-            </div>
-            <div class="table-wrap">
-                <table id="logsTable">
-                    <thead>
-                        <tr>
-                            <th>رقم الأمر</th>
-                            <th>الاستحقاق (Start Date)</th>
-                            <th>الموقع</th>
-                            <th>الجهاز</th>
-                            <th>الفني</th>
-                            <th>تحديث الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
+<div class="panel tp-red">
+<div class="panel-head">
+<div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>الأوامر المتأخرة <span class="count-pill" id="c-delayed">0</span></h3><small>انتهى تاريخ استحقاقها ولم تُنجز (أو بدون تاريخ استحقاق)</small></div></div>
+<div class="panel-tools"><button class="btn-action" onclick="exportCat('delayed')"><i class="fas fa-file-excel" style="color:#16a34a"></i> Excel</button></div>
+</div>
+<div class="table-wrap"><table id="tDelayed"><thead></thead><tbody></tbody></table></div>
+</div>
 
-    </div>
+<div class="panel tp-yellow">
+<div class="panel-head">
+<div class="panel-title"><div class="pi" style="background:#eab308"><i class="fas fa-hourglass-half"></i></div><div><h3>مجدول / تحت الإجراء <span class="count-pill" id="c-prog">0</span></h3><small>استحقاقه قادم، أو مستلم ومرّ عليه أقل من 30 يوماً</small></div></div>
+<div class="panel-tools"><button class="btn-action" onclick="exportCat('progress')"><i class="fas fa-file-excel" style="color:#16a34a"></i> Excel</button></div>
+</div>
+<div class="table-wrap"><table id="tProg"><thead></thead><tbody></tbody></table></div>
+</div>
+
+<div class="panel tp-blue">
+<div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--primary-2)"><i class="fas fa-hospital"></i></div><div><h3>تقييم المواقع <span class="count-pill" id="c-site">0</span></h3><small>Sites Performance</small></div></div></div>
+<div class="table-wrap"><table id="tSite"><thead></thead><tbody></tbody></table></div>
+</div>
+
+<div class="panel tp-cyan">
+<div class="panel-head">
+<div class="panel-title"><div class="pi" style="background:var(--cyan)"><i class="fas fa-user-doctor"></i></div><div><h3>تقييم الفنيين <span class="count-pill" id="c-tech">0</span></h3><small>Technicians</small></div></div>
+<div class="panel-tools"><input type="search" id="techSearch" class="table-search" placeholder="بحث باسم الفني..."></div>
+</div>
+<div class="table-wrap"><table id="tTech"><thead></thead><tbody></tbody></table></div>
+</div>
+
+</div>
 </div>
 
 <script>
-    const FILE_URL = 'data/PPM.xlsx';
-    let RAW_DATA = [];
-    let CURRENT_DASHBOARD_DATA = []; 
-    let CURRENT_LOG_FILTER = 'all'; 
-    let charts = {};
+const FILE_URL = 'data/PPM.xlsx';
+const TARGET = 90;
+const DAY = 86400000;
+let RAW_DATA = [];
+let VIEW = [];
+let QUICK = null;
+const charts = {};
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        document.getElementById('monthFilter').value = `${yyyy}-${mm}`;
+window.addEventListener('DOMContentLoaded', async () => {
+const now = new Date();
+$('monthFilter').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+const badge = $('statusBadge');
+try {
+const res = await fetch(FILE_URL);
+if (!res.ok) throw new Error("File not found");
+RAW_DATA = parseExcel(await res.arrayBuffer());
+if (RAW_DATA.length === 0) {
+badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-times"></i> لا توجد بيانات';
+} else {
+badge.className = 'status-badge st-success'; badge.innerHTML = '<i class="fas fa-check"></i> متصل (' + RAW_DATA.length + ' أمر وقائي)';
+$('emptyState').style.display = 'none';
+$('dashboard').style.display = 'block';
+initFilters();
+updateDashboard();
+}
+} catch (e) {
+console.error(e);
+badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> خطأ في الاتصال بالملف';
+}
+});
 
-        const badge = document.getElementById('statusBadge');
-        try {
-            const res = await fetch(FILE_URL);
-            if(!res.ok) throw new Error("File not found");
-            const buf = await res.arrayBuffer();
-            
-            RAW_DATA = parseExcel(buf);
-            
-            if(RAW_DATA.length === 0) {
-                badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-times"></i> لا توجد بيانات';
-            } else {
-                badge.className = 'status-badge st-success'; badge.innerHTML = `<i class="fas fa-check"></i> متصل (${RAW_DATA.length} أمر وقائي)`;
-                document.getElementById('emptyState').style.display = 'none';
-                document.getElementById('controlsArea').style.display = 'flex';
-                document.getElementById('dashboard').style.display = 'block';
-                initFilters();
-                updateDashboard();
-            }
-        } catch(e) { 
-            console.error(e); 
-            badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> خطأ في الاتصال بالملف';
-        }
-    });
+function parseExcel(buf) {
+const wb = XLSX.read(buf, { type: 'array' });
+const ws = wb.Sheets[wb.SheetNames[0]];
+const json = XLSX.utils.sheet_to_json(ws);
+return json.map(row => {
+const get = k => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
+const o = {
+id: get('#') || get('Control No') || '-',
+site: get('Site') || 'Unknown',
+dept: get('Department') || '-',
+device: get('ECRI Code') || get('Equipment Name') || 'Device',
+tech: get('Assigned To') || 'Unknown',
+rawStatus: String(get('Status')).trim(),
+dStart: parseDate(get('start date') || get('Start Date')),
+dSign: parseDate(get('sign off date') || get('Completion Date'))
+};
+o._search = [o.id, o.device, o.tech, o.site, o.dept].join(' ').toLowerCase();
+return o;
+});
+}
 
-    function parseExcel(buf) {
-        const wb = XLSX.read(buf, {type:'array'});
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(ws);
-        
-        return json.map(row => {
-            const get = k => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
-            const status = String(get('Status')).trim();
-            const dStart = parseDate(get('start date') || get('Start Date'));
+function parseDate(v) {
+if (!v) return null;
+if (v instanceof Date) return v;
+const s = String(v).trim();
+if (s === '-' || s === '') return null;
+if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s.replace(' ', 'T'));
+const parts = s.split(' ')[0].split(/[\/\-\.]/);
+if (parts.length >= 3) {
+const p0 = parseInt(parts[0]), p1 = parseInt(parts[1]) - 1, p2 = parseInt(parts[2]);
+if (p0 > 1900) return new Date(p0, p1, p2);
+return new Date(p2, p1, p0);
+}
+return null;
+}
 
-            return {
-                id: get('#') || get('Control No') || '-',
-                site: get('Site') || 'Unknown',
-                device: get('ECRI Code') || get('Equipment Name') || 'Device',
-                tech: get('Assigned To') || 'Unknown',
-                rawStatus: status,
-                dStart: dStart
-            };
-        });
-    }
+// نفس منطق التصنيف السابق تماماً
+function getCategory(row) {
+const sl = row.rawStatus.toLowerCase();
+if (sl === 'signed off') return 'done';
+if (!row.dStart) return 'delayed';
+const diffDays = Math.ceil((Date.now() - row.dStart.getTime()) / DAY);
+if (diffDays < 0) return 'progress';
+if (sl === 'assigned') return 'delayed';
+if (diffDays <= 30) return 'progress';
+return 'delayed';
+}
 
-    function parseDate(v) {
-        if(!v) return null;
-        if(v instanceof Date) return v;
-        let s = String(v).trim();
-        if(s === '-' || s === '') return null;
-        if(s.match(/^\d{4}-\d{2}-\d{2}/)) return new Date(s);
-        let datePart = s.split(' ')[0];
-        let parts = datePart.split(/[\/\-\.]/);
-        if(parts.length >= 3) {
-            let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
-            if(p0 > 1900) return new Date(p0, p1, p2);
-            return new Date(p2, p1, p0);
-        }
-        return null;
-    }
+function uniq(k) { return [...new Set(RAW_DATA.map(d => d[k]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ar')); }
+function fill(id, vals) { const sel = $(id); vals.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); }); }
 
-    function initFilters() {
-        const sites = [...new Set(RAW_DATA.map(d => d.site))].sort();
-        const sel = document.getElementById('siteFilter');
-        sites.forEach(s => { if(s) sel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`); });
-        
-        document.getElementById('siteFilter').addEventListener('change', () => { CURRENT_LOG_FILTER = 'all'; updateDashboard(); });
-        document.getElementById('monthFilter').addEventListener('change', () => { CURRENT_LOG_FILTER = 'all'; updateDashboard(); });
-    }
+function initFilters() {
+fill('fSite', uniq('site')); fill('fDept', uniq('dept')); fill('fTech', uniq('tech')); fill('fStatus', uniq('rawStatus'));
+['monthFilter', 'fSite', 'fDept', 'fTech', 'fStatus', 'fCat'].forEach(id => $(id).addEventListener('change', updateDashboard));
+let tm; $('fSearch').addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(updateDashboard, 200); });
+$('techSearch').addEventListener('input', () => renderTable('tTech'));
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+QUICK = (QUICK === c.dataset.quick) ? null : c.dataset.quick;
+document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset.quick === QUICK));
+updateDashboard();
+}));
+}
 
-    function getCategory(row) {
-        const statusLower = row.rawStatus.toLowerCase();
-        const isDone = statusLower === 'signed off';
-        const isAssigned = statusLower === 'assigned';
-        
-        if (isDone) return 'done';
-        if (!row.dStart) return 'delayed'; // أمر مجهول التاريخ يُعتبر متأخر ليتم معالجته
+window.setCat = (c) => { $('fCat').value = ($('fCat').value === c) ? 'All' : c; updateDashboard(); $('tDelayed').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+window.resetFilters = () => {
+$('fSearch').value = '';
+['fSite', 'fDept', 'fTech', 'fStatus', 'fCat'].forEach(id => { $(id).value = 'All'; });
+const now = new Date(); $('monthFilter').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+QUICK = null;
+document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+updateDashboard();
+};
 
-        const today = Date.now();
-        const diffDays = Math.ceil((today - row.dStart.getTime()) / (1000 * 60 * 60 * 24));
+function monthLimit() {
+const v = $('monthFilter').value;
+if (!v) return null;
+return { y: parseInt(v.split('-')[0]), m: parseInt(v.split('-')[1]) - 1 };
+}
 
-        // التعديل الذكي للتواريخ المستقبلية
-        // إذا كان تاريخ الاستحقاق في المستقبل (الفرق بالسالب) فهو مجدول وتحت الإجراء
-        if (diffDays < 0) {
-            return 'progress'; 
-        }
+function getFiltered() {
+const q = $('fSearch').value.trim().toLowerCase();
+const site = $('fSite').value, dept = $('fDept').value, tech = $('fTech').value, st = $('fStatus').value, cat = $('fCat').value;
+const lim = monthLimit();
+const now = new Date();
+return RAW_DATA.filter(r => {
+if (lim && r.dStart) {
+const y = r.dStart.getFullYear(), m = r.dStart.getMonth();
+if (y > lim.y || (y === lim.y && m > lim.m)) return false;
+}
+if (q && !r._search.includes(q)) return false;
+if (site !== 'All' && r.site !== site) return false;
+if (dept !== 'All' && r.dept !== dept) return false;
+if (tech !== 'All' && r.tech !== tech) return false;
+if (st !== 'All' && r.rawStatus !== st) return false;
+r.category = getCategory(r);
+r.overdue = (r.category !== 'done' && r.dStart) ? Math.max(0, Math.floor((Date.now() - r.dStart.getTime()) / DAY)) : 0;
+if (cat !== 'All' && r.category !== cat) return false;
+if (QUICK === 'open' && r.category === 'done') return false;
+if (QUICK === 'over30' && !(r.category === 'delayed' && r.overdue > 30)) return false;
+if (QUICK === 'unassigned' && !(r.category !== 'done' && r.rawStatus.toLowerCase() === 'assigned')) return false;
+if (QUICK === 'thismonth' && !(r.dStart && r.dStart.getFullYear() === now.getFullYear() && r.dStart.getMonth() === now.getMonth())) return false;
+return true;
+});
+}
 
-        // أما إذا جاء تاريخه أو مر عليه:
-        if (isAssigned) return 'delayed'; // متأخر لأنه لم يُستلم بعد مجيء تاريخه
-        if (!isAssigned && diffDays <= 30) return 'progress'; // مستلم ومر أقل من 30 يوم
-        return 'delayed'; // تجاوز 30 يوم
-    }
+function f1(v) { return v == null ? '-' : v.toFixed(1); }
 
-    function updateDashboard() {
-        const siteVal = document.getElementById('siteFilter').value;
-        const monthVal = document.getElementById('monthFilter').value; 
-        
-        let targetYear = null, targetMonth = null;
-        if(monthVal) {
-            targetYear = parseInt(monthVal.split('-')[0]);
-            targetMonth = parseInt(monthVal.split('-')[1]) - 1;
-        }
+function updateDashboard() {
+const data = getFiltered();
+VIEW = data;
+const total = data.length;
+const done = data.filter(r => r.category === 'done');
+const prog = data.filter(r => r.category === 'progress').length;
+const del = data.filter(r => r.category === 'delayed');
+const rate = total ? Math.round(done.length / total * 100) : 0;
+const oldest = del.reduce((a, b) => Math.max(a, b.overdue), 0);
+const lags = done.filter(r => r.dStart && r.dSign).map(r => (r.dSign - r.dStart) / DAY);
+const lag = lags.length ? lags.reduce((a, b) => a + b, 0) / lags.length : null;
 
-        CURRENT_DASHBOARD_DATA = RAW_DATA.filter(r => {
-            if(siteVal !== 'All' && r.site !== siteVal) return false;
-            if(targetYear !== null && r.dStart) {
-                const startY = r.dStart.getFullYear();
-                const startM = r.dStart.getMonth();
-                if(startY > targetYear || (startY === targetYear && startM > targetMonth)) {
-                    return false; 
-                }
-            }
-            return true;
-        }).map(r => {
-            r.category = getCategory(r);
-            return r;
-        });
+$('kpi-total').textContent = total;
+$('kpi-done').textContent = done.length;
+$('kpi-done-sub').textContent = 'Signed Off';
+$('kpi-rate').textContent = rate + '%';
+const ok = rate >= TARGET;
+const col = ok ? '#16a34a' : (rate >= 70 ? '#d99e04' : '#dc2626');
+$('kpi-rate').style.color = col;
+$('kpiTargetIco').style.color = col;
+$('kpiTargetIco').style.background = ok ? '#dcfce7' : (rate >= 70 ? '#fef9c3' : '#fee2e2');
+$('kpi-gap').textContent = ok ? 'تحقق المستهدف (' + TARGET + '%) ✓' : 'أقل من المستهدف (' + TARGET + '%) بـ ' + (TARGET - rate) + ' نقطة';
+$('kpi-delayed').textContent = del.length;
+$('kpi-prog').textContent = prog;
+$('kpi-oldest').textContent = oldest;
+$('kpi-lag').textContent = f1(lag);
+$('h-total').textContent = total;
+$('h-rate').textContent = rate + '%';
+$('h-delayed').textContent = del.length;
+const lim = monthLimit();
+$('heroSub').textContent = 'المعروض ' + total + ' أمر من أصل ' + RAW_DATA.length + (lim ? ' - حتى شهر ' + (lim.m + 1) + '/' + lim.y : '');
 
-        const total = CURRENT_DASHBOARD_DATA.length;
-        const doneCount = CURRENT_DASHBOARD_DATA.filter(x => x.category === 'done').length;
-        const progCount = CURRENT_DASHBOARD_DATA.filter(x => x.category === 'progress').length;
-        const delayCount = CURRENT_DASHBOARD_DATA.filter(x => x.category === 'delayed').length;
-        const rate = total ? Math.round((doneCount/total)*100) : 0;
+const parts = [];
+if ($('fSearch').value.trim()) parts.push('بحث: ' + $('fSearch').value.trim());
+[['fSite', 'الموقع'], ['fDept', 'القسم'], ['fTech', 'الفني'], ['fStatus', 'الحالة']].forEach(p => { if ($(p[0]).value !== 'All') parts.push(p[1] + ': ' + $(p[0]).value); });
+if ($('fCat').value !== 'All') parts.push('الموقف: ' + $('fCat').selectedOptions[0].textContent);
+if (QUICK) parts.push('فلتر سريع: ' + document.querySelector('.chip[data-quick="' + QUICK + '"]').textContent.trim());
+$('activeFilters').textContent = parts.length ? 'الفلاتر المفعّلة: ' + parts.join(' | ') : '';
 
-        document.getElementById('kpi-total').textContent = total;
-        document.getElementById('kpi-closed').textContent = doneCount;
-        document.getElementById('kpi-prog').textContent = progCount;
-        document.getElementById('kpi-delayed').textContent = delayCount;
-        document.getElementById('kpi-rate').textContent = rate + '%';
+renderCharts(data);
+buildTables(data);
+}
 
-        renderCharts(CURRENT_DASHBOARD_DATA, doneCount, progCount, delayCount);
-        renderSiteTable(CURRENT_DASHBOARD_DATA);
-        renderTechTable(CURRENT_DASHBOARD_DATA); 
-        renderLogsTable(); 
-    }
+// ============ Charts ============
+function draw(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); }
+function rateColor(p) { return p >= TARGET ? '#16a34a' : (p >= 70 ? '#eab308' : '#dc2626'); }
 
-    function filterLogs(type) {
-        CURRENT_LOG_FILTER = type;
-        
-        const labelEl = document.getElementById('logsFilterLabel');
-        const btnAll = document.getElementById('btnShowAllLogs');
-        
-        if (type === 'all') {
-            labelEl.textContent = '(غير المنجزة)';
-            labelEl.style.color = '#b91c1c';
-            btnAll.style.display = 'none';
-        } else if (type === 'progress') {
-            labelEl.textContent = 'المفلترة: (مجدول / تحت الإجراء)';
-            labelEl.style.color = '#ca8a04';
-            btnAll.style.display = 'flex';
-        } else if (type === 'delayed') {
-            labelEl.textContent = 'المفلترة: (متأخرة / معلقة فقط)';
-            labelEl.style.color = '#dc2626';
-            btnAll.style.display = 'flex';
-        }
+function renderCharts(data) {
+Chart.defaults.font.family = 'Tajawal'; Chart.defaults.font.weight = '600';
 
-        renderLogsTable();
-        document.getElementById('logsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+// monthly trend
+const mm = {};
+data.forEach(r => { if (!r.dStart) return; const k = r.dStart.getFullYear() + '-' + String(r.dStart.getMonth() + 1).padStart(2, '0'); if (!mm[k]) mm[k] = { t: 0, d: 0 }; mm[k].t++; if (r.category === 'done') mm[k].d++; });
+const months = Object.keys(mm).sort();
+draw('chTrend', {
+data: { labels: months, datasets: [
+{ type: 'line', label: 'نسبة الالتزام %', data: months.map(k => Math.round(mm[k].d / mm[k].t * 100)), borderColor: '#f59e0b', backgroundColor: '#f59e0b', yAxisID: 'y1', tension: .3, pointRadius: 4 },
+{ type: 'line', label: 'المستهدف', data: months.map(() => TARGET), borderColor: '#94a3b8', borderDash: [6, 6], pointRadius: 0, yAxisID: 'y1' },
+{ type: 'bar', label: 'المستحق', data: months.map(k => mm[k].t), backgroundColor: '#93c5fd', borderRadius: 4 },
+{ type: 'bar', label: 'المنجز', data: months.map(k => mm[k].d), backgroundColor: '#16a34a', borderRadius: 4 }
+] },
+options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, y1: { position: 'left', min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } } } }
+});
 
-    function renderLogsTable() {
-        const tb = document.querySelector('#logsTable tbody');
-        tb.innerHTML = '';
-        
-        let openOrders = CURRENT_DASHBOARD_DATA.filter(r => r.category !== 'done');
-        
-        if (CURRENT_LOG_FILTER !== 'all') {
-            openOrders = openOrders.filter(r => r.category === CURRENT_LOG_FILTER);
-        }
+// site compliance
+const sg = {};
+data.forEach(r => { if (!sg[r.site]) sg[r.site] = { t: 0, d: 0 }; sg[r.site].t++; if (r.category === 'done') sg[r.site].d++; });
+const st = Object.entries(sg).map(([k, v]) => ({ k: k, p: Math.round(v.d / v.t * 100), t: v.t })).sort((a, b) => b.p - a.p).slice(0, 12);
+draw('chSite', {
+type: 'bar',
+data: { labels: st.map(x => (x.k.length > 22 ? x.k.substring(0, 22) + '…' : x.k) + ' (' + x.t + ')'), datasets: [{ label: 'نسبة الالتزام %', data: st.map(x => x.p), backgroundColor: st.map(x => rateColor(x.p)), borderRadius: 4 }] },
+options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } } }
+});
 
-        openOrders.sort((a,b) => (a.dStart||0)-(b.dStart||0));
-        
-        if(openOrders.length === 0) {
-            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:#64748b;font-weight:bold">لا توجد بيانات مطابقة للفلتر الحالي</td></tr>';
-            return;
-        }
+// donut
+const c = { done: 0, progress: 0, delayed: 0 };
+data.forEach(r => c[r.category]++);
+draw('chDonut', {
+type: 'doughnut',
+data: { labels: ['منجز', 'مجدول/تحت الإجراء', 'متأخر'], datasets: [{ data: [c.done, c.progress, c.delayed], backgroundColor: ['#16a34a', '#eab308', '#dc2626'], borderWidth: 2, borderColor: '#fff' }] },
+options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+});
 
-        openOrders.forEach(r => {
-            const date = r.dStart ? r.dStart.toLocaleDateString('en-GB') : '-';
-            const badgeStyle = r.category === 'progress' 
-                ? 'background:#fef08a; color:#854d0e' 
-                : 'background:#fee2e2; color:#991b1b'; 
-            const label = r.category === 'progress' ? `مجدول (${r.rawStatus})` : `متأخر (${r.rawStatus})`;
+// overdue ages
+const b = [0, 0, 0, 0, 0];
+data.filter(r => r.category === 'delayed').forEach(r => { const d = r.overdue; if (d <= 7) b[0]++; else if (d <= 30) b[1]++; else if (d <= 60) b[2]++; else if (d <= 90) b[3]++; else b[4]++; });
+draw('chAge', {
+type: 'bar',
+data: { labels: ['0-7 يوم', '8-30 يوم', '31-60 يوم', '61-90 يوم', '+90 يوم'], datasets: [{ data: b, backgroundColor: ['#fde68a', '#fbbf24', '#f97316', '#ef4444', '#991b1b'], borderRadius: 6 }] },
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
 
-            tb.insertAdjacentHTML('beforeend', `<tr>
-                <td><b>${r.id}</b></td>
-                <td style="font-weight:bold">${date}</td>
-                <td>${r.site}</td>
-                <td title="${r.device}">${r.device.substring(0,35)}</td>
-                <td>${r.tech}</td>
-                <td><span class="badge" style="${badgeStyle}">${label}</span></td>
-            </tr>`);
-        });
-    }
+// technicians workload
+const tg = {};
+data.forEach(r => { if (!tg[r.tech]) tg[r.tech] = { done: 0, progress: 0, delayed: 0 }; tg[r.tech][r.category]++; });
+const tt = Object.entries(tg).sort((a, b) => (b[1].done + b[1].progress + b[1].delayed) - (a[1].done + a[1].progress + a[1].delayed)).slice(0, 10);
+draw('chTech', {
+type: 'bar',
+data: { labels: tt.map(x => x[0].length > 20 ? x[0].substring(0, 20) + '…' : x[0]), datasets: [
+{ label: 'منجز', data: tt.map(x => x[1].done), backgroundColor: '#16a34a' },
+{ label: 'مجدول/تحت الإجراء', data: tt.map(x => x[1].progress), backgroundColor: '#eab308' },
+{ label: 'متأخر', data: tt.map(x => x[1].delayed), backgroundColor: '#dc2626' }
+] },
+options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }, y: { stacked: true } }, plugins: { legend: { position: 'bottom' } } }
+});
+}
 
-    function exportLogsToExcel() {
-        let openOrders = CURRENT_DASHBOARD_DATA.filter(r => r.category !== 'done');
-        if (CURRENT_LOG_FILTER !== 'all') {
-            openOrders = openOrders.filter(r => r.category === CURRENT_LOG_FILTER);
-        }
+// ============ Tables ============
+const SORTS = {};
+const TBL = {};
+function groupStats(data, key) {
+const g = {};
+data.forEach(r => {
+const k = r[key];
+if (!g[k]) g[k] = { name: k, t: 0, d: 0, p: 0, l: 0, oldest: 0 };
+const x = g[k]; x.t++;
+if (r.category === 'done') x.d++; else if (r.category === 'progress') x.p++; else { x.l++; x.oldest = Math.max(x.oldest, r.overdue); }
+});
+return Object.values(g).map(x => { x.rate = x.t ? Math.round(x.d / x.t * 100) : 0; return x; });
+}
+function rateCell(p) { return '<span class="pbar"><i style="width:' + p + '%; background:' + rateColor(p) + '"></i></span><b>' + p + '%</b>'; }
+function fmtDate(d) { return d ? d.toLocaleDateString('en-GB') : '-'; }
+function dueCell(r) {
+if (!r.dStart) return '<span class="badge b-red">بدون تاريخ</span>';
+const diff = Math.ceil((Date.now() - r.dStart.getTime()) / DAY);
+if (diff < 0) return '<span class="badge b-blue">بعد ' + (-diff) + ' يوم</span>';
+const c = diff <= 7 ? 'b-yellow' : 'b-red';
+return '<span class="badge ' + c + '">منذ ' + diff + ' يوم</span>';
+}
 
-        if(openOrders.length === 0) {
-            alert('لا توجد بيانات لتصديرها!');
-            return;
-        }
+const grpCols = [
+{ key: 'name', label: 'الاسم', f: r => '<b>' + esc(r.name) + '</b>' },
+{ key: 't', label: 'الإجمالي', f: r => '<b>' + r.t + '</b>' },
+{ key: 'd', label: 'المنجز', f: r => '<span style="color:#16a34a;font-weight:700">' + r.d + '</span>' },
+{ key: 'p', label: 'مجدول/تحت الإجراء', f: r => '<span style="color:#d99e04;font-weight:700">' + r.p + '</span>' },
+{ key: 'l', label: 'متأخر', f: r => '<span style="color:' + (r.l ? '#dc2626' : '#94a3b8') + ';font-weight:700">' + r.l + '</span>' },
+{ key: 'oldest', label: 'أقدم تأخير (يوم)', f: r => r.l ? r.oldest : '-' },
+{ key: 'rate', label: 'نسبة الالتزام', f: r => rateCell(r.rate) }
+];
+const siteCols = grpCols.map(c => Object.assign({}, c)); siteCols[0].label = 'الموقع';
+const techCols = grpCols.map(c => Object.assign({}, c)); techCols[0].label = 'الفني';
+const openCols = [
+{ key: 'id', label: 'رقم الأمر', f: r => '<b style="color:#1e3a8a">' + esc(r.id) + '</b>' },
+{ key: 'dN', label: 'الاستحقاق', f: r => esc(fmtDate(r.dStart)) },
+{ key: 'overdue', label: 'الموقف من الاستحقاق', f: r => dueCell(r) },
+{ key: 'site', label: 'الموقع', f: r => esc(r.site) },
+{ key: 'dept', label: 'القسم', f: r => esc(r.dept) },
+{ key: 'device', label: 'الجهاز', f: r => '<span title="' + esc(r.device) + '">' + esc(String(r.device).substring(0, 40)) + '</span>' },
+{ key: 'tech', label: 'الفني', f: r => esc(r.tech) },
+{ key: 'rawStatus', label: 'حالة النظام', f: r => '<span class="badge b-gray">' + esc(r.rawStatus) + '</span>' }
+];
 
-        const exportData = openOrders.map(r => ({
-            "رقم الأمر (Work Order)": r.id,
-            "تاريخ الاستحقاق (Start Date)": r.dStart ? r.dStart.toLocaleDateString('en-GB') : '-',
-            "الموقع (Site)": r.site,
-            "الجهاز (Device)": r.device,
-            "الفني (Technician)": r.tech,
-            "التصنيف الحالي": r.category === 'progress' ? 'مجدول/تحت الإجراء' : 'متأخر',
-            "حالة النظام (System Status)": r.rawStatus
-        }));
+function buildTables(data) {
+TBL.tSite = { cols: siteCols, rows: groupStats(data, 'site'), def: { key: 't', dir: -1 }, count: 'c-site' };
+TBL.tTech = { cols: techCols, rows: groupStats(data, 'tech'), def: { key: 't', dir: -1 }, count: 'c-tech', search: 'techSearch', sKey: 'name' };
+const open = data.filter(r => r.category !== 'done').map(r => { r.dN = r.dStart ? r.dStart.getTime() : 0; return r; });
+TBL.tDelayed = { cols: openCols, rows: open.filter(r => r.category === 'delayed'), def: { key: 'overdue', dir: -1 }, count: 'c-delayed', bar: '#dc2626', emptyMsg: 'ممتاز! لا توجد أوامر متأخرة' };
+TBL.tProg = { cols: openCols, rows: open.filter(r => r.category === 'progress'), def: { key: 'dN', dir: 1 }, count: 'c-prog', bar: '#eab308', emptyMsg: 'لا توجد أوامر مجدولة أو تحت الإجراء' };
+Object.keys(TBL).forEach(id => { if (!SORTS[id]) SORTS[id] = { key: TBL[id].def.key, dir: TBL[id].def.dir }; renderTable(id); });
+}
 
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const colWidths = [{wch: 20}, {wch: 15}, {wch: 25}, {wch: 40}, {wch: 25}, {wch: 20}, {wch: 25}];
-        ws['!cols'] = colWidths;
+function renderTable(id) {
+const T = TBL[id]; if (!T) return;
+const s = SORTS[id];
+const tbl = $(id);
+let rows = T.rows;
+if (T.search) { const q = $(T.search).value.trim().toLowerCase(); if (q) rows = rows.filter(r => String(r[T.sKey]).toLowerCase().includes(q)); }
+rows = rows.slice().sort((a, b) => {
+const x = a[s.key], y = b[s.key];
+if (typeof x === 'number' || typeof y === 'number') return ((x || 0) - (y || 0)) * s.dir;
+return String(x).localeCompare(String(y), 'ar') * s.dir;
+});
+$(T.count).textContent = rows.length;
+const thead = tbl.querySelector('thead'); thead.innerHTML = '';
+const tr = document.createElement('tr');
+T.cols.forEach(c => {
+const th = document.createElement('th');
+const on = s.key === c.key;
+th.className = on ? 'sorted' : '';
+th.innerHTML = esc(c.label) + ' <i class="fas ' + (on ? (s.dir === 1 ? 'fa-arrow-up' : 'fa-arrow-down') : 'fa-sort') + ' si"></i>';
+th.addEventListener('click', () => { if (s.key === c.key) s.dir *= -1; else { s.key = c.key; s.dir = ['name', 'site', 'dept', 'device', 'tech', 'rawStatus', 'id'].includes(c.key) ? 1 : -1; } renderTable(id); });
+tr.appendChild(th);
+});
+thead.appendChild(tr);
+const tb = tbl.querySelector('tbody');
+if (!rows.length) { tb.innerHTML = '<tr><td colspan="' + T.cols.length + '" class="empty">' + esc(T.emptyMsg || 'لا توجد بيانات مطابقة') + '</td></tr>'; return; }
+tb.innerHTML = rows.map(r => '<tr' + (T.bar ? ' class="rowbar" style="--bar:' + T.bar + '"' : '') + '>' + T.cols.map(c => '<td>' + c.f(r) + '</td>').join('') + '</tr>').join('');
+}
 
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "PPM Logs");
-        
-        const fName = CURRENT_LOG_FILTER === 'progress' ? 'Scheduled_PPM' : (CURRENT_LOG_FILTER === 'delayed' ? 'Delayed_PPM' : 'Open_PPM');
-        XLSX.writeFile(wb, `${fName}_Tabuk.xlsx`);
-    }
+// ============ Export ============
+function rowOut(r) {
+return { 'رقم الأمر': r.id, 'تاريخ الاستحقاق': fmtDate(r.dStart), 'الموقع': r.site, 'القسم': r.dept, 'الجهاز': r.device, 'الفني': r.tech, 'حالة النظام': r.rawStatus, 'التصنيف': r.category === 'done' ? 'منجز' : (r.category === 'progress' ? 'مجدول/تحت الإجراء' : 'متأخر'), 'أيام التأخر': r.category === 'delayed' ? r.overdue : '' };
+}
+function saveXlsx(rows, sheet, name) {
+const ws = XLSX.utils.json_to_sheet(rows);
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, sheet);
+XLSX.writeFile(wb, name + '_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+}
+window.exportAll = () => { if (!VIEW.length) { alert('لا توجد بيانات'); return; } saveXlsx(VIEW.map(rowOut), 'PPM', 'ppm_orders'); };
+window.exportCat = (c) => { const rows = VIEW.filter(r => r.category === c); if (!rows.length) { alert('لا توجد بيانات لتصديرها'); return; } saveXlsx(rows.map(rowOut), 'PPM', c === 'delayed' ? 'ppm_delayed' : 'ppm_scheduled'); };
 
-    function openReport() {
-        const siteVal = document.getElementById('siteFilter').value;
-        const monthVal = document.getElementById('monthFilter').value;
-
-        if(CURRENT_DASHBOARD_DATA.length === 0) {
-            alert('لا توجد بيانات للطباعة');
-            return;
-        }
-
-        sessionStorage.setItem('REPORT_DATA', JSON.stringify(CURRENT_DASHBOARD_DATA));
-        sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'PPM', site: siteVal, date: monthVal || 'كل الشهور' }));
-        window.open('report.html', '_blank');
-    }
-
-    function renderCharts(data, done, prog, delay) {
-        const ctxD = document.getElementById('chartDonut').getContext('2d');
-        if(charts.d) charts.d.destroy();
-        charts.d = new Chart(ctxD, {
-            type: 'doughnut',
-            data: { 
-                labels: ['منجز', 'مجدول/تحت الإجراء', 'متأخر'], 
-                datasets: [{ 
-                    data: [done, prog, delay], 
-                    backgroundColor: ['#16a34a', '#eab308', '#dc2626'], 
-                    borderWidth: 0 
-                }] 
-            },
-            options: { cutout: '65%', plugins:{legend:{position:'bottom'}} }
-        });
-
-        const ctxM = document.getElementById('chartMain').getContext('2d');
-        if(charts.m) charts.m.destroy();
-        
-        const grp = {};
-        data.forEach(r => {
-            if(!grp[r.site]) grp[r.site] = { t:0, c:0 };
-            grp[r.site].t++;
-            if(r.category === 'done') grp[r.site].c++;
-        });
-
-        const sorted = Object.entries(grp).map(([k,v]) => ({ site: k, rate: Math.round((v.c/v.t)*100) })).sort((a,b) => b.rate - a.rate).slice(0, 10);
-
-        charts.m = new Chart(ctxM, {
-            type: 'bar',
-            data: {
-                labels: sorted.map(x=>x.site),
-                datasets: [{ label: 'نسبة الالتزام %', data: sorted.map(x=>x.rate), backgroundColor: '#16a34a', borderRadius:4 }]
-            },
-            options: { maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{max:100}} }
-        });
-    }
-
-    function renderSiteTable(data) {
-        const tb = document.querySelector('#siteTable tbody');
-        tb.innerHTML = '';
-        const grp = {};
-        data.forEach(r => {
-            if(!grp[r.site]) grp[r.site] = {t:0, d:0, p:0, l:0};
-            grp[r.site].t++;
-            if(r.category === 'done') grp[r.site].d++;
-            else if(r.category === 'progress') grp[r.site].p++;
-            else grp[r.site].l++;
-        });
-
-        Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
-            const pct = v.t ? Math.round((v.d/v.t)*100) : 0;
-            tb.insertAdjacentHTML('beforeend', `<tr>
-                <td>${k}</td><td><b>${v.t}</b></td>
-                <td style="color:#16a34a; font-weight:bold">${v.d}</td>
-                <td style="color:#ca8a04; font-weight:bold">${v.p}</td>
-                <td style="color:#dc2626; font-weight:bold">${v.l}</td>
-                <td><span class="badge" style="background:${pct>=90?'#dcfce7':(pct>=50?'#fef08a':'#fee2e2')}; color:${pct>=90?'#166534':(pct>=50?'#854d0e':'#991b1b')}">${pct}%</span></td>
-            </tr>`);
-        });
-    }
-
-    function renderTechTable(data) {
-        const tb = document.querySelector('#techTable tbody');
-        tb.innerHTML = '';
-        const grp = {};
-        data.forEach(r => {
-            const t = r.tech;
-            if(!grp[t]) grp[t] = {t:0, d:0, p:0, l:0};
-            grp[t].t++;
-            if(r.category === 'done') grp[t].d++;
-            else if(r.category === 'progress') grp[t].p++;
-            else grp[t].l++;
-        });
-
-        Object.entries(grp).sort((a,b)=>b[1].t - a[1].t).forEach(([k,v]) => {
-            const pct = v.t ? Math.round((v.d/v.t)*100) : 0;
-            tb.insertAdjacentHTML('beforeend', `<tr>
-                <td class="tech-name">${k}</td><td><b>${v.t}</b></td>
-                <td style="color:#16a34a; font-weight:bold">${v.d}</td>
-                <td style="color:#ca8a04; font-weight:bold">${v.p}</td>
-                <td style="color:#dc2626; font-weight:bold">${v.l}</td>
-                <td>${pct}%</td>
-            </tr>`);
-        });
-    }
-
-    function filterTechTable() {
-        const input = document.getElementById("techSearchInput");
-        const filter = input.value.toUpperCase();
-        const table = document.getElementById("techTable");
-        const tr = table.getElementsByTagName("tr");
-
-        for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByClassName("tech-name")[0];
-            if (td) {
-                const txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }       
-        }
-    }
+function openReport() {
+if (VIEW.length === 0) { alert('لا توجد بيانات للطباعة'); return; }
+sessionStorage.setItem('REPORT_DATA', JSON.stringify(VIEW));
+sessionStorage.setItem('REPORT_META', JSON.stringify({ mode: 'PPM', site: $('fSite').value, date: $('monthFilter').value || 'كل الشهور' }));
+window.open('report.html', '_blank');
+}
 </script>
 </body>
 </html>
