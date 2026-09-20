@@ -3,105 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة الأوامر المعلقة والمخطط الزمني - الإدارة الهندسية</title>
+<title>لوحة متابعة الأعطال وأوامر العمل - الإدارة الهندسية</title>
 
 <style>html { visibility: hidden; }</style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 <style>
 :root {
 --primary: #1e3a8a;
+--primary-2: #2563eb;
 --accent: #0284c7;
---bg: #f1f5f9;
+--bg: #eef2f7;
 --surface: #ffffff;
 --text: #0f172a;
+--muted: #64748b;
+--line: #e2e8f0;
 --green: #16a34a;
---yellow: #eab308;
+--yellow: #d99e04;
 --red: #dc2626;
+--purple: #7c3aed;
+--orange: #ea580c;
 }
 
 * { box-sizing: border-box; outline: none; text-decoration: none; }
-body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; transition: 0.3s; }
+body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; }
 
-.header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-.logo-img { height: 65px; object-fit: contain; }
-.header-titles { display: flex; align-items: center; gap: 15px; }
-.header-titles h1 { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 800; }
-.header-titles p { margin: 2px 0 0; font-size: 0.95rem; color: #64748b; font-weight: 700; }
-
-.header-actions { display: flex; gap: 12px; align-items: center; }
-.btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.9rem;}
+/* ===== Header ===== */
+.header { background: var(--surface); padding: .8rem 2rem; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(15,23,42,.05); gap: 12px; flex-wrap: wrap; }
+.logo-img { height: 58px; object-fit: contain; }
+.header-titles { display: flex; align-items: center; gap: 14px; }
+.header-titles h1 { margin: 0; font-size: 1.3rem; color: var(--primary); font-weight: 800; }
+.header-titles p { margin: 2px 0 0; font-size: .9rem; color: var(--muted); font-weight: 700; }
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: .2s; font-size: .88rem; }
 .btn-action:hover { background: #e2e8f0; transform: translateY(-1px); }
-.btn-print-trigger { background: var(--primary); color: white; border: none; }
-.btn-print-trigger:hover { background: #1e40af; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); }
+.btn-primary { background: var(--primary); color: #fff; border: none; }
+.btn-primary:hover { background: #1e40af; box-shadow: 0 4px 12px rgba(30,58,138,.3); }
 
-.container { max-width: 1550px; margin: 2rem auto; padding: 0 1.5rem; }
+.container { max-width: 1600px; margin: 1.5rem auto; padding: 0 1.5rem; }
 
-.controls-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); flex-wrap: wrap; align-items: flex-end;}
-.control-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 250px;}
-.control-group label { font-weight: 700; color: #475569; font-size: 0.95rem; }
-.form-select { padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; background: #f8fafc; color: #0f172a; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%;}
-.form-select:hover, .form-select:focus { border-color: var(--primary); outline: none; }
+/* ===== Hero ===== */
+.hero { background: linear-gradient(120deg, #0f2a6b 0%, #1e3a8a 45%, #0284c7 100%); color: #fff; border-radius: 18px; padding: 1.6rem 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; box-shadow: 0 12px 30px rgba(30,58,138,.25); margin-bottom: 1.25rem; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; left: -60px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,.07); }
+.hero h2 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 800; }
+.hero p { margin: 0; opacity: .85; font-size: .95rem; }
+.hero-stats { display: flex; gap: 2rem; flex-wrap: wrap; position: relative; z-index: 1; }
+.hero-stat { text-align: center; }
+.hero-stat b { display: block; font-size: 2rem; font-weight: 800; line-height: 1.1; }
+.hero-stat span { font-size: .82rem; opacity: .85; font-weight: 700; }
 
-.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-.kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid #e2e8f0;}
-.kpi-val { font-size: 2.2rem; font-weight: 800; margin-top: 10px; }
-.kpi-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
+/* ===== KPI ===== */
+.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.kpi-card { background: var(--surface); padding: 1.1rem 1.3rem; border-radius: 14px; box-shadow: 0 2px 8px rgba(15,23,42,.05); border: 1px solid var(--line); display: flex; align-items: center; gap: 14px; transition: .2s; }
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(15,23,42,.09); }
+.kpi-ico { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.kpi-label { font-size: .85rem; color: var(--muted); font-weight: 700; }
+.kpi-val { font-size: 1.9rem; font-weight: 800; line-height: 1.15; }
+.kpi-sub { font-size: .75rem; color: var(--muted); font-weight: 600; }
 
-#printConfigModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; }
-.config-card { background: white; padding: 30px; border-radius: 16px; width: 450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-.config-card h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
-.option-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #f8fafc; cursor: pointer; transition: 0.2s; }
-.option-item:hover { background: #f0f9ff; border-radius: 8px; }
-.option-item input { width: 20px; height: 20px; cursor: pointer; }
-.option-item label { cursor: pointer; font-weight: 700; flex: 1; }
+/* ===== Filters ===== */
+.filters { background: var(--surface); border-radius: 14px; border: 1px solid var(--line); padding: 1.1rem 1.3rem; margin-bottom: 1.25rem; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+.filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.filters-head h3 { margin: 0; font-size: 1rem; color: var(--primary); }
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg label { font-weight: 700; color: #475569; font-size: .8rem; }
+.fg select, .fg input { padding: .6rem .7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: .92rem; background: #f8fafc; color: var(--text); font-weight: 600; width: 100%; }
+.fg select:focus, .fg input:focus { border-color: var(--primary-2); background: #fff; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.chip { border: 1px solid #cbd5e1; background: #fff; color: #334155; padding: 6px 14px; border-radius: 999px; font-family: 'Tajawal'; font-weight: 700; font-size: .82rem; cursor: pointer; transition: .15s; }
+.chip:hover { border-color: var(--primary-2); color: var(--primary-2); }
+.chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+.active-filters { margin-top: 10px; font-size: .82rem; color: var(--muted); font-weight: 700; }
 
-.panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
-.table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
+/* ===== Charts ===== */
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.chart-card { background: var(--surface); border-radius: 14px; border: 1px solid var(--line); padding: 1.1rem 1.2rem; box-shadow: 0 2px 8px rgba(15,23,42,.04); }
+.chart-card h4 { margin: 0 0 10px; font-size: .95rem; color: #334155; display: flex; align-items: center; gap: 8px; }
+.chart-box { position: relative; height: 250px; }
+
+/* ===== Panels / Tables ===== */
+.panel { background: var(--surface); border-radius: 16px; border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(15,23,42,.04); margin-bottom: 1.75rem; overflow: hidden; }
+.panel-head { padding: 1rem 1.3rem; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.panel-title { display: flex; align-items: center; gap: 12px; }
+.panel-title .pi { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #fff; }
+.panel-title h3 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.panel-title small { color: var(--muted); font-weight: 600; font-size: .8rem; }
+.count-pill { background: #eff6ff; color: var(--primary-2); font-weight: 800; padding: 3px 12px; border-radius: 999px; font-size: .85rem; margin-right: 6px; }
+.p-active { border-top: 4px solid var(--red); }
+.p-progress { border-top: 4px solid var(--purple); }
+
+.table-wrap { overflow-x: auto; max-height: 620px; overflow-y: auto; }
 table { width: 100%; border-collapse: collapse; text-align: right; }
-th { background: #f8fafc; color: #475569; padding: 18px 15px; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 800; font-size: 0.9rem; }
-
-.main-row { transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
+th { background: #f8fafc; color: #475569; padding: 13px 12px; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 5; font-weight: 800; font-size: .82rem; white-space: nowrap; cursor: pointer; user-select: none; }
+th:hover { background: #eef2f7; }
+th .si { opacity: .35; margin-right: 4px; font-size: .7rem; }
+th.sorted .si { opacity: 1; color: var(--primary-2); }
+th.nosort { cursor: default; }
+.main-row { border-bottom: 1px solid #f1f5f9; transition: .15s; }
 .main-row:hover { background: #f0f9ff; }
-.main-row td { padding: 16px 15px; vertical-align: middle; font-size: 0.9rem; }
+.main-row td { padding: 12px; vertical-align: middle; font-size: .87rem; }
+.rowbar { box-shadow: inset -4px 0 0 var(--bar, transparent); }
 
-.update-cell { max-width: 350px; }
-.update-text { display: block; font-weight: 700; color: var(--text); font-size: 0.85rem; margin-bottom: 4px; line-height: 1.4; }
-.update-date { display: block; font-size: 0.75rem; color: #64748b; font-weight: bold; }
-.no-update { color: #dc2626; font-weight: 800; font-size: 0.8rem; background: #fee2e2; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #fca5a5;}
+.update-text { display: block; font-weight: 700; font-size: .82rem; margin-bottom: 3px; line-height: 1.4; max-width: 320px; }
+.update-date { display: block; font-size: .72rem; color: var(--muted); font-weight: 700; }
+.no-update { color: #dc2626; font-weight: 800; font-size: .76rem; background: #fee2e2; padding: 3px 8px; border-radius: 4px; display: inline-block; border: 1px solid #fca5a5; }
 
-.badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;}
+.badge { padding: 5px 11px; border-radius: 6px; font-weight: 800; font-size: .78rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .age-green { background: #dcfce7; color: #166534; }
 .age-yellow { background: #fef08a; color: #854d0e; }
 .age-red { background: #fee2e2; color: #991b1b; }
+.st-Active { background: #fee2e2; color: #991b1b; }
+.st-Assigned { background: #dbeafe; color: #1d4ed8; }
+.st-PendingApproval { background: #ede9fe; color: #6d28d9; }
+.st-Approved { background: #dcfce7; color: #166534; }
+.st-other { background: #e2e8f0; color: #334155; }
 
-.btn-timeline { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.85rem;}
-.btn-timeline:hover { background: #2563eb; color: white; }
+.btn-timeline { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 7px 13px; border-radius: 6px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: 'Tajawal'; transition: .2s; font-size: .8rem; }
+.btn-timeline:hover { background: #2563eb; color: #fff; }
+.empty { text-align: center; padding: 34px; color: var(--muted); font-weight: 700; }
 
-#timelineModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 9999; }
-.timeline-card { background: var(--surface); padding: 35px; border-radius: 20px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; position: relative; }
-.close-modal { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: 0.2s; }
+/* ===== Modals ===== */
+#printConfigModal, #timelineModal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.6); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; }
+.config-card { background: #fff; padding: 28px; border-radius: 16px; width: 92%; max-width: 450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); }
+.config-card h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 16px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: 1px solid #f8fafc; cursor: pointer; }
+.option-item:hover { background: #f0f9ff; border-radius: 8px; }
+.option-item input { width: 18px; height: 18px; cursor: pointer; }
+.option-item label { cursor: pointer; font-weight: 700; flex: 1; }
+.timeline-card { background: #fff; padding: 32px; border-radius: 20px; width: 92%; max-width: 650px; max-height: 85vh; overflow-y: auto; position: relative; }
+.close-modal { position: absolute; top: 20px; left: 20px; font-size: 1.4rem; color: #94a3b8; cursor: pointer; }
 .close-modal:hover { color: #dc2626; }
+.timeline-wrapper { position: relative; padding-right: 35px; border-right: 3px solid var(--line); margin-right: 15px; }
+.timeline-item { position: relative; margin-bottom: 26px; }
+.timeline-dot { position: absolute; right: -46px; top: 0; width: 24px; height: 24px; background: #fff; border: 4px solid var(--primary); border-radius: 50%; }
 
-.timeline-wrapper { position: relative; padding-right: 35px; border-right: 3px solid #e2e8f0; margin-right: 15px;}
-.timeline-item { position: relative; margin-bottom: 30px; }
-.timeline-dot { position: absolute; right: -46px; top: 0; width: 24px; height: 24px; background: white; border: 4px solid var(--primary); border-radius: 50%; z-index: 2;}
+@media (max-width: 700px) {
+.header { padding: .7rem 1rem; }
+.container { padding: 0 .8rem; }
+.hero { padding: 1.2rem; }
+}
 
 @media print {
 @page { size: landscape; margin: 1cm; }
-body { background: white !important; font-size: 10pt; }
-.header, .controls-card, .grid-kpi, .header-actions, .btn-timeline, #printConfigModal, .close-modal { display: none !important; }
+body { background: #fff !important; font-size: 10pt; }
+.header, .hero, .filters, .grid-kpi, .charts, .header-actions, .btn-timeline, #printConfigModal, #timelineModal, .panel-tools, .header-actions-col { display: none !important; }
 .container { max-width: 100%; margin: 0; padding: 0; }
-.panel { border: none; box-shadow: none; padding: 0; margin: 0; }
-.table-wrap { border: none; overflow: visible; }
-table { width: 100%; border: 1px solid #000; }
-th, td { border: 1px solid #ddd !important; padding: 8px !important; color: black !important; }
-th { background: #eee !important; -webkit-print-color-adjust: exact; }
-.badge { background: none !important; border: none; color: black !important; padding: 0; }
-.no-update { background: none !important; color: black !important; border: none; font-weight: bold;}
+.panel { border: none !important; box-shadow: none; margin-bottom: 20px; }
+.table-wrap { overflow: visible; max-height: none; }
+table { border: 1px solid #000; }
+th, td { border: 1px solid #ddd !important; padding: 6px !important; color: #000 !important; }
+th { background: #eee !important; position: static; }
+.badge { background: none !important; color: #000 !important; padding: 0; }
+.no-update { background: none !important; color: #000 !important; border: none; }
+.rowbar { box-shadow: none; }
 .p-hide { display: none !important; }
 }
 </style>
@@ -110,19 +169,16 @@ th { background: #eee !important; -webkit-print-color-adjust: exact; }
 
 <header class="header">
 <div class="header-titles">
-<img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
+<img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.style.display='none'"/>
 <div>
-<h1>لوحة متابعة الأداء ومبررات التأخير</h1>
+<h1>لوحة متابعة الأعطال وأوامر العمل</h1>
 <p>قسم الأجهزة الطبية - تجمع تبوك الصحي</p>
 </div>
 </div>
 <div class="header-actions">
-<div id="statusBadge" style="color: #1e3a8a; font-weight: bold; margin-left: 10px;">
-<i class="fas fa-sync fa-spin"></i> تحديث...
-</div>
-<button class="btn-action btn-print-trigger" onclick="openPrintConfig()">
-<i class="fas fa-print"></i> استخراج تقرير مخصص
-</button>
+<div id="statusBadge" style="color:#1e3a8a; font-weight:700; font-size:.88rem;"><i class="fas fa-sync fa-spin"></i> تحديث...</div>
+<button class="btn-action" onclick="reloadData()"><i class="fas fa-rotate"></i> تحديث البيانات</button>
+<button class="btn-action btn-primary" onclick="openPrintConfig()"><i class="fas fa-print"></i> تقرير مخصص</button>
 <a href="index.html" class="btn-action"><i class="fas fa-home"></i> الرئيسية</a>
 </div>
 </header>
@@ -130,97 +186,124 @@ th { background: #eee !important; -webkit-print-color-adjust: exact; }
 <div id="printConfigModal">
 <div class="config-card">
 <h3><i class="fas fa-sliders-h"></i> إعدادات التقرير الورقي</h3>
-<p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">اختر المعلومات التي تريد إظهارها في التقرير:</p>
-
+<p style="font-size:.85rem; color:#64748b; margin-bottom:14px;">اختر الأعمدة والجداول التي تريد طباعتها (حسب الفلاتر الحالية):</p>
 <div class="option-item"><input type="checkbox" id="p-wo" checked disabled><label>رقم أمر العمل (إلزامي)</label></div>
-<div class="option-item"><input type="checkbox" id="p-fail" checked><label>تاريخ الفتح (Fail Date)</label></div>
-<div class="option-item"><input type="checkbox" id="p-aging" checked><label>أيام التأخير (Aging)</label></div>
+<div class="option-item"><input type="checkbox" id="p-fail" checked><label>تاريخ الفتح</label></div>
+<div class="option-item"><input type="checkbox" id="p-aging" checked><label>أيام التأخير</label></div>
+<div class="option-item"><input type="checkbox" id="p-status" checked><label>حالة الأمر</label></div>
 <div class="option-item"><input type="checkbox" id="p-site" checked><label>الموقع / المستشفى</label></div>
 <div class="option-item"><input type="checkbox" id="p-device" checked><label>بيانات الجهاز</label></div>
 <div class="option-item"><input type="checkbox" id="p-tech" checked><label>اسم الفني</label></div>
-<div class="option-item"><input type="checkbox" id="p-update" checked><label>إظهار آخر تحديث من الموقع</label></div>
-
-<div style="display: flex; gap: 10px; margin-top: 25px;">
-<button class="btn-action btn-print-trigger" style="flex: 1; justify-content:center;" onclick="executePrint()">توليد التقرير الآن</button>
-<button class="btn-action" style="background: #f1f5f9; justify-content:center;" onclick="closePrintConfig()">إلغاء</button>
+<div class="option-item"><input type="checkbox" id="p-update" checked><label>آخر تحديث من الموقع</label></div>
+<div class="option-item"><input type="checkbox" id="p-t1" checked><label>طباعة جدول الأعطال النشطة</label></div>
+<div class="option-item"><input type="checkbox" id="p-t2" checked><label>طباعة جدول أوامر العمل تحت الإجراء</label></div>
+<div style="display:flex; gap:10px; margin-top:20px;">
+<button class="btn-action btn-primary" style="flex:1; justify-content:center;" onclick="executePrint()">توليد التقرير الآن</button>
+<button class="btn-action" onclick="closePrintConfig()">إلغاء</button>
 </div>
 </div>
 </div>
 
 <div class="container">
 
-<div class="controls-card">
-<div class="control-group">
-<label><i class="fas fa-hospital"></i> الموقع / المستشفى:</label>
-<select id="filterSite" class="form-select" onchange="applyFilters()">
-<option value="All">-- كل المواقع --</option>
-</select>
+<!-- Hero -->
+<div class="hero">
+<div>
+<h2><i class="fas fa-gauge-high"></i> مركز متابعة الصيانة التصحيحية</h2>
+<p id="heroSub">جاري تحميل البيانات...</p>
 </div>
-<div class="control-group">
-<label><i class="fas fa-clock"></i> حالة العطل (التقادم):</label>
-<select id="filterAge" class="form-select" onchange="applyFilters()">
-<option value="All">-- جميع الحالات --</option>
-<option value="green">أعطال حديثة (أقل من 5 أيام)</option>
-<option value="yellow">أعطال متأخرة (5 إلى 30 يوم)</option>
-<option value="red">أعطال حرجة (أكثر من 30 يوم)</option>
-</select>
-</div>
-<div class="control-group">
-<label><i class="fas fa-comment-dots"></i> حالة الإفادة (مبرر الموقع):</label>
-<select id="filterUpdate" class="form-select" onchange="applyFilters()">
-<option value="All">-- الكل --</option>
-<option value="with_update">تم التحديث (يوجد إفادة)</option>
-<option value="no_update">بانتظار الإفادة (بدون رد)</option>
-</select>
+<div class="hero-stats">
+<div class="hero-stat"><b id="h-total">0</b><span>إجمالي الأوامر المفتوحة</span></div>
+<div class="hero-stat"><b id="h-avg">0</b><span>متوسط أيام التأخير</span></div>
+<div class="hero-stat"><b id="h-reply">0%</b><span>نسبة الأوامر الموثقة بإفادة</span></div>
 </div>
 </div>
 
+<!-- KPIs -->
 <div class="grid-kpi">
-<div class="kpi-card" style="border-top: 4px solid var(--accent);">
-<div class="kpi-label">إجمالي الأوامر المفتوحة</div>
-<div class="kpi-val" id="count-total" style="color: var(--primary);">0</div>
-</div>
-<div class="kpi-card" style="border-top: 4px solid var(--green);">
-<div class="kpi-label">أعطال حديثة (&lt; 5 أيام)</div>
-<div class="kpi-val" id="count-green" style="color: var(--green);">0</div>
-</div>
-<div class="kpi-card" style="border-top: 4px solid var(--yellow);">
-<div class="kpi-label">أعطال متأخرة (5-30 يوم)</div>
-<div class="kpi-val" id="count-yellow" style="color: var(--yellow);">0</div>
-</div>
-<div class="kpi-card" style="border-top: 4px solid var(--red);">
-<div class="kpi-label">حالات حرجة (+30 يوم)</div>
-<div class="kpi-val" id="count-red" style="color: var(--red);">0</div>
-</div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">أعطال نشطة</div><div class="kpi-val" id="k-active" style="color:var(--red)">0</div><div class="kpi-sub">بانتظار بدء الإجراء</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#ede9fe;color:var(--purple)"><i class="fas fa-screwdriver-wrench"></i></div><div><div class="kpi-label">تحت الإجراء</div><div class="kpi-val" id="k-progress" style="color:var(--purple)">0</div><div class="kpi-sub">مكلّف / بانتظار اعتماد</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#dcfce7;color:var(--green)"><i class="fas fa-leaf"></i></div><div><div class="kpi-label">حديثة (&lt; 5 أيام)</div><div class="kpi-val" id="k-green" style="color:var(--green)">0</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-hourglass-half"></i></div><div><div class="kpi-label">متأخرة (5-30 يوم)</div><div class="kpi-val" id="k-yellow" style="color:var(--yellow)">0</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">حرجة (+30 يوم)</div><div class="kpi-val" id="k-red" style="color:var(--red)">0</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#ffedd5;color:var(--orange)"><i class="fas fa-comment-slash"></i></div><div><div class="kpi-label">بدون إفادة</div><div class="kpi-val" id="k-noreply" style="color:var(--orange)">0</div></div></div>
 </div>
 
-<div class="panel">
+<!-- Filters -->
+<div class="filters">
+<div class="filters-head">
+<h3><i class="fas fa-filter"></i> الفلاتر والبحث</h3>
+<button class="btn-action" onclick="resetFilters()"><i class="fas fa-eraser"></i> مسح الفلاتر</button>
+</div>
+<div class="filter-grid">
+<div class="fg" style="grid-column: span 2; min-width:220px;"><label><i class="fas fa-magnifying-glass"></i> بحث (رقم أمر / جهاز / فني / موقع / إفادة)</label><input type="search" id="fSearch" placeholder="اكتب للبحث..."></div>
+<div class="fg"><label><i class="fas fa-hospital"></i> الموقع</label><select id="fSite"><option value="All">كل المواقع</option></select></div>
+<div class="fg"><label><i class="fas fa-building"></i> القسم</label><select id="fDept"><option value="All">كل الأقسام</option></select></div>
+<div class="fg"><label><i class="fas fa-user-gear"></i> الفني</label><select id="fTech"><option value="All">كل الفنيين</option></select></div>
+<div class="fg"><label><i class="fas fa-flag"></i> حالة الأمر</label><select id="fStatus"><option value="All">كل الحالات</option></select></div>
+<div class="fg"><label><i class="fas fa-clock"></i> التقادم</label>
+<select id="fAge"><option value="All">كل الفترات</option><option value="green">حديثة (أقل من 5 أيام)</option><option value="yellow">متأخرة (5 إلى 30)</option><option value="red">حرجة (أكثر من 30)</option></select></div>
+<div class="fg"><label><i class="fas fa-comment-dots"></i> الإفادة</label>
+<select id="fReply"><option value="All">الكل</option><option value="with_update">يوجد إفادة</option><option value="no_update">بانتظار الإفادة</option></select></div>
+</div>
+<div class="chips" id="quickChips">
+<button class="chip" data-quick="critical"><i class="fas fa-fire"></i> الحرجة فقط</button>
+<button class="chip" data-quick="noreply"><i class="fas fa-comment-slash"></i> بدون إفادة</button>
+<button class="chip" data-quick="critical_noreply"><i class="fas fa-bolt"></i> حرجة وبدون إفادة</button>
+<button class="chip" data-quick="week"><i class="fas fa-calendar-day"></i> آخر 7 أيام</button>
+</div>
+<div class="active-filters" id="activeFilters"></div>
+</div>
+
+<!-- Charts -->
+<div class="charts">
+<div class="chart-card"><h4><i class="fas fa-hospital" style="color:var(--primary-2)"></i> الأوامر حسب الموقع</h4><div class="chart-box"><canvas id="chSite"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-chart-pie" style="color:var(--purple)"></i> توزيع الحالات</h4><div class="chart-box"><canvas id="chStatus"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-hourglass-half" style="color:var(--yellow)"></i> توزيع التقادم</h4><div class="chart-box"><canvas id="chAge"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-user-gear" style="color:var(--green)"></i> أعلى الفنيين حملاً</h4><div class="chart-box"><canvas id="chTech"></canvas></div></div>
+</div>
+
+<!-- Table 1 -->
+<div class="panel p-active" id="panelT1">
+<div class="panel-head">
+<div class="panel-title">
+<div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div>
+<div><h3>الأعطال النشطة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر عمل مفتوحة (Active) لم يبدأ الإجراء عليها بعد</small></div>
+</div>
+<div class="panel-tools"><button class="btn-action" onclick="exportTable(1)"><i class="fas fa-file-excel" style="color:#16a34a"></i> تصدير Excel</button></div>
+</div>
 <div class="table-wrap">
-<table id="mainTable">
-<thead>
-<tr>
-<th class="col-wo">رقم الأمر</th>
-<th class="col-fail">تاريخ الفتح</th>
-<th class="col-aging">أيام التأخير</th>
-<th class="col-site">الموقع</th>
-<th class="col-device" style="width:25%;">الجهاز الطبي</th>
-<th class="col-tech">الفني</th>
-<th class="col-update">آخر إفادة / تحديث من الموقع</th>
-<th class="header-actions-col p-hide">الإجراءات</th>
-</tr>
-</thead>
-<tbody id="tableBody">
-<tr><td colspan="8" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات من السيرفر...</td></tr>
-</tbody>
+<table id="table1">
+<thead id="head1"></thead>
+<tbody id="body1"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
 </table>
 </div>
 </div>
+
+<!-- Table 2 -->
+<div class="panel p-progress" id="panelT2">
+<div class="panel-head">
+<div class="panel-title">
+<div class="pi" style="background:var(--purple)"><i class="fas fa-screwdriver-wrench"></i></div>
+<div><h3>أوامر عمل تحت الإجراء <span class="count-pill" id="c-t2">0</span></h3><small>أوامر مكلّف بها فني أو بانتظار الاعتماد (Assigned / Pending for Approval / Approved)</small></div>
+</div>
+<div class="panel-tools"><button class="btn-action" onclick="exportTable(2)"><i class="fas fa-file-excel" style="color:#16a34a"></i> تصدير Excel</button></div>
+</div>
+<div class="table-wrap">
+<table id="table2">
+<thead id="head2"></thead>
+<tbody id="body2"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
+</table>
+</div>
+</div>
+
 </div>
 
 <div id="timelineModal">
 <div class="timeline-card">
 <i class="fas fa-times close-modal" onclick="closeTimeline()"></i>
-<h2 id="tl-title" style="margin-top: 0; color: var(--primary); border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;"></h2>
+<h2 id="tl-title" style="margin-top:0; color:var(--primary); border-bottom:1px solid #e2e8f0; padding-bottom:15px; margin-bottom:20px;"></h2>
+<div id="tl-meta" style="margin-bottom:18px; font-size:.9rem; color:#475569; line-height:1.9;"></div>
 <div class="timeline-wrapper" id="tl-body"></div>
 </div>
 </div>
@@ -232,197 +315,370 @@ import { collection, getDocs, query, where } from "https://www.gstatic.com/fireb
 // الدخول مسموح للأدمن ومديري المواقع المسجلين فقط
 await requireRole(['admin', 'manager']);
 
-let MASTER_DATA = [];
+// الحالات التي تُعتبر "تحت الإجراء" (كل ما عداها = عطل نشط)
+const IN_PROGRESS = ['Assigned', 'Pending for Approval', 'Approved'];
+const STATUS_AR = { 'Active': 'نشط', 'Assigned': 'مكلّف', 'Pending for Approval': 'بانتظار الاعتماد', 'Approved': 'معتمد' };
+const STATUS_CLS = { 'Active': 'st-Active', 'Assigned': 'st-Assigned', 'Pending for Approval': 'st-PendingApproval', 'Approved': 'st-Approved' };
+const AGE_AR = { green: 'حديثة', yellow: 'متأخرة', red: 'حرجة' };
+const AGE_COL = { green: '#16a34a', yellow: '#eab308', red: '#dc2626' };
 
-async function loadData() {
-const status = document.getElementById('statusBadge');
-try {
-const q = query(collection(db, "pending_orders"), where("isCompleted", "==", false));
-const snapshot = await getDocs(q);
-MASTER_DATA = [];
-const siteSet = new Set();
+const COLS = [
+{ key: 'id', label: 'رقم الأمر', cls: 'col-wo' },
+{ key: 'failDate', label: 'تاريخ الفتح', cls: 'col-fail' },
+{ key: 'agingDays', label: 'أيام التأخير', cls: 'col-aging' },
+{ key: 'status', label: 'الحالة', cls: 'col-status' },
+{ key: 'site', label: 'الموقع', cls: 'col-site' },
+{ key: 'device', label: 'الجهاز الطبي', cls: 'col-device' },
+{ key: 'tech', label: 'الفني', cls: 'col-tech' },
+{ key: 'lastUpdate', label: 'آخر إفادة / تحديث من الموقع', cls: 'col-update' },
+{ key: null, label: 'الإجراءات', cls: 'header-actions-col p-hide-screen' }
+];
 
-snapshot.forEach(d => {
-const data = d.data();
-data.agingDays = calculateDays(data.failDate || data.startDate || data.createdAt);
+let MASTER = [];
+let VIEW = { 1: [], 2: [] };
+const SORT = { 1: { key: 'agingDays', dir: -1 }, 2: { key: 'agingDays', dir: -1 } };
+const charts = {};
 
-if(data.agingDays < 5) data.ageCat = 'green';
-else if(data.agingDays <= 30) data.ageCat = 'yellow';
-else data.ageCat = 'red';
-
-data.hasUpdate = (data.comments && data.comments.length > 0);
-
-if(data.site) siteSet.add(data.site);
-MASTER_DATA.push(data);
-});
-
-const sel = document.getElementById('filterSite');
-[...siteSet].sort().forEach(s => {
-const o = document.createElement('option');
-o.value = s; o.textContent = s;
-sel.appendChild(o);
-});
-
-applyFilters();
-status.innerHTML = `<i class="fas fa-check-circle" style="color:var(--green)"></i> متصل بنجاح`;
-} catch (err) {
-console.error(err);
-status.innerHTML = `<i class="fas fa-times-circle" style="color:var(--red)"></i> فشل الاتصال بالسيرفر`;
-}
-}
+const $ = id => document.getElementById(id);
 
 function calculateDays(v) {
-if(!v) return 0;
-if(v instanceof Date) {
-const diff = Date.now() - v.getTime();
-return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-}
-let s = String(v).trim();
+if (!v) return 0;
+if (v instanceof Date) return Math.max(0, Math.floor((Date.now() - v.getTime()) / 86400000));
+if (v && typeof v.toDate === 'function') return Math.max(0, Math.floor((Date.now() - v.toDate().getTime()) / 86400000));
+const s = String(v).trim();
 let d = null;
-if(s.match(/^\d{4}-\d{2}-\d{2}/)) {
-d = new Date(s);
+if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+d = new Date(s.replace(' ', 'T'));
 } else {
-let dPart = s.split(' ')[0];
-let parts = dPart.split(/[\/\-\.]/);
-if(parts.length >= 3) {
-let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
+const parts = s.split(' ')[0].split(/[\/\-\.]/);
+if (parts.length >= 3) {
+const p0 = parseInt(parts[0]), p1 = parseInt(parts[1]) - 1, p2 = parseInt(parts[2]);
 if (p0 > 1900) d = new Date(p0, p1, p2);
 else if (p2 > 1900) d = new Date(p2, p1, p0);
 }
 }
-if(!d || isNaN(d.getTime())) return 0;
-const diff = Date.now() - d.getTime();
-return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+if (!d || isNaN(d.getTime())) return 0;
+return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
 }
 
-window.applyFilters = function() {
-const siteVal = document.getElementById('filterSite').value;
-const ageVal = document.getElementById('filterAge').value;
-const updateVal = document.getElementById('filterUpdate').value;
+async function loadData() {
+const status = $('statusBadge');
+status.innerHTML = '<i class="fas fa-sync fa-spin"></i> تحديث...';
+try {
+const snap = await getDocs(query(collection(db, "pending_orders"), where("isCompleted", "==", false)));
+MASTER = [];
+snap.forEach(d => {
+const r = d.data();
+r.agingDays = calculateDays(r.failDate || r.startDate || r.createdAt);
+r.ageCat = r.agingDays < 5 ? 'green' : (r.agingDays <= 30 ? 'yellow' : 'red');
+r.comments = Array.isArray(r.comments) ? r.comments : [];
+r.hasUpdate = r.comments.length > 0;
+r.lastComment = r.hasUpdate ? r.comments[r.comments.length - 1] : null;
+r.lastUpdate = r.lastComment ? String(r.lastComment.text || '') : '';
+r.status = r.status || 'Active';
+r.group = IN_PROGRESS.includes(r.status) ? 2 : 1;
+r._search = [r.id, r.controlNo, r.device, r.tech, r.site, r.dept, r.lastUpdate].join(' ').toLowerCase();
+MASTER.push(r);
+});
+fillSelect('fSite', uniq('site'));
+fillSelect('fDept', uniq('dept'));
+fillSelect('fTech', uniq('tech'));
+fillSelect('fStatus', uniq('status'), s => STATUS_AR[s] || s);
+applyFilters();
+status.innerHTML = '<i class="fas fa-check-circle" style="color:var(--green)"></i> متصل - ' + new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+} catch (err) {
+console.error(err);
+status.innerHTML = '<i class="fas fa-times-circle" style="color:var(--red)"></i> فشل الاتصال بالسيرفر';
+}
+}
 
-const filteredData = MASTER_DATA.filter(r => {
-if(siteVal !== 'All' && r.site !== siteVal) return false;
-if(ageVal !== 'All' && r.ageCat !== ageVal) return false;
+function uniq(k) { return [...new Set(MASTER.map(r => r[k]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ar')); }
 
-if(updateVal === 'with_update' && !r.hasUpdate) return false;
-if(updateVal === 'no_update' && r.hasUpdate) return false;
+function fillSelect(id, values, labeler) {
+const sel = $(id);
+const cur = sel.value;
+while (sel.options.length > 1) sel.remove(1);
+values.forEach(v => {
+const o = document.createElement('option');
+o.value = v;
+o.textContent = labeler ? labeler(v) : v;
+sel.appendChild(o);
+});
+if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
 
+let QUICK = null;
+
+function getFiltered() {
+const q = $('fSearch').value.trim().toLowerCase();
+const site = $('fSite').value, dept = $('fDept').value, tech = $('fTech').value;
+const st = $('fStatus').value, age = $('fAge').value, rep = $('fReply').value;
+return MASTER.filter(r => {
+if (q && !r._search.includes(q)) return false;
+if (site !== 'All' && r.site !== site) return false;
+if (dept !== 'All' && r.dept !== dept) return false;
+if (tech !== 'All' && r.tech !== tech) return false;
+if (st !== 'All' && r.status !== st) return false;
+if (age !== 'All' && r.ageCat !== age) return false;
+if (rep === 'with_update' && !r.hasUpdate) return false;
+if (rep === 'no_update' && r.hasUpdate) return false;
+if (QUICK === 'critical' && r.ageCat !== 'red') return false;
+if (QUICK === 'noreply' && r.hasUpdate) return false;
+if (QUICK === 'critical_noreply' && !(r.ageCat === 'red' && !r.hasUpdate)) return false;
+if (QUICK === 'week' && r.agingDays > 7) return false;
 return true;
 });
+}
 
-renderMainTable(filteredData);
-updateKPIs(filteredData);
+window.applyFilters = function () {
+const data = getFiltered();
+VIEW[1] = data.filter(r => r.group === 1);
+VIEW[2] = data.filter(r => r.group === 2);
+renderTable(1);
+renderTable(2);
+updateKPIs(data);
+renderCharts(data);
+renderActiveFilters();
 };
 
-function renderMainTable(data) {
-const tbody = document.getElementById('tableBody');
-tbody.innerHTML = '';
+function renderActiveFilters() {
+const parts = [];
+const add = (lbl, v) => parts.push(lbl + ': ' + v);
+if ($('fSearch').value.trim()) add('بحث', $('fSearch').value.trim());
+if ($('fSite').value !== 'All') add('الموقع', $('fSite').value);
+if ($('fDept').value !== 'All') add('القسم', $('fDept').value);
+if ($('fTech').value !== 'All') add('الفني', $('fTech').value);
+if ($('fStatus').value !== 'All') add('الحالة', STATUS_AR[$('fStatus').value] || $('fStatus').value);
+if ($('fAge').value !== 'All') add('التقادم', AGE_AR[$('fAge').value]);
+if ($('fReply').value !== 'All') add('الإفادة', $('fReply').value === 'no_update' ? 'بدون إفادة' : 'بإفادة');
+if (QUICK) add('فلتر سريع', document.querySelector('.chip[data-quick="' + QUICK + '"]').textContent.trim());
+$('activeFilters').textContent = parts.length ? 'الفلاتر المفعّلة: ' + parts.join(' | ') : '';
+}
 
-if(data.length === 0) {
-tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b; font-weight:bold;">لا توجد بيانات مطابقة لخيارات الفلتر الحالية.</td></tr>';
+function renderHead(n) {
+const s = SORT[n];
+const tr = document.createElement('tr');
+COLS.forEach(c => {
+const th = document.createElement('th');
+th.className = c.cls + (c.key ? '' : ' nosort') + (c.key && s.key === c.key ? ' sorted' : '');
+const icon = c.key && s.key === c.key ? (s.dir === 1 ? 'fa-arrow-up' : 'fa-arrow-down') : 'fa-sort';
+th.innerHTML = esc(c.label) + (c.key ? ' <i class="fas ' + icon + ' si"></i>' : '');
+if (c.key) th.addEventListener('click', () => {
+if (SORT[n].key === c.key) SORT[n].dir *= -1; else { SORT[n].key = c.key; SORT[n].dir = c.key === 'agingDays' ? -1 : 1; }
+renderTable(n);
+});
+tr.appendChild(th);
+});
+const head = $('head' + n);
+head.innerHTML = '';
+head.appendChild(tr);
+}
+
+function sortRows(rows, s) {
+return rows.slice().sort((a, b) => {
+let x = a[s.key], y = b[s.key];
+if (s.key === 'agingDays') return (x - y) * s.dir;
+if (s.key === 'failDate') { x = a.agingDays; y = b.agingDays; return (y - x) * s.dir; }
+return String(x || '').localeCompare(String(y || ''), 'ar') * s.dir;
+});
+}
+
+function renderTable(n) {
+renderHead(n);
+const tbody = $('body' + n);
+tbody.innerHTML = '';
+const rows = sortRows(VIEW[n], SORT[n]);
+$('c-t' + n).textContent = rows.length;
+
+if (!rows.length) {
+tbody.innerHTML = '<tr><td colspan="9" class="empty"><i class="far fa-face-smile"></i> لا توجد أوامر مطابقة في هذا الجدول.</td></tr>';
 return;
 }
 
-data.sort((a,b) => b.agingDays - a.agingDays).forEach(row => {
-let badgeClass = 'age-green';
-if(row.ageCat === 'yellow') badgeClass = 'age-yellow';
-if(row.ageCat === 'red') badgeClass = 'age-red';
-
-const lastComment = row.hasUpdate ? row.comments[row.comments.length-1] : null;
+rows.forEach(row => {
+const badgeClass = 'age-' + row.ageCat;
 const device = String(row.device || '');
-
+const shortDev = device.length > 46 ? device.substring(0, 46) + '...' : device;
 const tr = document.createElement('tr');
-tr.className = 'main-row';
-tr.innerHTML = `
-<td class="col-wo" style="font-weight:bold; color:var(--primary);">${esc(row.id)}</td>
-<td class="col-fail" style="direction:ltr;">${esc(row.failDate || row.startDate || '-')}</td>
-<td class="col-aging"><span class="badge ${badgeClass}">${row.agingDays} يوم</span></td>
-<td class="col-site" style="font-weight:600;">${esc(row.site)}</td>
-<td class="col-device" title="${esc(device)}">${esc(device.substring(0,40))}...</td>
-<td class="col-tech">${esc(row.tech)}</td>
-<td class="col-update update-cell">
-${lastComment ? `
-<span class="update-text">${esc(lastComment.text)}</span>
-<span class="update-date"><i class="far fa-clock"></i> ${esc(lastComment.date)}</span>
-` : `<span class="no-update"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>`}
-</td>
-<td class="header-actions-col p-hide">
-<button class="btn-timeline"><i class="fas fa-route"></i> المسار</button>
-</td>
-`;
+tr.className = 'main-row rowbar';
+tr.style.setProperty('--bar', AGE_COL[row.ageCat]);
+tr.innerHTML =
+'<td class="col-wo" style="font-weight:800; color:var(--primary);">' + esc(row.id) + '</td>' +
+'<td class="col-fail" style="direction:ltr; text-align:right; white-space:nowrap;">' + esc(String(row.failDate || row.startDate || '-').substring(0, 16)) + '</td>' +
+'<td class="col-aging"><span class="badge ' + badgeClass + '">' + row.agingDays + ' يوم</span></td>' +
+'<td class="col-status"><span class="badge ' + (STATUS_CLS[row.status] || 'st-other') + '">' + esc(STATUS_AR[row.status] || row.status) + '</span></td>' +
+'<td class="col-site" style="font-weight:700;">' + esc(row.site) + '</td>' +
+'<td class="col-device" title="' + esc(device) + '">' + esc(shortDev) + '</td>' +
+'<td class="col-tech">' + esc(row.tech || '-') + '</td>' +
+'<td class="col-update">' + (row.lastComment
+? '<span class="update-text">' + esc(row.lastComment.text) + '</span><span class="update-date"><i class="far fa-clock"></i> ' + esc(row.lastComment.date) + '</span>'
+: '<span class="no-update"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
+'<td class="header-actions-col"><button class="btn-timeline"><i class="fas fa-route"></i> المسار</button></td>';
 tr.querySelector('.btn-timeline').addEventListener('click', () => window.showTimeline(row.id));
 tbody.appendChild(tr);
 });
 }
 
 function updateKPIs(data) {
-let g = 0, y = 0, r = 0;
-data.forEach(item => {
-if(item.ageCat === 'green') g++;
-if(item.ageCat === 'yellow') y++;
-if(item.ageCat === 'red') r++;
+let g = 0, y = 0, r = 0, nr = 0, sum = 0, a = 0, p = 0;
+data.forEach(i => {
+if (i.ageCat === 'green') g++;
+else if (i.ageCat === 'yellow') y++;
+else r++;
+if (!i.hasUpdate) nr++;
+sum += i.agingDays;
+if (i.group === 1) a++; else p++;
 });
-
-document.getElementById('count-total').innerText = data.length;
-document.getElementById('count-green').innerText = g;
-document.getElementById('count-yellow').innerText = y;
-document.getElementById('count-red').innerText = r;
+$('k-active').textContent = a;
+$('k-progress').textContent = p;
+$('k-green').textContent = g;
+$('k-yellow').textContent = y;
+$('k-red').textContent = r;
+$('k-noreply').textContent = nr;
+$('h-total').textContent = data.length;
+$('h-avg').textContent = data.length ? Math.round(sum / data.length) : 0;
+$('h-reply').textContent = data.length ? Math.round(((data.length - nr) / data.length) * 100) + '%' : '0%';
+$('heroSub').textContent = 'عدد الأوامر المعروضة ' + data.length + ' من أصل ' + MASTER.length + ' أمر مفتوح على مستوى التجمع';
 }
 
+function countBy(data, fn) {
+const m = {};
+data.forEach(r => { const k = fn(r) || 'غير محدد'; m[k] = (m[k] || 0) + 1; });
+return m;
+}
+
+function draw(id, cfg) {
+if (typeof Chart === 'undefined') return;
+if (charts[id]) charts[id].destroy();
+charts[id] = new Chart($(id), cfg);
+}
+
+function renderCharts(data) {
+if (typeof Chart === 'undefined') return;
+Chart.defaults.font.family = 'Tajawal';
+Chart.defaults.font.weight = '600';
+
+// حسب الموقع (مكدّس: نشط / تحت الإجراء)
+const sites = Object.entries(countBy(data, r => r.site)).sort((a, b) => b[1] - a[1]).slice(0, 10).map(e => e[0]);
+const cnt = (s, g) => data.filter(r => (r.site || 'غير محدد') === s && r.group === g).length;
+draw('chSite', {
+type: 'bar',
+data: {
+labels: sites.map(s => s.length > 22 ? s.substring(0, 22) + '…' : s),
+datasets: [
+{ label: 'أعطال نشطة', data: sites.map(s => cnt(s, 1)), backgroundColor: '#dc2626', borderRadius: 4 },
+{ label: 'تحت الإجراء', data: sites.map(s => cnt(s, 2)), backgroundColor: '#7c3aed', borderRadius: 4 }
+]
+},
+options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }, y: { stacked: true } }, plugins: { legend: { position: 'bottom' } } }
+});
+
+// الحالات
+const st = countBy(data, r => r.status);
+const stKeys = Object.keys(st);
+const stColors = { 'Active': '#dc2626', 'Assigned': '#2563eb', 'Pending for Approval': '#7c3aed', 'Approved': '#16a34a' };
+draw('chStatus', {
+type: 'doughnut',
+data: { labels: stKeys.map(k => STATUS_AR[k] || k), datasets: [{ data: stKeys.map(k => st[k]), backgroundColor: stKeys.map(k => stColors[k] || '#94a3b8'), borderWidth: 2, borderColor: '#fff' }] },
+options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+});
+
+// التقادم
+const ag = countBy(data, r => r.ageCat);
+draw('chAge', {
+type: 'bar',
+data: {
+labels: ['حديثة (< 5)', 'متأخرة (5-30)', 'حرجة (+30)'],
+datasets: [{ data: [ag.green || 0, ag.yellow || 0, ag.red || 0], backgroundColor: ['#16a34a', '#eab308', '#dc2626'], borderRadius: 8 }]
+},
+options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
+
+// الفنيون
+const th = Object.entries(countBy(data, r => r.tech)).sort((a, b) => b[1] - a[1]).slice(0, 8);
+draw('chTech', {
+type: 'bar',
+data: { labels: th.map(e => e[0].length > 20 ? e[0].substring(0, 20) + '…' : e[0]), datasets: [{ data: th.map(e => e[1]), backgroundColor: '#0284c7', borderRadius: 4 }] },
+options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
+}
+
+// ===== Timeline =====
 window.showTimeline = (id) => {
-const order = MASTER_DATA.find(o => o.id === id);
-document.getElementById('tl-title').innerHTML = `<i class="fas fa-route"></i> المسار الزمني لأمر: ${esc(id)}`;
-const body = document.getElementById('tl-body');
+const order = MASTER.find(o => o.id === id);
+if (!order) return;
+$('tl-title').innerHTML = '<i class="fas fa-route"></i> المسار الزمني لأمر: ' + esc(id);
+$('tl-meta').innerHTML =
+'<b>الموقع:</b> ' + esc(order.site) + ' &nbsp;|&nbsp; <b>الحالة:</b> ' + esc(STATUS_AR[order.status] || order.status) + '<br>' +
+'<b>الجهاز:</b> ' + esc(order.device) + '<br><b>الفني:</b> ' + esc(order.tech || '-') + ' &nbsp;|&nbsp; <b>التقادم:</b> ' + order.agingDays + ' يوم';
+const body = $('tl-body');
 body.innerHTML = '';
-
-let nodes = [
-{ label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل والمتابعة الفنية.', icon: 'fa-file-medical', color: '#8b5cf6' }
-];
-
-if(order.comments) {
+const nodes = [{ label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل والمتابعة الفنية.', icon: 'fa-file-medical', color: '#8b5cf6' }];
 order.comments.forEach(c => nodes.push({ label: 'تحديث من الموقع', date: c.date, text: c.text, icon: 'fa-user-edit', color: '#f59e0b' }));
-}
-
 nodes.forEach(n => {
-body.insertAdjacentHTML('beforeend', `
-<div class="timeline-item">
-<div class="timeline-dot" style="border-color:${n.color};"></div>
-<div style="font-weight:800; color:var(--primary);"><i class="fas ${n.icon}"></i> ${esc(n.label)} <span style="font-size:0.8rem; color:#64748b; font-weight:normal; margin-right:10px;">(${esc(n.date)})</span></div>
-<div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0; margin-top:8px; font-size:0.95rem;">${esc(n.text)}</div>
-</div>
-`);
+body.insertAdjacentHTML('beforeend',
+'<div class="timeline-item"><div class="timeline-dot" style="border-color:' + n.color + ';"></div>' +
+'<div style="font-weight:800; color:var(--primary);"><i class="fas ' + n.icon + '"></i> ' + esc(n.label) +
+' <span style="font-size:.8rem; color:#64748b; font-weight:normal; margin-right:10px;">(' + esc(String(n.date)) + ')</span></div>' +
+'<div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0; margin-top:8px; font-size:.95rem;">' + esc(n.text) + '</div></div>');
 });
-document.getElementById('timelineModal').style.display = 'flex';
+$('timelineModal').style.display = 'flex';
+};
+window.closeTimeline = () => { $('timelineModal').style.display = 'none'; };
+$('timelineModal').addEventListener('click', e => { if (e.target.id === 'timelineModal') window.closeTimeline(); });
+
+// ===== Export =====
+window.exportTable = (n) => {
+if (typeof XLSX === 'undefined') { alert('مكتبة التصدير لم تُحمّل، تحقق من الاتصال'); return; }
+const rows = sortRows(VIEW[n], SORT[n]).map(r => ({
+'رقم الأمر': r.id,
+'تاريخ الفتح': r.failDate || r.startDate || '',
+'أيام التأخير': r.agingDays,
+'الحالة': STATUS_AR[r.status] || r.status,
+'الموقع': r.site || '',
+'القسم': r.dept || '',
+'الجهاز': r.device || '',
+'الفني': r.tech || '',
+'آخر إفادة': r.lastUpdate,
+'تاريخ الإفادة': r.lastComment ? r.lastComment.date : ''
+}));
+const ws = XLSX.utils.json_to_sheet(rows);
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, n === 1 ? 'الأعطال النشطة' : 'تحت الإجراء');
+XLSX.writeFile(wb, (n === 1 ? 'active_faults_' : 'in_progress_') + new Date().toISOString().slice(0, 10) + '.xlsx');
 };
 
-window.closeTimeline = () => document.getElementById('timelineModal').style.display = 'none';
-
-window.openPrintConfig = () => document.getElementById('printConfigModal').style.display = 'flex';
-window.closePrintConfig = () => document.getElementById('printConfigModal').style.display = 'none';
-
+// ===== Print =====
+window.openPrintConfig = () => { $('printConfigModal').style.display = 'flex'; };
+window.closePrintConfig = () => { $('printConfigModal').style.display = 'none'; };
 window.executePrint = () => {
-const mapping = {
-'p-fail': '.col-fail',
-'p-aging': '.col-aging',
-'p-site': '.col-site',
-'p-device': '.col-device',
-'p-tech': '.col-tech',
-'p-update': '.col-update'
-};
-
-document.querySelectorAll('th, td').forEach(el => el.classList.remove('p-hide'));
-document.querySelectorAll('.header-actions-col').forEach(el => el.classList.add('p-hide'));
-
-Object.keys(mapping).forEach(key => {
-const isChecked = document.getElementById(key).checked;
-if(!isChecked) {
-document.querySelectorAll(mapping[key]).forEach(el => el.classList.add('p-hide'));
-}
-});
-
+const mapping = { 'p-fail': '.col-fail', 'p-aging': '.col-aging', 'p-status': '.col-status', 'p-site': '.col-site', 'p-device': '.col-device', 'p-tech': '.col-tech', 'p-update': '.col-update' };
+document.querySelectorAll('.p-hide').forEach(el => el.classList.remove('p-hide'));
+Object.keys(mapping).forEach(k => { if (!$(k).checked) document.querySelectorAll(mapping[k]).forEach(el => el.classList.add('p-hide')); });
+if (!$('p-t1').checked) $('panelT1').classList.add('p-hide');
+if (!$('p-t2').checked) $('panelT2').classList.add('p-hide');
 closePrintConfig();
-setTimeout(() => { window.print(); }, 500);
+setTimeout(() => { window.print(); }, 400);
 };
+
+// ===== Filters wiring =====
+['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply'].forEach(id => $(id).addEventListener('change', window.applyFilters));
+let tm;
+$('fSearch').addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(window.applyFilters, 200); });
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+const q = c.dataset.quick;
+QUICK = (QUICK === q) ? null : q;
+document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset.quick === QUICK));
+window.applyFilters();
+}));
+window.resetFilters = () => {
+$('fSearch').value = '';
+['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply'].forEach(id => { $(id).value = 'All'; });
+QUICK = null;
+document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+window.applyFilters();
+};
+window.reloadData = loadData;
 
 loadData();
 </script>
