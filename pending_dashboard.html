@@ -281,7 +281,10 @@
                 applyFilters(); // تطبيق الفلاتر الافتراضية ورسم الجدول
                 status.innerHTML = `<i class="fas fa-check-circle" style="color:var(--green)"></i> متصل بنجاح`;
             } catch (err) {
-                status.innerHTML = `<i class="fas fa-times-circle" style="color:var(--red)"></i> فشل الاتصال بالسيرفر`;
+                console.error('loadData failed:', err);
+                const code = (err && err.code) ? err.code : 'unknown';
+                const hint = code === 'permission-denied' ? ' (قواعد Firestore ترفض القراءة)' : '';
+                status.innerHTML = `<i class="fas fa-times-circle" style="color:var(--red)"></i> فشل الاتصال بالسيرفر [${code}]${hint}`;
             }
         }
 

@@ -235,7 +235,9 @@
                     sitesOptions.insertAdjacentHTML('beforeend', `<option value="${data.siteName}">🏥 ${data.siteName}</option>`);
                 });
             } catch(e) {
-                document.getElementById('sitesOptions').innerHTML = '<option value="">تعذر الاتصال بالسيرفر</option>';
+                console.error('sites_auth load failed:', e);
+                const code = (e && e.code) ? e.code : 'unknown';
+                document.getElementById('sitesOptions').innerHTML = `<option value="">تعذر الاتصال بالسيرفر [${code}]</option>`;
             }
         });
 
