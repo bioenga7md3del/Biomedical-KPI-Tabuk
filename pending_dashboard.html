@@ -1,447 +1,430 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الأوامر المعلقة والمخطط الزمني - الإدارة الهندسية</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الأوامر المعلقة والمخطط الزمني - الإدارة الهندسية</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <style>
-        :root { 
-            --primary: #1e3a8a; 
-            --accent: #0284c7;
-            --bg: #f1f5f9; 
-            --surface: #ffffff; 
-            --text: #0f172a; 
-            --green: #16a34a; 
-            --yellow: #eab308; 
-            --red: #dc2626; 
-        }
-        
-        * { box-sizing: border-box; outline: none; text-decoration: none; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; transition: 0.3s; }
-        
-        /* الهيدر وعناصر التحكم */
-        .header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .logo-img { height: 65px; object-fit: contain; } 
-        .header-titles h1 { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 800; }
-        .header-titles p { margin: 2px 0 0; font-size: 0.95rem; color: #64748b; font-weight: 700; }
-        
-        .header-actions { display: flex; gap: 12px; align-items: center; }
-        .btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.9rem;}
-        .btn-action:hover { background: #e2e8f0; transform: translateY(-1px); }
-        .btn-print-trigger { background: var(--primary); color: white; border: none; }
-        .btn-print-trigger:hover { background: #1e40af; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); }
+<style>html { visibility: hidden; }</style>
 
-        .container { max-width: 1550px; margin: 2rem auto; padding: 0 1.5rem; }
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-        /* منطقة الفلاتر الذكية */
-        .controls-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); flex-wrap: wrap; align-items: flex-end;}
-        .control-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 250px;}
-        .control-group label { font-weight: 700; color: #475569; font-size: 0.95rem; }
-        .form-select { padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; background: #f8fafc; color: #0f172a; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%;}
-        .form-select:hover, .form-select:focus { border-color: var(--primary); outline: none; }
+<style>
+:root {
+--primary: #1e3a8a;
+--accent: #0284c7;
+--bg: #f1f5f9;
+--surface: #ffffff;
+--text: #0f172a;
+--green: #16a34a;
+--yellow: #eab308;
+--red: #dc2626;
+}
 
-        /* الكروت الإحصائية (KPIs) */
-        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid #e2e8f0;}
-        .kpi-val { font-size: 2.2rem; font-weight: 800; margin-top: 10px; }
-        .kpi-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
+* { box-sizing: border-box; outline: none; text-decoration: none; }
+body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 60px; transition: 0.3s; }
 
-        /* نافذة إعدادات الطباعة المخصصة */
-        #printConfigModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; }
-        .config-card { background: white; padding: 30px; border-radius: 16px; width: 450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-        .config-card h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
-        .option-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #f8fafc; cursor: pointer; transition: 0.2s; }
-        .option-item:hover { background: #f0f9ff; border-radius: 8px; }
-        .option-item input { width: 20px; height: 20px; cursor: pointer; }
-        .option-item label { cursor: pointer; font-weight: 700; flex: 1; }
+.header { background: var(--surface); padding: 1rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+.logo-img { height: 65px; object-fit: contain; }
+.header-titles { display: flex; align-items: center; gap: 15px; }
+.header-titles h1 { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 800; }
+.header-titles p { margin: 2px 0 0; font-size: 0.95rem; color: #64748b; font-weight: 700; }
 
-        /* الجدول المتقدم */
-        .panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
-        .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; } 
-        table { width: 100%; border-collapse: collapse; text-align: right; }
-        th { background: #f8fafc; color: #475569; padding: 18px 15px; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 800; font-size: 0.9rem; }
-        
-        .main-row { transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
-        .main-row:hover { background: #f0f9ff; }
-        .main-row td { padding: 16px 15px; vertical-align: middle; font-size: 0.9rem; }
-        
-        /* عمود التحديثات */
-        .update-cell { max-width: 350px; }
-        .update-text { display: block; font-weight: 700; color: var(--text); font-size: 0.85rem; margin-bottom: 4px; line-height: 1.4; }
-        .update-date { display: block; font-size: 0.75rem; color: #64748b; font-weight: bold; }
-        .no-update { color: #dc2626; font-weight: 800; font-size: 0.8rem; background: #fee2e2; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #fca5a5;}
+.header-actions { display: flex; gap: 12px; align-items: center; }
+.btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.9rem;}
+.btn-action:hover { background: #e2e8f0; transform: translateY(-1px); }
+.btn-print-trigger { background: var(--primary); color: white; border: none; }
+.btn-print-trigger:hover { background: #1e40af; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); }
 
-        .badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;}
-        .age-green { background: #dcfce7; color: #166534; }
-        .age-yellow { background: #fef08a; color: #854d0e; }
-        .age-red { background: #fee2e2; color: #991b1b; }
+.container { max-width: 1550px; margin: 2rem auto; padding: 0 1.5rem; }
 
-        /* أزرار الجدول */
-        .btn-timeline { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.85rem;}
-        .btn-timeline:hover { background: #2563eb; color: white; }
+.controls-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); flex-wrap: wrap; align-items: flex-end;}
+.control-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 250px;}
+.control-group label { font-weight: 700; color: #475569; font-size: 0.95rem; }
+.form-select { padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; background: #f8fafc; color: #0f172a; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%;}
+.form-select:hover, .form-select:focus { border-color: var(--primary); outline: none; }
 
-        /* نافذة المخطط الزمني (Timeline) */
-        #timelineModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 9999; }
-        .timeline-card { background: var(--surface); padding: 35px; border-radius: 20px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; position: relative; }
-        .close-modal { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: 0.2s; }
-        .close-modal:hover { color: #dc2626; }
-        
-        .timeline-wrapper { position: relative; padding-right: 35px; border-right: 3px solid #e2e8f0; margin-right: 15px;}
-        .timeline-item { position: relative; margin-bottom: 30px; }
-        .timeline-dot { position: absolute; right: -46px; top: 0; width: 24px; height: 24px; background: white; border: 4px solid var(--primary); border-radius: 50%; z-index: 2;}
+.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.kpi-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid #e2e8f0;}
+.kpi-val { font-size: 2.2rem; font-weight: 800; margin-top: 10px; }
+.kpi-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
 
-        /* إعدادات الطباعة النظيفة */
-        @media print {
-            @page { size: landscape; margin: 1cm; }
-            body { background: white !important; font-size: 10pt; }
-            .header, .controls-card, .grid-kpi, .header-actions, .btn-timeline, #printConfigModal, .close-modal { display: none !important; }
-            .container { max-width: 100%; margin: 0; padding: 0; }
-            .panel { border: none; box-shadow: none; padding: 0; margin: 0; }
-            .table-wrap { border: none; overflow: visible; }
-            table { width: 100%; border: 1px solid #000; }
-            th, td { border: 1px solid #ddd !important; padding: 8px !important; color: black !important; }
-            th { background: #eee !important; -webkit-print-color-adjust: exact; }
-            .badge { background: none !important; border: none; color: black !important; padding: 0; }
-            .no-update { background: none !important; color: black !important; border: none; font-weight: bold;}
-            
-            /* الفئة المسؤولة عن إخفاء الأعمدة في الطباعة */
-            .p-hide { display: none !important; }
-        }
-    </style>
+#printConfigModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; }
+.config-card { background: white; padding: 30px; border-radius: 16px; width: 450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+.config-card h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; }
+.option-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #f8fafc; cursor: pointer; transition: 0.2s; }
+.option-item:hover { background: #f0f9ff; border-radius: 8px; }
+.option-item input { width: 20px; height: 20px; cursor: pointer; }
+.option-item label { cursor: pointer; font-weight: 700; flex: 1; }
+
+.panel { background: var(--surface); border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
+.table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; text-align: right; }
+th { background: #f8fafc; color: #475569; padding: 18px 15px; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 800; font-size: 0.9rem; }
+
+.main-row { transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
+.main-row:hover { background: #f0f9ff; }
+.main-row td { padding: 16px 15px; vertical-align: middle; font-size: 0.9rem; }
+
+.update-cell { max-width: 350px; }
+.update-text { display: block; font-weight: 700; color: var(--text); font-size: 0.85rem; margin-bottom: 4px; line-height: 1.4; }
+.update-date { display: block; font-size: 0.75rem; color: #64748b; font-weight: bold; }
+.no-update { color: #dc2626; font-weight: 800; font-size: 0.8rem; background: #fee2e2; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #fca5a5;}
+
+.badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;}
+.age-green { background: #dcfce7; color: #166534; }
+.age-yellow { background: #fef08a; color: #854d0e; }
+.age-red { background: #fee2e2; color: #991b1b; }
+
+.btn-timeline { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Tajawal'; transition: 0.2s; font-size: 0.85rem;}
+.btn-timeline:hover { background: #2563eb; color: white; }
+
+#timelineModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 9999; }
+.timeline-card { background: var(--surface); padding: 35px; border-radius: 20px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; position: relative; }
+.close-modal { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: 0.2s; }
+.close-modal:hover { color: #dc2626; }
+
+.timeline-wrapper { position: relative; padding-right: 35px; border-right: 3px solid #e2e8f0; margin-right: 15px;}
+.timeline-item { position: relative; margin-bottom: 30px; }
+.timeline-dot { position: absolute; right: -46px; top: 0; width: 24px; height: 24px; background: white; border: 4px solid var(--primary); border-radius: 50%; z-index: 2;}
+
+@media print {
+@page { size: landscape; margin: 1cm; }
+body { background: white !important; font-size: 10pt; }
+.header, .controls-card, .grid-kpi, .header-actions, .btn-timeline, #printConfigModal, .close-modal { display: none !important; }
+.container { max-width: 100%; margin: 0; padding: 0; }
+.panel { border: none; box-shadow: none; padding: 0; margin: 0; }
+.table-wrap { border: none; overflow: visible; }
+table { width: 100%; border: 1px solid #000; }
+th, td { border: 1px solid #ddd !important; padding: 8px !important; color: black !important; }
+th { background: #eee !important; -webkit-print-color-adjust: exact; }
+.badge { background: none !important; border: none; color: black !important; padding: 0; }
+.no-update { background: none !important; color: black !important; border: none; font-weight: bold;}
+.p-hide { display: none !important; }
+}
+</style>
 </head>
 <body>
 
-    <header class="header">
-        <div class="header-titles">
-            <img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
-            <div>
-                <h1>لوحة متابعة الأداء ومبررات التأخير</h1>
-                <p>قسم الأجهزة الطبية - تجمع تبوك الصحي</p>
-            </div>
-        </div>
-        <div class="header-actions">
-            <div id="statusBadge" style="color: #1e3a8a; font-weight: bold; margin-left: 10px;">
-                <i class="fas fa-sync fa-spin"></i> تحديث...
-            </div>
-            <button class="btn-action btn-print-trigger" onclick="openPrintConfig()">
-                <i class="fas fa-print"></i> استخراج تقرير مخصص
-            </button>
-            <a href="index.html" class="btn-action"><i class="fas fa-home"></i> الرئيسية</a>
-        </div>
-    </header>
+<header class="header">
+<div class="header-titles">
+<img src="TabukCluster.jpeg" alt="شعار التجمع" class="logo-img" onerror="this.src=''; this.style.display='none'"/>
+<div>
+<h1>لوحة متابعة الأداء ومبررات التأخير</h1>
+<p>قسم الأجهزة الطبية - تجمع تبوك الصحي</p>
+</div>
+</div>
+<div class="header-actions">
+<div id="statusBadge" style="color: #1e3a8a; font-weight: bold; margin-left: 10px;">
+<i class="fas fa-sync fa-spin"></i> تحديث...
+</div>
+<button class="btn-action btn-print-trigger" onclick="openPrintConfig()">
+<i class="fas fa-print"></i> استخراج تقرير مخصص
+</button>
+<a href="index.html" class="btn-action"><i class="fas fa-home"></i> الرئيسية</a>
+</div>
+</header>
 
-    <div id="printConfigModal">
-        <div class="config-card">
-            <h3><i class="fas fa-sliders-h"></i> إعدادات التقرير الورقي</h3>
-            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">اختر المعلومات التي تريد إظهارها في التقرير:</p>
-            
-            <div class="option-item"><input type="checkbox" id="p-wo" checked disabled><label>رقم أمر العمل (إلزامي)</label></div>
-            <div class="option-item"><input type="checkbox" id="p-fail" checked><label>تاريخ الفتح (Fail Date)</label></div>
-            <div class="option-item"><input type="checkbox" id="p-aging" checked><label>أيام التأخير (Aging)</label></div>
-            <div class="option-item"><input type="checkbox" id="p-site" checked><label>الموقع / المستشفى</label></div>
-            <div class="option-item"><input type="checkbox" id="p-device" checked><label>بيانات الجهاز</label></div>
-            <div class="option-item"><input type="checkbox" id="p-tech" checked><label>اسم الفني</label></div>
-            <div class="option-item"><input type="checkbox" id="p-update" checked><label>إظهار آخر تحديث من الموقع</label></div>
+<div id="printConfigModal">
+<div class="config-card">
+<h3><i class="fas fa-sliders-h"></i> إعدادات التقرير الورقي</h3>
+<p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">اختر المعلومات التي تريد إظهارها في التقرير:</p>
 
-            <div style="display: flex; gap: 10px; margin-top: 25px;">
-                <button class="btn-action btn-print-trigger" style="flex: 1; justify-content:center;" onclick="executePrint()">توليد التقرير الآن</button>
-                <button class="btn-action" style="background: #f1f5f9; justify-content:center;" onclick="closePrintConfig()">إلغاء</button>
-            </div>
-        </div>
-    </div>
+<div class="option-item"><input type="checkbox" id="p-wo" checked disabled><label>رقم أمر العمل (إلزامي)</label></div>
+<div class="option-item"><input type="checkbox" id="p-fail" checked><label>تاريخ الفتح (Fail Date)</label></div>
+<div class="option-item"><input type="checkbox" id="p-aging" checked><label>أيام التأخير (Aging)</label></div>
+<div class="option-item"><input type="checkbox" id="p-site" checked><label>الموقع / المستشفى</label></div>
+<div class="option-item"><input type="checkbox" id="p-device" checked><label>بيانات الجهاز</label></div>
+<div class="option-item"><input type="checkbox" id="p-tech" checked><label>اسم الفني</label></div>
+<div class="option-item"><input type="checkbox" id="p-update" checked><label>إظهار آخر تحديث من الموقع</label></div>
 
-    <div class="container">
-        
-        <div class="controls-card">
-            <div class="control-group">
-                <label><i class="fas fa-hospital"></i> الموقع / المستشفى:</label>
-                <select id="filterSite" class="form-select" onchange="applyFilters()">
-                    <option value="All">-- كل المواقع --</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label><i class="fas fa-clock"></i> حالة العطل (التقادم):</label>
-                <select id="filterAge" class="form-select" onchange="applyFilters()">
-                    <option value="All">-- جميع الحالات --</option>
-                    <option value="green">أعطال حديثة (أقل من 5 أيام)</option>
-                    <option value="yellow">أعطال متأخرة (5 إلى 30 يوم)</option>
-                    <option value="red">أعطال حرجة (أكثر من 30 يوم)</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label><i class="fas fa-comment-dots"></i> حالة الإفادة (مبرر الموقع):</label>
-                <select id="filterUpdate" class="form-select" onchange="applyFilters()">
-                    <option value="All">-- الكل --</option>
-                    <option value="with_update">تم التحديث (يوجد إفادة)</option>
-                    <option value="no_update">بانتظار الإفادة (بدون رد)</option>
-                </select>
-            </div>
-        </div>
+<div style="display: flex; gap: 10px; margin-top: 25px;">
+<button class="btn-action btn-print-trigger" style="flex: 1; justify-content:center;" onclick="executePrint()">توليد التقرير الآن</button>
+<button class="btn-action" style="background: #f1f5f9; justify-content:center;" onclick="closePrintConfig()">إلغاء</button>
+</div>
+</div>
+</div>
 
-        <div class="grid-kpi">
-            <div class="kpi-card" style="border-top: 4px solid var(--accent);">
-                <div class="kpi-label">إجمالي الأوامر المفتوحة</div>
-                <div class="kpi-val" id="count-total" style="color: var(--primary);">0</div>
-            </div>
-            <div class="kpi-card" style="border-top: 4px solid var(--green);">
-                <div class="kpi-label">أعطال حديثة (< 5 أيام)</div>
-                <div class="kpi-val" id="count-green" style="color: var(--green);">0</div>
-            </div>
-            <div class="kpi-card" style="border-top: 4px solid var(--yellow);">
-                <div class="kpi-label">أعطال متأخرة (5-30 يوم)</div>
-                <div class="kpi-val" id="count-yellow" style="color: var(--yellow);">0</div>
-            </div>
-            <div class="kpi-card" style="border-top: 4px solid var(--red);">
-                <div class="kpi-label">حالات حرجة (+30 يوم)</div>
-                <div class="kpi-val" id="count-red" style="color: var(--red);">0</div>
-            </div>
-        </div>
+<div class="container">
 
-        <div class="panel">
-            <div class="table-wrap">
-                <table id="mainTable">
-                    <thead>
-                        <tr>
-                            <th class="col-wo">رقم الأمر</th>
-                            <th class="col-fail">تاريخ الفتح</th>
-                            <th class="col-aging">أيام التأخير</th>
-                            <th class="col-site">الموقع</th>
-                            <th class="col-device" style="width:25%;">الجهاز الطبي</th>
-                            <th class="col-tech">الفني</th>
-                            <th class="col-update">آخر إفادة / تحديث من الموقع</th>
-                            <th class="header-actions-col p-hide">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr><td colspan="8" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات من السيرفر...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<div class="controls-card">
+<div class="control-group">
+<label><i class="fas fa-hospital"></i> الموقع / المستشفى:</label>
+<select id="filterSite" class="form-select" onchange="applyFilters()">
+<option value="All">-- كل المواقع --</option>
+</select>
+</div>
+<div class="control-group">
+<label><i class="fas fa-clock"></i> حالة العطل (التقادم):</label>
+<select id="filterAge" class="form-select" onchange="applyFilters()">
+<option value="All">-- جميع الحالات --</option>
+<option value="green">أعطال حديثة (أقل من 5 أيام)</option>
+<option value="yellow">أعطال متأخرة (5 إلى 30 يوم)</option>
+<option value="red">أعطال حرجة (أكثر من 30 يوم)</option>
+</select>
+</div>
+<div class="control-group">
+<label><i class="fas fa-comment-dots"></i> حالة الإفادة (مبرر الموقع):</label>
+<select id="filterUpdate" class="form-select" onchange="applyFilters()">
+<option value="All">-- الكل --</option>
+<option value="with_update">تم التحديث (يوجد إفادة)</option>
+<option value="no_update">بانتظار الإفادة (بدون رد)</option>
+</select>
+</div>
+</div>
 
-    <div id="timelineModal">
-        <div class="timeline-card">
-            <i class="fas fa-times close-modal" onclick="closeTimeline()"></i>
-            <h2 id="tl-title" style="margin-top: 0; color: var(--primary); border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;"></h2>
-            <div class="timeline-wrapper" id="tl-body"></div>
-        </div>
-    </div>
+<div class="grid-kpi">
+<div class="kpi-card" style="border-top: 4px solid var(--accent);">
+<div class="kpi-label">إجمالي الأوامر المفتوحة</div>
+<div class="kpi-val" id="count-total" style="color: var(--primary);">0</div>
+</div>
+<div class="kpi-card" style="border-top: 4px solid var(--green);">
+<div class="kpi-label">أعطال حديثة (&lt; 5 أيام)</div>
+<div class="kpi-val" id="count-green" style="color: var(--green);">0</div>
+</div>
+<div class="kpi-card" style="border-top: 4px solid var(--yellow);">
+<div class="kpi-label">أعطال متأخرة (5-30 يوم)</div>
+<div class="kpi-val" id="count-yellow" style="color: var(--yellow);">0</div>
+</div>
+<div class="kpi-card" style="border-top: 4px solid var(--red);">
+<div class="kpi-label">حالات حرجة (+30 يوم)</div>
+<div class="kpi-val" id="count-red" style="color: var(--red);">0</div>
+</div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+<div class="panel">
+<div class="table-wrap">
+<table id="mainTable">
+<thead>
+<tr>
+<th class="col-wo">رقم الأمر</th>
+<th class="col-fail">تاريخ الفتح</th>
+<th class="col-aging">أيام التأخير</th>
+<th class="col-site">الموقع</th>
+<th class="col-device" style="width:25%;">الجهاز الطبي</th>
+<th class="col-tech">الفني</th>
+<th class="col-update">آخر إفادة / تحديث من الموقع</th>
+<th class="header-actions-col p-hide">الإجراءات</th>
+</tr>
+</thead>
+<tbody id="tableBody">
+<tr><td colspan="8" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات من السيرفر...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
-            authDomain: "tabuk-medical-cmms.firebaseapp.com",
-            projectId: "tabuk-medical-cmms",
-            storageBucket: "tabuk-medical-cmms.firebasestorage.app",
-            messagingSenderId: "756624281363",
-            appId: "1:756624281363:web:919e8555b86eddecbb14e6"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+<div id="timelineModal">
+<div class="timeline-card">
+<i class="fas fa-times close-modal" onclick="closeTimeline()"></i>
+<h2 id="tl-title" style="margin-top: 0; color: var(--primary); border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;"></h2>
+<div class="timeline-wrapper" id="tl-body"></div>
+</div>
+</div>
 
-        let MASTER_DATA = [];
+<script type="module">
+import { requireRole, db, esc } from "./firebase-init.js";
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        async function loadData() {
-            const status = document.getElementById('statusBadge');
-            try {
-                const q = query(collection(db, "pending_orders"), where("isCompleted", "==", false));
-                const snapshot = await getDocs(q);
-                MASTER_DATA = [];
-                const siteSet = new Set();
+// الدخول مسموح للأدمن ومديري المواقع المسجلين فقط
+await requireRole(['admin', 'manager']);
 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.agingDays = calculateDays(data.failDate || data.startDate || data.createdAt);
-                    
-                    // تصنيف التقادم
-                    if(data.agingDays < 5) data.ageCat = 'green';
-                    else if(data.agingDays <= 30) data.ageCat = 'yellow';
-                    else data.ageCat = 'red';
+let MASTER_DATA = [];
 
-                    // تصنيف الإفادة
-                    data.hasUpdate = (data.comments && data.comments.length > 0);
+async function loadData() {
+const status = document.getElementById('statusBadge');
+try {
+const q = query(collection(db, "pending_orders"), where("isCompleted", "==", false));
+const snapshot = await getDocs(q);
+MASTER_DATA = [];
+const siteSet = new Set();
 
-                    if(data.site) siteSet.add(data.site);
-                    MASTER_DATA.push(data);
-                });
+snapshot.forEach(d => {
+const data = d.data();
+data.agingDays = calculateDays(data.failDate || data.startDate || data.createdAt);
 
-                // تعبئة فلتر المواقع
-                const sel = document.getElementById('filterSite');
-                [...siteSet].sort().forEach(s => sel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`));
+if(data.agingDays < 5) data.ageCat = 'green';
+else if(data.agingDays <= 30) data.ageCat = 'yellow';
+else data.ageCat = 'red';
 
-                applyFilters(); // تطبيق الفلاتر الافتراضية ورسم الجدول
-                status.innerHTML = `<i class="fas fa-check-circle" style="color:var(--green)"></i> متصل بنجاح`;
-            } catch (err) {
-                status.innerHTML = `<i class="fas fa-times-circle" style="color:var(--red)"></i> فشل الاتصال بالسيرفر`;
-            }
-        }
+data.hasUpdate = (data.comments && data.comments.length > 0);
 
-        // 🛠️ دالة معالجة التاريخ الذكية لمنع NaN
-        function calculateDays(v) {
-            if(!v) return 0;
-            if(v instanceof Date) {
-                const diff = Date.now() - v.getTime();
-                return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-            }
-            let s = String(v).trim();
-            let d = null;
-            if(s.match(/^\d{4}-\d{2}-\d{2}/)) {
-                d = new Date(s);
-            } else {
-                let dPart = s.split(' ')[0];
-                let parts = dPart.split(/[\/\-\.]/);
-                if(parts.length >= 3) {
-                    let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
-                    if (p0 > 1900) d = new Date(p0, p1, p2);
-                    else if (p2 > 1900) d = new Date(p2, p1, p0);
-                }
-            }
-            if(!d || isNaN(d.getTime())) return 0;
-            const diff = Date.now() - d.getTime();
-            return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-        }
+if(data.site) siteSet.add(data.site);
+MASTER_DATA.push(data);
+});
 
-        // 🎯 محرك الفلاتر الديناميكي
-        window.applyFilters = function() {
-            const siteVal = document.getElementById('filterSite').value;
-            const ageVal = document.getElementById('filterAge').value;
-            const updateVal = document.getElementById('filterUpdate').value;
+const sel = document.getElementById('filterSite');
+[...siteSet].sort().forEach(s => {
+const o = document.createElement('option');
+o.value = s; o.textContent = s;
+sel.appendChild(o);
+});
 
-            const filteredData = MASTER_DATA.filter(r => {
-                if(siteVal !== 'All' && r.site !== siteVal) return false;
-                if(ageVal !== 'All' && r.ageCat !== ageVal) return false;
-                
-                if(updateVal === 'with_update' && !r.hasUpdate) return false;
-                if(updateVal === 'no_update' && r.hasUpdate) return false;
-                
-                return true;
-            });
+applyFilters();
+status.innerHTML = `<i class="fas fa-check-circle" style="color:var(--green)"></i> متصل بنجاح`;
+} catch (err) {
+console.error(err);
+status.innerHTML = `<i class="fas fa-times-circle" style="color:var(--red)"></i> فشل الاتصال بالسيرفر`;
+}
+}
 
-            renderMainTable(filteredData);
-            updateKPIs(filteredData);
-        };
+function calculateDays(v) {
+if(!v) return 0;
+if(v instanceof Date) {
+const diff = Date.now() - v.getTime();
+return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
+let s = String(v).trim();
+let d = null;
+if(s.match(/^\d{4}-\d{2}-\d{2}/)) {
+d = new Date(s);
+} else {
+let dPart = s.split(' ')[0];
+let parts = dPart.split(/[\/\-\.]/);
+if(parts.length >= 3) {
+let p0 = parseInt(parts[0]), p1 = parseInt(parts[1])-1, p2 = parseInt(parts[2]);
+if (p0 > 1900) d = new Date(p0, p1, p2);
+else if (p2 > 1900) d = new Date(p2, p1, p0);
+}
+}
+if(!d || isNaN(d.getTime())) return 0;
+const diff = Date.now() - d.getTime();
+return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
 
-        function renderMainTable(data) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            
-            if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b; font-weight:bold;">لا توجد بيانات مطابقة لخيارات الفلتر الحالية.</td></tr>';
-                return;
-            }
+window.applyFilters = function() {
+const siteVal = document.getElementById('filterSite').value;
+const ageVal = document.getElementById('filterAge').value;
+const updateVal = document.getElementById('filterUpdate').value;
 
-            data.sort((a,b) => b.agingDays - a.agingDays).forEach(row => {
-                let badgeClass = 'age-green';
-                if(row.ageCat === 'yellow') badgeClass = 'age-yellow';
-                if(row.ageCat === 'red') badgeClass = 'age-red';
+const filteredData = MASTER_DATA.filter(r => {
+if(siteVal !== 'All' && r.site !== siteVal) return false;
+if(ageVal !== 'All' && r.ageCat !== ageVal) return false;
 
-                const lastComment = row.hasUpdate ? row.comments[row.comments.length-1] : null;
+if(updateVal === 'with_update' && !r.hasUpdate) return false;
+if(updateVal === 'no_update' && r.hasUpdate) return false;
 
-                const tr = document.createElement('tr');
-                tr.className = 'main-row';
-                tr.innerHTML = `
-                    <td class="col-wo" style="font-weight:bold; color:var(--primary);">${row.id}</td>
-                    <td class="col-fail" style="direction:ltr;">${row.failDate || row.startDate || '-'}</td>
-                    <td class="col-aging"><span class="badge ${badgeClass}">${row.agingDays} يوم</span></td>
-                    <td class="col-site" style="font-weight:600;">${row.site}</td>
-                    <td class="col-device" title="${row.device}">${row.device.substring(0,40)}...</td>
-                    <td class="col-tech">${row.tech}</td>
-                    <td class="col-update update-cell">
-                        ${lastComment ? `
-                            <span class="update-text">${lastComment.text}</span>
-                            <span class="update-date"><i class="far fa-clock"></i> ${lastComment.date}</span>
-                        ` : `<span class="no-update"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>`}
-                    </td>
-                    <td class="header-actions-col p-hide">
-                        <button class="btn-timeline" onclick="showTimeline('${row.id}')"><i class="fas fa-route"></i> المسار</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+return true;
+});
 
-        // 📊 تحديث الكروت العلوية بناءً على الفلتر
-        function updateKPIs(data) {
-            let g = 0, y = 0, r = 0;
-            data.forEach(item => {
-                if(item.ageCat === 'green') g++;
-                if(item.ageCat === 'yellow') y++;
-                if(item.ageCat === 'red') r++;
-            });
+renderMainTable(filteredData);
+updateKPIs(filteredData);
+};
 
-            document.getElementById('count-total').innerText = data.length;
-            document.getElementById('count-green').innerText = g;
-            document.getElementById('count-yellow').innerText = y;
-            document.getElementById('count-red').innerText = r;
-        }
+function renderMainTable(data) {
+const tbody = document.getElementById('tableBody');
+tbody.innerHTML = '';
 
-        // منطق المخطط الزمني
-        window.showTimeline = (id) => {
-            const order = MASTER_DATA.find(o => o.id === id);
-            document.getElementById('tl-title').innerHTML = `<i class="fas fa-route"></i> المسار الزمني لأمر: ${id}`;
-            const body = document.getElementById('tl-body');
-            body.innerHTML = '';
-            
-            let nodes = [
-                { label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل والمتابعة الفنية.', icon: 'fa-file-medical', color: '#8b5cf6' }
-            ];
-            
-            if(order.comments) {
-                order.comments.forEach(c => nodes.push({ label: 'تحديث من الموقع', date: c.date, text: c.text, icon: 'fa-user-edit', color: '#f59e0b' }));
-            }
-            
-            nodes.forEach(n => {
-                body.innerHTML += `
-                    <div class="timeline-item">
-                        <div class="timeline-dot" style="border-color:${n.color};"></div>
-                        <div style="font-weight:800; color:var(--primary);"><i class="fas ${n.icon}"></i> ${n.label} <span style="font-size:0.8rem; color:#64748b; font-weight:normal; margin-right:10px;">(${n.date})</span></div>
-                        <div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0; margin-top:8px; font-size:0.95rem;">${n.text}</div>
-                    </div>
-                `;
-            });
-            document.getElementById('timelineModal').style.display = 'flex';
-        };
+if(data.length === 0) {
+tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#64748b; font-weight:bold;">لا توجد بيانات مطابقة لخيارات الفلتر الحالية.</td></tr>';
+return;
+}
 
-        window.closeTimeline = () => document.getElementById('timelineModal').style.display = 'none';
+data.sort((a,b) => b.agingDays - a.agingDays).forEach(row => {
+let badgeClass = 'age-green';
+if(row.ageCat === 'yellow') badgeClass = 'age-yellow';
+if(row.ageCat === 'red') badgeClass = 'age-red';
 
-        // محرك الطباعة المخصصة
-        window.openPrintConfig = () => document.getElementById('printConfigModal').style.display = 'flex';
-        window.closePrintConfig = () => document.getElementById('printConfigModal').style.display = 'none';
+const lastComment = row.hasUpdate ? row.comments[row.comments.length-1] : null;
+const device = String(row.device || '');
 
-        window.executePrint = () => {
-            const mapping = {
-                'p-fail': '.col-fail',
-                'p-aging': '.col-aging',
-                'p-site': '.col-site',
-                'p-device': '.col-device',
-                'p-tech': '.col-tech',
-                'p-update': '.col-update'
-            };
-            
-            document.querySelectorAll('th, td').forEach(el => el.classList.remove('p-hide'));
-            document.querySelectorAll('.header-actions-col').forEach(el => el.classList.add('p-hide')); 
+const tr = document.createElement('tr');
+tr.className = 'main-row';
+tr.innerHTML = `
+<td class="col-wo" style="font-weight:bold; color:var(--primary);">${esc(row.id)}</td>
+<td class="col-fail" style="direction:ltr;">${esc(row.failDate || row.startDate || '-')}</td>
+<td class="col-aging"><span class="badge ${badgeClass}">${row.agingDays} يوم</span></td>
+<td class="col-site" style="font-weight:600;">${esc(row.site)}</td>
+<td class="col-device" title="${esc(device)}">${esc(device.substring(0,40))}...</td>
+<td class="col-tech">${esc(row.tech)}</td>
+<td class="col-update update-cell">
+${lastComment ? `
+<span class="update-text">${esc(lastComment.text)}</span>
+<span class="update-date"><i class="far fa-clock"></i> ${esc(lastComment.date)}</span>
+` : `<span class="no-update"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>`}
+</td>
+<td class="header-actions-col p-hide">
+<button class="btn-timeline"><i class="fas fa-route"></i> المسار</button>
+</td>
+`;
+tr.querySelector('.btn-timeline').addEventListener('click', () => window.showTimeline(row.id));
+tbody.appendChild(tr);
+});
+}
 
-            Object.keys(mapping).forEach(key => {
-                const isChecked = document.getElementById(key).checked;
-                if(!isChecked) {
-                    document.querySelectorAll(mapping[key]).forEach(el => el.classList.add('p-hide'));
-                }
-            });
+function updateKPIs(data) {
+let g = 0, y = 0, r = 0;
+data.forEach(item => {
+if(item.ageCat === 'green') g++;
+if(item.ageCat === 'yellow') y++;
+if(item.ageCat === 'red') r++;
+});
 
-            closePrintConfig();
-            setTimeout(() => { window.print(); }, 500);
-        };
+document.getElementById('count-total').innerText = data.length;
+document.getElementById('count-green').innerText = g;
+document.getElementById('count-yellow').innerText = y;
+document.getElementById('count-red').innerText = r;
+}
 
-        window.onload = loadData;
-    </script>
+window.showTimeline = (id) => {
+const order = MASTER_DATA.find(o => o.id === id);
+document.getElementById('tl-title').innerHTML = `<i class="fas fa-route"></i> المسار الزمني لأمر: ${esc(id)}`;
+const body = document.getElementById('tl-body');
+body.innerHTML = '';
+
+let nodes = [
+{ label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل والمتابعة الفنية.', icon: 'fa-file-medical', color: '#8b5cf6' }
+];
+
+if(order.comments) {
+order.comments.forEach(c => nodes.push({ label: 'تحديث من الموقع', date: c.date, text: c.text, icon: 'fa-user-edit', color: '#f59e0b' }));
+}
+
+nodes.forEach(n => {
+body.insertAdjacentHTML('beforeend', `
+<div class="timeline-item">
+<div class="timeline-dot" style="border-color:${n.color};"></div>
+<div style="font-weight:800; color:var(--primary);"><i class="fas ${n.icon}"></i> ${esc(n.label)} <span style="font-size:0.8rem; color:#64748b; font-weight:normal; margin-right:10px;">(${esc(n.date)})</span></div>
+<div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0; margin-top:8px; font-size:0.95rem;">${esc(n.text)}</div>
+</div>
+`);
+});
+document.getElementById('timelineModal').style.display = 'flex';
+};
+
+window.closeTimeline = () => document.getElementById('timelineModal').style.display = 'none';
+
+window.openPrintConfig = () => document.getElementById('printConfigModal').style.display = 'flex';
+window.closePrintConfig = () => document.getElementById('printConfigModal').style.display = 'none';
+
+window.executePrint = () => {
+const mapping = {
+'p-fail': '.col-fail',
+'p-aging': '.col-aging',
+'p-site': '.col-site',
+'p-device': '.col-device',
+'p-tech': '.col-tech',
+'p-update': '.col-update'
+};
+
+document.querySelectorAll('th, td').forEach(el => el.classList.remove('p-hide'));
+document.querySelectorAll('.header-actions-col').forEach(el => el.classList.add('p-hide'));
+
+Object.keys(mapping).forEach(key => {
+const isChecked = document.getElementById(key).checked;
+if(!isChecked) {
+document.querySelectorAll(mapping[key]).forEach(el => el.classList.add('p-hide'));
+}
+});
+
+closePrintConfig();
+setTimeout(() => { window.print(); }, 500);
+};
+
+loadData();
+</script>
 </body>
 </html>

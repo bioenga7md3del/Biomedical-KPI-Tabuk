@@ -1,78 +1,73 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C-Panel - الإدارة الهندسية المركزية</title>
-    
-    <script>
-        if(sessionStorage.getItem('cpanel_auth') !== 'true') {
-            window.location.href = 'index.html';
-        }
-    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C-Panel - الإدارة الهندسية المركزية</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <style>
-        :root { --primary: #1e3a8a; --bg: #f1f5f9; --surface: #ffffff; }
-        * { box-sizing: border-box; outline: none; text-decoration: none; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #334155; margin: 0; padding: 0; }
-        
-        #adminHub { padding: 40px; max-width: 1200px; margin: 0 auto; }
-        .hub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
-        .hub-header h1 { margin: 0; color: var(--primary); font-size: 2rem; font-weight: 800; }
-        .btn-logout { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px; transition: 0.2s;}
-        .btn-logout:hover { background: #fecaca; }
-        
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .tool-card { background: var(--surface); padding: 30px; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; transition: 0.3s; display: block; color: #334155; }
-        .tool-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .tool-icon { font-size: 3rem; margin-bottom: 15px; }
-        .tool-card h2 { margin: 0 0 10px 0; color: #0f172a; }
-        .tool-card p { margin: 0; color: #64748b; font-size: 0.95rem; line-height: 1.5; }
-    </style>
+<style>html { visibility: hidden; }</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+:root { --primary: #1e3a8a; --bg: #f1f5f9; --surface: #ffffff; }
+* { box-sizing: border-box; outline: none; text-decoration: none; }
+body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #334155; margin: 0; padding: 0; }
+
+#adminHub { padding: 40px; max-width: 1200px; margin: 0 auto; }
+.hub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }
+.hub-header h1 { margin: 0; color: var(--primary); font-size: 2rem; font-weight: 800; }
+.btn-logout { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Tajawal'; display: flex; align-items: center; gap: 8px; transition: 0.2s;}
+.btn-logout:hover { background: #fecaca; }
+
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.tool-card { background: var(--surface); padding: 30px; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; transition: 0.3s; display: block; color: #334155; }
+.tool-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+.tool-icon { font-size: 3rem; margin-bottom: 15px; }
+.tool-card h2 { margin: 0 0 10px 0; color: #0f172a; }
+.tool-card p { margin: 0; color: #64748b; font-size: 0.95rem; line-height: 1.5; }
+</style>
 </head>
 <body>
 
-    <div id="adminHub">
-        <div class="hub-header">
-            <div>
-                <h1><i class="fas fa-server"></i> C-Panel (الإدارة المركزية)</h1>
-                <p style="margin:5px 0 0; color:#64748b;">أهلاً بك، اختر الأداة التي ترغب في إدارتها</p>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-logout" onclick="logoutAdmin()"><i class="fas fa-sign-out-alt"></i> إغلاق الجلسة للرئيسية</button>
-            </div>
-        </div>
+<div id="adminHub">
+<div class="hub-header">
+<div>
+<h1><i class="fas fa-server"></i> C-Panel (الإدارة المركزية)</h1>
+<p style="margin:5px 0 0; color:#64748b;">أهلاً بك <span id="adminEmail" style="direction:ltr; display:inline-block;"></span>، اختر الأداة التي ترغب في إدارتها</p>
+</div>
+<div style="display: flex; gap: 10px;">
+<button class="btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+</div>
+</div>
 
-        <div class="grid-cards">
-            <a href="admin_track.html" class="tool-card" style="border-top: 5px solid #0284c7;">
-                <div class="tool-icon" style="color: #0284c7;"><i class="fas fa-desktop"></i></div>
-                <h2>شاشة المتابعة الحية والردود</h2>
-                <p>الاطلاع اللحظي والآلي على تبريرات وأسباب تأخير الأعطال المكتوبة من المواقع.</p>
-            </a>
+<div class="grid-cards">
+<a href="pending_dashboard.html" class="tool-card" style="border-top: 5px solid #0284c7;">
+<div class="tool-icon" style="color: #0284c7;"><i class="fas fa-desktop"></i></div>
+<h2>شاشة المتابعة الحية والردود</h2>
+<p>الاطلاع اللحظي على تبريرات وأسباب تأخير الأعطال المكتوبة من المواقع (فلتر "بانتظار الإفادة").</p>
+</a>
 
-            <a href="admin_pending.html" class="tool-card" style="border-top: 5px solid #16a34a;">
-                <div class="tool-icon" style="color: #16a34a;"><i class="fas fa-sync-alt"></i></div>
-                <h2>مزامنة النواقص ورفع الإكسل</h2>
-                <p>رفع ملفات Pending Jobs لتحديث قاعدة البيانات وإغلاق الأوامر المنتهية تلقائياً.</p>
-            </a>
+<a href="admin_pending.html" class="tool-card" style="border-top: 5px solid #16a34a;">
+<div class="tool-icon" style="color: #16a34a;"><i class="fas fa-sync-alt"></i></div>
+<h2>مزامنة النواقص ورفع الإكسل</h2>
+<p>رفع ملفات Pending Jobs لتحديث قاعدة البيانات وإغلاق الأوامر المنتهية تلقائياً.</p>
+</a>
 
-            <a href="admin_sites.html" class="tool-card" style="border-top: 5px solid #eab308;">
-                <div class="tool-icon" style="color: #eab308;"><i class="fas fa-key"></i></div>
-                <h2>إدارة صلاحيات وكلمات المرور</h2>
-                <p>التحكم الكامل بكلمات المرور المشتركة لمديري المستشفيات وتحديثها فوراً.</p>
-            </a>
-        </div>
-    </div>
+<a href="admin_sites.html" class="tool-card" style="border-top: 5px solid #eab308;">
+<div class="tool-icon" style="color: #eab308;"><i class="fas fa-user-shield"></i></div>
+<h2>إدارة حسابات مديري المواقع</h2>
+<p>إضافة حسابات مديري المستشفيات وربطها بمواقعها وإرسال روابط إعادة تعيين كلمة المرور.</p>
+</a>
+</div>
+</div>
 
-    <script>
-        // دالة إنهاء الجلسة تعيد الأدمن للداشبورد الرئيسي
-        function logoutAdmin() {
-            sessionStorage.removeItem('cpanel_auth');
-            window.location.href = 'index.html'; 
-        }
-    </script>
+<script type="module">
+import { requireRole, logout } from "./firebase-init.js";
+const { profile } = await requireRole(['admin']);
+document.getElementById('adminEmail').textContent = profile.email;
+document.getElementById('btnLogout').addEventListener('click', logout);
+</script>
 </body>
 </html>
