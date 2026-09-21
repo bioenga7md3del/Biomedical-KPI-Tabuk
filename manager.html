@@ -133,7 +133,41 @@ textarea { width: 100%; height: 85px; padding: 12px; border: 1px solid #cbd5e1; 
 .btn-save:hover { background: #15803d; }
 .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
 
-@media (max-width: 700px) { .header { padding: .7rem 1rem; } #appScreen { padding: .8rem; } .hero { padding: 1.2rem; } }
+@media (max-width: 700px) {
+.header { padding: .7rem 1rem; position: static; }
+.logo-area h1 { font-size: 1.05rem; }
+.header-actions { width: 100%; }
+.header-actions .btn-action { flex: 1; justify-content: center; padding: 9px 8px; font-size: .8rem; }
+#appScreen { padding: .8rem; }
+.hero { padding: 1.2rem; }
+.hero h2 { font-size: 1.15rem; }
+.grid-kpi { grid-template-columns: 1fr 1fr; gap: .6rem; }
+.kpi-card { padding: .7rem; gap: 8px; flex-direction: column; text-align: center; }
+.kpi-ico { width: 36px; height: 36px; font-size: 1rem; }
+.kpi-val { font-size: 1.5rem; }
+.filters { padding: .9rem; }
+.filter-grid { grid-template-columns: 1fr 1fr; }
+.filter-grid .fg { grid-column: auto !important; min-width: 0 !important; }
+.filter-grid .fg:first-child { grid-column: 1 / -1 !important; }
+.charts { grid-template-columns: 1fr; }
+.chart-box { height: 190px; }
+.panel-head { padding: .8rem; }
+.table-wrap { max-height: none; overflow: visible; }
+table, tbody, tr, td { display: block; width: 100%; }
+thead { display: none; }
+tbody tr { border: 1px solid var(--line); border-radius: 12px; margin: 10px 0; padding: 4px 0; width: 100%; }
+tbody tr:hover { background: inherit; }
+td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px; border-bottom: 1px dashed #eef2f7; text-align: right; }
+td::before { content: attr(data-label); font-weight: 800; color: var(--muted); font-size: .74rem; flex-shrink: 0; max-width: 38%; }
+td:last-child { border-bottom: none; }
+td.empty { display: block; }
+td.empty::before { content: none; }
+.last-text { max-width: none; text-align: left; }
+.btn-update { width: 100%; justify-content: center; padding: 10px; }
+.modal-content { padding: 18px; width: 96%; }
+.fields-row { flex-direction: column; }
+.quick-replies-container .btn-quick { flex: 1 1 45%; }
+}
 
 @media print {
 @page { size: landscape; margin: 1cm; }
@@ -350,6 +384,7 @@ const r = docSnap.data();
 if (r.status && r.status !== 'Active' && r.status !== 'Assigned') return;
 r.docId = docSnap.id;
 r.agingDays = calculateDays(r.failDate || r.startDate || r.createdAt);
+if (r.status === 'Assigned' && r.agingDays < 1) return;
 r.ageCat = r.agingDays < 5 ? 'green' : (r.agingDays <= 30 ? 'yellow' : 'red');
 r.comments = Array.isArray(r.comments) ? r.comments : [];
 r.hasUpdate = r.comments.length > 0;
@@ -454,6 +489,7 @@ tr.innerHTML =
 '<td>' + (r.hasUpdate ? '<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>' : '<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
 '<td>' + (r.lastComment ? '<span class="last-text">' + esc(r.lastComment.text) + '</span><span class="last-date"><i class="far fa-clock"></i> ' + esc(r.lastComment.date) + '</span>' : '<span style="color:var(--red); font-weight:800; font-size:.8rem;">لا يوجد أي تبرير مرفوع</span>') + '</td>' +
 '<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button></td>';
+Array.from(tr.children).forEach((td, i) => { if (COLS[i]) td.setAttribute('data-label', COLS[i].label); });
 tr.querySelector('.btn-update').addEventListener('click', () => window.openModal(r.id));
 tbody.appendChild(tr);
 });
