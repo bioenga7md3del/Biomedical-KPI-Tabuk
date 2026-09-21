@@ -181,7 +181,7 @@ th { background: #eee !important; position: static; }
 <div class="grid-kpi">
 <div class="kpi-card"><div class="kpi-ico" style="background:#dbeafe;color:var(--primary-2)"><i class="fas fa-clipboard-list"></i></div><div><div class="kpi-label">إجمالي الأوامر المفتوحة</div><div class="kpi-val" id="kpi-site-total" style="color:var(--primary-2)">0</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">أعطال نشطة</div><div class="kpi-val" id="kpi-active" style="color:var(--red)">0</div><div class="kpi-sub">لم يبدأ الإجراء عليها</div></div></div>
-<div class="kpi-card"><div class="kpi-ico" style="background:#ede9fe;color:var(--purple)"><i class="fas fa-gears"></i></div><div><div class="kpi-label">تحت الإجراء</div><div class="kpi-val" id="kpi-progress" style="color:var(--purple)">0</div><div class="kpi-sub">مكلّف / بانتظار اعتماد</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#ede9fe;color:var(--purple)"><i class="fas fa-gears"></i></div><div><div class="kpi-label">مكلّفة (Assigned)</div><div class="kpi-val" id="kpi-progress" style="color:var(--purple)">0</div><div class="kpi-sub">تم إسنادها لفني</div></div></div>
 <div class="kpi-card click" onclick="quickSet('critical')"><div class="kpi-ico" style="background:#ffedd5;color:var(--orange)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">حرجة (+30 يوم)</div><div class="kpi-val" id="kpi-site-critical" style="color:var(--orange)">0</div><div class="kpi-sub">اضغط للفلترة</div></div></div>
 <div class="kpi-card click" onclick="quickSet('noreply')"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-comment-slash"></i></div><div><div class="kpi-label">تتطلب إفادتكم</div><div class="kpi-val" id="kpi-site-pending" style="color:var(--yellow)">0</div><div class="kpi-sub">اضغط للفلترة</div></div></div>
 </div>
@@ -213,17 +213,11 @@ th { background: #eee !important; position: static; }
 
 <div class="panel tp-red">
 <div class="panel-head">
-<div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>الأعطال النشطة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر مفتوحة (Active) لم يبدأ الإجراء عليها</small></div></div>
+<div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>أوامر العمل المفتوحة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر العمل بحالة Active و Assigned</small></div></div>
 </div>
 <div class="table-wrap"><table id="table1"><thead id="head1"></thead><tbody id="body1"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم...</td></tr></tbody></table></div>
 </div>
 
-<div class="panel tp-purple">
-<div class="panel-head">
-<div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-gears"></i></div><div><h3>أوامر عمل تحت الإجراء <span class="count-pill" id="c-t2">0</span></h3><small>مكلّف بها فني أو بانتظار الاعتماد</small></div></div>
-</div>
-<div class="table-wrap"><table id="table2"><thead id="head2"></thead><tbody id="body2"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</td></tr></tbody></table></div>
-</div>
 
 </div>
 
@@ -353,6 +347,7 @@ const snapshot = await getDocs(q);
 LOCAL_ORDERS = [];
 snapshot.forEach(docSnap => {
 const r = docSnap.data();
+if (r.status && r.status !== 'Active' && r.status !== 'Assigned') return;
 r.docId = docSnap.id;
 r.agingDays = calculateDays(r.failDate || r.startDate || r.createdAt);
 r.ageCat = r.agingDays < 5 ? 'green' : (r.agingDays <= 30 ? 'yellow' : 'red');
@@ -372,7 +367,6 @@ applyFilters();
 } catch (error) {
 console.error(error);
 $('body1').innerHTML = '<tr><td colspan="9" class="empty" style="color:var(--red)">حدث خلل أثناء جلب البيانات المباشرة من السحابة.</td></tr>';
-$('body2').innerHTML = '';
 }
 }
 
@@ -404,8 +398,7 @@ return true;
 function applyFilters() {
 const data = getFiltered();
 VIEW[1] = data.filter(r => r.group === 1);
-VIEW[2] = data.filter(r => r.group === 2);
-renderTable(1); renderTable(2);
+renderTable(1);
 updateKPIs();
 renderCharts(data);
 }
@@ -472,8 +465,8 @@ const total = all.length;
 const crit = all.filter(r => r.ageCat === 'red').length;
 const noRep = all.filter(r => !r.hasUpdate).length;
 $('kpi-site-total').textContent = total;
-$('kpi-active').textContent = all.filter(r => r.group === 1).length;
-$('kpi-progress').textContent = all.filter(r => r.group === 2).length;
+$('kpi-active').textContent = all.filter(r => r.status === 'Active').length;
+$('kpi-progress').textContent = all.filter(r => r.status === 'Assigned').length;
 $('kpi-site-critical').textContent = crit;
 $('kpi-site-pending').textContent = noRep;
 const cover = total ? Math.round((total - noRep) / total * 100) : 100;
