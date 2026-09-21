@@ -179,24 +179,32 @@ td.empty::before { content: none; }
 .quick-replies-container .btn-quick { flex: 1 1 45%; }
 }
 
+#printSheet { display: none; }
 @media print {
-@page { size: landscape; margin: 1cm; }
-body { background: #fff !important; font-size: 10pt; color: #000; }
-.header, .hero, .grid-kpi, .filters, .charts, .btn-update, #commentModal, .panel-title .pi, .noprint { display: none !important; }
-#appScreen { padding: 0; max-width: 100%; }
-.panel { border: none !important; box-shadow: none; margin-bottom: 16px; }
-.table-wrap { overflow: visible; max-height: none; }
-table { border: 1px solid #000; }
-th, td { border: 1px solid #ddd !important; padding: 6px !important; color: #000 !important; background: none !important; }
-th { background: #eee !important; position: static; }
-.badge { background: none !important; color: #000 !important; padding: 0; }
-.rowbar { box-shadow: none; }
-.row-urgent { background: none !important; }
+@page { size: A4 landscape; margin: 10mm; }
+html, body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+#appScreen, #commentModal, #lightbox { display: none !important; }
+#printSheet { display: block !important; direction: rtl; font-family: 'Tajawal', sans-serif; color: #000; }
+#printSheet h2 { font-size: 15pt; margin: 0 0 4px; color: #1e3a8a; }
+#printSheet .ps-meta { font-size: 9.5pt; font-weight: 700; color: #334155; margin-bottom: 8px; line-height: 1.7; }
+#printSheet .ps-leg { font-size: 8.5pt; margin-bottom: 8px; color: #334155; }
+#printSheet .ps-leg i { display: inline-block; width: 11px; height: 11px; border: 1px solid #94a3b8; vertical-align: middle; margin: 0 4px 0 2px; }
+#printSheet table { display: table !important; width: 100% !important; border-collapse: collapse; table-layout: auto; border: 1px solid #64748b; }
+#printSheet thead { display: table-header-group !important; }
+#printSheet tbody { display: table-row-group !important; }
+#printSheet tr { display: table-row !important; width: auto !important; page-break-inside: avoid; border: none; margin: 0; padding: 0; }
+#printSheet th, #printSheet td { display: table-cell !important; width: auto !important; border: 1px solid #94a3b8 !important; padding: 4px 6px !important; font-size: 8.5pt; text-align: right; vertical-align: top; line-height: 1.45; word-break: break-word; }
+#printSheet td::before { content: none !important; }
+#printSheet th { background: #e2e8f0 !important; font-weight: 800; }
+#printSheet tr.pr-y td { background: #fef9c3 !important; }
+#printSheet tr.pr-r td { background: #fee2e2 !important; }
+#printSheet .ltr { direction: ltr; unicode-bidi: embed; display: inline-block; }
 }
 </style>
 </head>
 <body>
 
+<div id="printSheet"></div>
 <div id="appScreen">
 
 <div class="header">
@@ -371,6 +379,35 @@ if (o.backup) h += '<span class="ib ' + (o.backup === 'yes' ? 'ib-ok' : (o.backu
 if (o.eta) h += '<span class="ib ' + (left !== null && left < 0 ? 'ib-bad' : 'ib-blue') + '"><i class="far fa-calendar-check"></i> ' + esc(o.eta) + (left === null ? '' : (left < 0 ? ' · متأخر ' + (-left) + ' يوم' : (left === 0 ? ' · اليوم' : ' · بعد ' + left + ' يوم'))) + '</span>';
 return h;
 }
+
+function infoText(o) {
+const p = [];
+if (o.usage) p.push(USL[o.usage] || '');
+if (o.backup) p.push(BKL[o.backup] || '');
+if (o.warranty) p.push(WRL[o.warranty] || '');
+if (o.eta) { const l = etaCalc(o.eta); p.push('الإصلاح المتوقع: ' + o.eta + (l === null ? '' : (l < 0 ? ' (متأخر ' + (-l) + ' يوم)' : (l === 0 ? ' (اليوم)' : ' (بعد ' + l + ' يوم)')))); }
+return p.filter(Boolean).join(' | ') || '-';
+}
+function buildPrintSheet() {
+const rows = (VIEW[1] || []).slice().sort((a, b) => b.agingDays - a.agingDays);
+const notes = [];
+const sel = (id) => { const e = $(id); return e && e.value !== 'All' ? e.options[e.selectedIndex].text : ''; };
+if ($('fSearch').value.trim()) notes.push('بحث: ' + $('fSearch').value.trim());
+[['fStatus', 'الحالة'], ['fTech', 'الفني'], ['fAge', 'التقادم'], ['fReply', 'الإفادة']].forEach(x => { const v = sel(x[0]); if (v) notes.push(x[1] + ': ' + v); });
+let h = '<h2>كشف الأعطال - ' + esc(currentSite) + '</h2>' +
+'<div class="ps-meta">تاريخ الطباعة: ' + esc(new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })) + ' | عدد الأوامر: ' + rows.length + ' | مرتبة من الأقدم إلى الأحدث' + (notes.length ? '<br>' + esc(notes.join(' | ')) : '') + '</div>' +
+'<div class="ps-leg"><i style="background:#fff"></i>حتى 5 أيام <i style="background:#fef9c3"></i>أكثر من 5 إلى 30 <i style="background:#fee2e2"></i>أكثر من 30 يوم</div>';
+h += '<table><thead><tr><th>م</th><th>رقم الأمر</th><th>تاريخ العطل</th><th>المدة (يوم)</th><th>الحالة</th><th>القسم</th><th>الجهاز</th><th>الفني</th><th>معلومات الجهاز والإصلاح</th><th>آخر إفادة</th></tr></thead><tbody>';
+if (!rows.length) h += '<tr><td colspan="10" style="text-align:center">لا توجد أوامر</td></tr>';
+rows.forEach((r, i) => {
+const cls = r.ageCat === 'red' ? 'pr-r' : (r.ageCat === 'yellow' ? 'pr-y' : '');
+const lc = r.lastComment;
+h += '<tr class="' + cls + '"><td>' + (i + 1) + '</td><td><b>' + esc(r.id) + '</b></td><td><span class="ltr">' + esc(String(r.failDate || r.startDate || '-').substring(0, 16)) + '</span></td><td><b>' + r.agingDays + '</b></td><td>' + esc(STATUS_AR[r.status] || r.status) + '</td><td>' + esc(r.dept || '-') + '</td><td>' + esc(r.device || '') + '</td><td>' + esc(r.tech || '-') + '</td><td>' + esc(infoText(r)) + '</td><td>' + (lc ? esc(lc.text || '') + '<br><small>' + esc(fmtTs(lc)) + '</small>' : '<b>بانتظار الإفادة</b>') + '</td></tr>';
+});
+h += '</tbody></table>';
+$('printSheet').innerHTML = h;
+}
+window.addEventListener('beforeprint', buildPrintSheet);
 function fmtTs(c) {
 if (c && c.ts) { const d = new Date(c.ts); if (!isNaN(d.getTime())) return d.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + (c.edited ? ' (معدل)' : ''); }
 return (c && c.date) || '-';
