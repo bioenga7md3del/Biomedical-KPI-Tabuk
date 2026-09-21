@@ -199,7 +199,6 @@ th { background: #eee !important; position: static; }
 <div class="option-item"><input type="checkbox" id="p-info" checked><label>الجهاز والإصلاح المتوقع</label></div>
 <div class="option-item"><input type="checkbox" id="p-update" checked><label>آخر تحديث من الموقع</label></div>
 <div class="option-item"><input type="checkbox" id="p-t1" checked><label>طباعة جدول الأعطال النشطة</label></div>
-<div class="option-item"><input type="checkbox" id="p-t2" checked><label>طباعة جدول أوامر العمل تحت الإجراء</label></div>
 <div style="display:flex; gap:10px; margin-top:20px;">
 <button class="btn-action btn-primary" style="flex:1; justify-content:center;" onclick="executePrint()">توليد التقرير الآن</button>
 <button class="btn-action" onclick="closePrintConfig()">إلغاء</button>
@@ -224,8 +223,7 @@ th { background: #eee !important; position: static; }
 
 <!-- KPIs -->
 <div class="grid-kpi">
-<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">أعطال نشطة</div><div class="kpi-val" id="k-active" style="color:var(--red)">0</div><div class="kpi-sub">بانتظار بدء الإجراء</div></div></div>
-<div class="kpi-card"><div class="kpi-ico" style="background:#ede9fe;color:var(--purple)"><i class="fas fa-screwdriver-wrench"></i></div><div><div class="kpi-label">تحت الإجراء</div><div class="kpi-val" id="k-progress" style="color:var(--purple)">0</div><div class="kpi-sub">مكلّف / بانتظار اعتماد</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">الأعطال المفتوحة</div><div class="kpi-val" id="k-active" style="color:var(--red)">0</div><div class="kpi-sub">Active + Assigned وغيرها</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#dcfce7;color:var(--green)"><i class="fas fa-leaf"></i></div><div><div class="kpi-label">حديثة (&lt; 5 أيام)</div><div class="kpi-val" id="k-green" style="color:var(--green)">0</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-hourglass-half"></i></div><div><div class="kpi-label">متأخرة (5-30 يوم)</div><div class="kpi-val" id="k-yellow" style="color:var(--yellow)">0</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">حرجة (+30 يوم)</div><div class="kpi-val" id="k-red" style="color:var(--red)">0</div></div></div>
@@ -283,7 +281,7 @@ th { background: #eee !important; position: static; }
 <div class="panel-head">
 <div class="panel-title">
 <div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div>
-<div><h3>الأعطال النشطة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر عمل مفتوحة (Active) لم يبدأ الإجراء عليها بعد</small></div>
+<div><h3>الأعطال النشطة <span class="count-pill" id="c-t1">0</span></h3><small>كل الأوامر المفتوحة: Active و Assigned وغيرها</small></div>
 </div>
 <div class="panel-tools"><button class="btn-action" onclick="exportTable(1)"><i class="fas fa-file-excel" style="color:#16a34a"></i> تصدير Excel</button></div>
 </div>
@@ -295,22 +293,6 @@ th { background: #eee !important; position: static; }
 </div>
 </div>
 
-<!-- Table 2 -->
-<div class="panel p-progress" id="panelT2">
-<div class="panel-head">
-<div class="panel-title">
-<div class="pi" style="background:var(--purple)"><i class="fas fa-screwdriver-wrench"></i></div>
-<div><h3>أوامر عمل تحت الإجراء <span class="count-pill" id="c-t2">0</span></h3><small>أوامر مكلّف بها فني أو بانتظار الاعتماد (Assigned / Pending for Approval / Approved)</small></div>
-</div>
-<div class="panel-tools"><button class="btn-action" onclick="exportTable(2)"><i class="fas fa-file-excel" style="color:#16a34a"></i> تصدير Excel</button></div>
-</div>
-<div class="table-wrap">
-<table id="table2">
-<thead id="head2"></thead>
-<tbody id="body2"><tr><td colspan="10" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
-</table>
-</div>
-</div>
 
 </div>
 
@@ -355,7 +337,7 @@ if (o.backup) h += '<span class="ib ' + (o.backup === 'yes' ? 'ib-ok' : (o.backu
 if (o.eta) h += '<span class="ib ' + (left !== null && left < 0 ? 'ib-bad' : 'ib-blue') + '"><i class="far fa-calendar-check"></i> ' + esc(o.eta) + (left === null ? '' : (left < 0 ? ' · متأخر ' + (-left) + ' يوم' : (left === 0 ? ' · اليوم' : ' · بعد ' + left + ' يوم'))) + '</span>';
 return h;
 }
-const IN_PROGRESS = ['Assigned', 'Pending for Approval', 'Approved'];
+const IN_PROGRESS = [];
 const STATUS_AR = { 'Active': 'نشط', 'Assigned': 'مكلّف', 'Pending for Approval': 'بانتظار الاعتماد', 'Approved': 'معتمد' };
 const STATUS_CLS = { 'Active': 'st-Active', 'Assigned': 'st-Assigned', 'Pending for Approval': 'st-PendingApproval', 'Approved': 'st-Approved' };
 const AGE_AR = { green: 'حديثة', yellow: 'متأخرة', red: 'حرجة' };
@@ -479,9 +461,7 @@ return true;
 window.applyFilters = function () {
 const data = getFiltered();
 VIEW[1] = data.filter(r => r.group === 1);
-VIEW[2] = data.filter(r => r.group === 2);
 renderTable(1);
-renderTable(2);
 updateKPIs(data);
 renderCharts(data);
 renderActiveFilters();
@@ -580,7 +560,6 @@ sum += i.agingDays;
 if (i.group === 1) a++; else p++;
 });
 $('k-active').textContent = a;
-$('k-progress').textContent = p;
 $('k-green').textContent = g;
 $('k-yellow').textContent = y;
 $('k-red').textContent = r;
@@ -621,8 +600,7 @@ type: 'bar',
 data: {
 labels: sites.map(s => s.length > 22 ? s.substring(0, 22) + '…' : s),
 datasets: [
-{ label: 'أعطال نشطة', data: sites.map(s => cnt(s, 1)), backgroundColor: '#dc2626', borderRadius: 4 },
-{ label: 'تحت الإجراء', data: sites.map(s => cnt(s, 2)), backgroundColor: '#7c3aed', borderRadius: 4 }
+{ label: 'أعطال مفتوحة', data: sites.map(s => cnt(s, 1)), backgroundColor: '#dc2626', borderRadius: 4 }
 ]
 },
 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }, y: { stacked: true } }, plugins: { legend: { position: 'bottom' } } }
@@ -720,7 +698,6 @@ const mapping = { 'p-fail': '.col-fail', 'p-aging': '.col-aging', 'p-status': '.
 document.querySelectorAll('.p-hide').forEach(el => el.classList.remove('p-hide'));
 Object.keys(mapping).forEach(k => { if (!$(k).checked) document.querySelectorAll(mapping[k]).forEach(el => el.classList.add('p-hide')); });
 if (!$('p-t1').checked) $('panelT1').classList.add('p-hide');
-if (!$('p-t2').checked) $('panelT2').classList.add('p-hide');
 closePrintConfig();
 setTimeout(() => { window.print(); }, 400);
 };
