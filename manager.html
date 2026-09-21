@@ -249,7 +249,7 @@ th { background: #eee !important; position: static; }
 <div class="panel-head">
 <div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>أوامر العمل المفتوحة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر العمل بحالة Active و Assigned</small></div></div>
 </div>
-<div class="table-wrap"><table id="table1"><thead id="head1"></thead><tbody id="body1"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم...</td></tr></tbody></table></div>
+<div class="table-wrap"><table id="table1"><thead id="head1"></thead><tbody id="body1"><tr><td colspan="10" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم...</td></tr></tbody></table></div>
 </div>
 
 
@@ -311,6 +311,7 @@ const COLS = [
 { key: 'id', label: 'رقم الأمر' },
 { key: 'agingDays', label: 'تاريخ الفتح / التأخير' },
 { key: 'status', label: 'الحالة' },
+{ key: 'dept', label: 'القسم' },
 { key: 'device', label: 'الجهاز الطبي المتأثر' },
 { key: 'tech', label: 'الفني المسند إليه' },
 { key: null, label: 'الجهاز والإصلاح المتوقع' },
@@ -393,7 +394,7 @@ r.lastUpdate = r.lastComment ? String(r.lastComment.text || '') : '';
 Object.assign(r, latestInfo(r.comments));
 r.status = r.status || 'Active';
 r.group = IN_PROGRESS.includes(r.status) ? 2 : 1;
-r._search = [r.id, r.device, r.tech, r.lastUpdate].join(' ').toLowerCase();
+r._search = [r.id, r.dept, r.device, r.tech, r.lastUpdate].join(' ').toLowerCase();
 LOCAL_ORDERS.push(r);
 });
 fillSelect('fStatus', uniq('status'), s => STATUS_AR[s] || s);
@@ -401,7 +402,7 @@ fillSelect('fTech', uniq('tech'));
 applyFilters();
 } catch (error) {
 console.error(error);
-$('body1').innerHTML = '<tr><td colspan="9" class="empty" style="color:var(--red)">حدث خلل أثناء جلب البيانات المباشرة من السحابة.</td></tr>';
+$('body1').innerHTML = '<tr><td colspan="10" class="empty" style="color:var(--red)">حدث خلل أثناء جلب البيانات المباشرة من السحابة.</td></tr>';
 }
 }
 
@@ -471,7 +472,7 @@ tbody.innerHTML = '';
 const rows = sortRows(VIEW[n], SORT[n]);
 $('c-t' + n).textContent = rows.length;
 if (!rows.length) {
-tbody.innerHTML = '<tr><td colspan="9" class="empty"><i class="far fa-face-smile"></i> ' + (LOCAL_ORDERS.length ? 'لا توجد أوامر مطابقة في هذا الجدول.' : 'ممتاز جداً! لا توجد أي أوامر عمل معلقة لموقعكم حالياً.') + '</td></tr>';
+tbody.innerHTML = '<tr><td colspan="10" class="empty"><i class="far fa-face-smile"></i> ' + (LOCAL_ORDERS.length ? 'لا توجد أوامر مطابقة في هذا الجدول.' : 'ممتاز جداً! لا توجد أي أوامر عمل معلقة لموقعكم حالياً.') + '</td></tr>';
 return;
 }
 rows.forEach(r => {
@@ -483,6 +484,7 @@ tr.innerHTML =
 '<td style="font-weight:800; color:var(--primary);">' + esc(r.id) + '</td>' +
 '<td><span style="direction:ltr; display:inline-block; font-size:.8rem; color:#475569; font-weight:700;">' + esc(String(r.failDate || r.startDate || '-').substring(0, 16)) + '</span><br><span class="badge age-' + r.ageCat + '" style="margin-top:4px;">' + r.agingDays + ' يوم</span></td>' +
 '<td><span class="badge ' + (STATUS_CLS[r.status] || 'st-other') + '">' + esc(STATUS_AR[r.status] || r.status) + '</span></td>' +
+'<td>' + esc(r.dept || '-') + '</td>' +
 '<td title="' + esc(device) + '">' + esc(device.length > 45 ? device.substring(0, 45) + '...' : device) + '</td>' +
 '<td>' + esc(r.tech || '-') + '</td>' +
 '<td>' + infoCell(r) + '</td>' +
