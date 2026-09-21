@@ -104,7 +104,13 @@ tbody tr:hover { background: #f0f9ff; }
 .modal-content { background: #fff; padding: 28px; border-radius: 18px; width: 95%; max-width: 620px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); max-height: 92vh; overflow-y: auto; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
 .order-info { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: .86rem; color: #475569; line-height: 1.9; font-weight: 600; }
-.history-box { background: #f8fafc; padding: 12px; border-radius: 10px; max-height: 210px; overflow-y: auto; margin-bottom: 18px; border: 1px solid #cbd5e1; }
+.attach-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+.attach-box label { display: block; font-size: .8rem; font-weight: 700; color: #166534; margin-bottom: 6px; }
+.img-prev { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.img-prev .pv { position: relative; }
+.img-prev img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1; }
+.img-prev button { position: absolute; top: -6px; left: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #dc2626; color: #fff; cursor: pointer; font-size: .8rem; line-height: 1; }
+.history-box { background: #f8fafc; padding: 12px; border-radius: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 18px; border: 1px solid #cbd5e1; }
 .comment-item { margin-bottom: 10px; padding: 10px; border-radius: 8px; background: #fff; border: 1px solid var(--line); }
 .comment-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .comment-date { color: var(--muted); font-size: .8rem; font-weight: 700; }
@@ -117,9 +123,13 @@ tbody tr:hover { background: #f0f9ff; }
 .quick-replies-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .btn-quick { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; font-size: .84rem; font-weight: 700; transition: .2s; }
 .btn-quick:hover { background: #e2e8f0; border-color: #94a3b8; }
+.c-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.c-img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1; cursor: zoom-in; }
+#lightbox { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.88); z-index: 3000; align-items: center; justify-content: center; cursor: zoom-out; }
+#lightbox img { max-width: 94vw; max-height: 90vh; border-radius: 10px; }
 .ib { display: flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; margin: 2px 0; width: fit-content; white-space: nowrap; }
 .ib-ok { background: #dcfce7; color: #166534; } .ib-bad { background: #fee2e2; color: #991b1b; } .ib-warn { background: #fef08a; color: #854d0e; } .ib-blue { background: #dbeafe; color: #1d4ed8; } .ib-mute { background: #e2e8f0; color: #475569; }
-.info-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: #fefce8; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+.info-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: #fefce8; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
 .info-fields label { display: block; font-size: .8rem; font-weight: 700; color: #854d0e; margin-bottom: 4px; }
 .info-fields select, .info-fields input { width: 100%; padding: 8px; border: 1px solid #fcd34d; border-radius: 6px; font-family: 'Tajawal'; font-size: .9rem; background: #fff; }
 @media (max-width: 600px) { .info-fields { grid-template-columns: 1fr; } }
@@ -286,7 +296,9 @@ th { background: #eee !important; position: static; }
 <div><label>هل يوجد جهاز بديل؟ *</label><select id="fBk"><option value="">اختر...</option><option value="yes">نعم، يوجد جهاز بديل</option><option value="no">لا يوجد جهاز بديل</option><option value="na">لا يحتاج جهاز بديل</option></select></div>
 <div><label>حالة الجهاز *</label><select id="fUs"><option value="">اختر...</option><option value="stopped">متوقف كليًا</option><option value="partial">يعمل بشكل جزئي</option></select></div>
 <div><label>الوقت المتوقع للإصلاح</label><input type="date" id="fEta"></div>
+<div><label>حالة الضمان</label><select id="fWr"><option value="">غير محدد</option><option value="in">تحت الضمان</option><option value="out">خارج الضمان</option><option value="unk">لا أعلم</option></select></div>
 </div>
+<div class="attach-box"><label><i class="fas fa-paperclip"></i> إرفاق صور (اختياري - حتى 3 صور)</label><input type="file" id="fImgs" accept="image/*" multiple><div class="img-prev" id="imgPrev"></div></div>
 <label id="lblWriteType" style="font-weight: 700; color: #475569; margin-bottom: 8px; display: block; font-size: .95rem;">إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:</label>
 <textarea id="modalNewComment" placeholder="اكتب مبررات التأخير أو كمل على الرد السريع هنا..." maxlength="1000"></textarea>
 
@@ -334,6 +346,7 @@ $('btnLogout').addEventListener('click', logout);
 $('btnReload').addEventListener('click', loadSiteOrders);
 
 const BKL = { yes: 'جهاز بديل متوفر', no: 'لا يوجد جهاز بديل', na: 'لا يحتاج بديل' };
+const WRL = { in: 'تحت الضمان', out: 'خارج الضمان', unk: 'الضمان غير معروف' };
 const USL = { stopped: 'متوقف كليًا', partial: 'يعمل جزئيًا' };
 function etaCalc(eta) {
 if (!eta) return null;
@@ -343,19 +356,56 @@ if (isNaN(d.getTime())) return null;
 return Math.round((d.getTime() - t0.getTime()) / 86400000);
 }
 function latestInfo(comments) {
-let bk = null, us = null, eta = null;
-comments.forEach(c => { if (c.backup) bk = c.backup; if (c.usage) us = c.usage; if (c.eta) eta = c.eta; });
+let bk = null, us = null, eta = null, wr = null;
+comments.forEach(c => { if (c.backup) bk = c.backup; if (c.usage) us = c.usage; if (c.eta) eta = c.eta; if (c.warranty) wr = c.warranty; });
 const left = etaCalc(eta);
-return { backup: bk, usage: us, eta: eta, etaMs: eta && left !== null ? new Date(eta + 'T00:00:00').getTime() : 0, etaLeft: left, etaOver: left !== null && left < 0 };
+return { backup: bk, usage: us, eta: eta, warranty: wr, etaMs: eta && left !== null ? new Date(eta + 'T00:00:00').getTime() : 0, etaLeft: left, etaOver: left !== null && left < 0 };
 }
 function infoCell(o) {
 const left = etaCalc(o.eta);
-if (!o.backup && !o.usage && !o.eta) return '<span class="ib ib-mute">لم تُحدَّد</span>';
+if (!o.backup && !o.usage && !o.eta && !o.warranty) return '<span class="ib ib-mute">لم تُحدَّد</span>';
 let h = '';
+if (o.warranty) h += '<span class="ib ' + (o.warranty === 'in' ? 'ib-ok' : 'ib-mute') + '"><i class="fas fa-shield-halved"></i> ' + (WRL[o.warranty] || '') + '</span>';
 if (o.usage) h += '<span class="ib ' + (o.usage === 'stopped' ? 'ib-bad' : 'ib-warn') + '"><i class="fas fa-' + (o.usage === 'stopped' ? 'power-off' : 'battery-half') + '"></i> ' + (USL[o.usage] || '') + '</span>';
 if (o.backup) h += '<span class="ib ' + (o.backup === 'yes' ? 'ib-ok' : (o.backup === 'no' ? 'ib-bad' : 'ib-mute')) + '"><i class="fas fa-' + (o.backup === 'no' ? 'ban' : 'clone') + '"></i> ' + (BKL[o.backup] || '') + '</span>';
 if (o.eta) h += '<span class="ib ' + (left !== null && left < 0 ? 'ib-bad' : 'ib-blue') + '"><i class="far fa-calendar-check"></i> ' + esc(o.eta) + (left === null ? '' : (left < 0 ? ' · متأخر ' + (-left) + ' يوم' : (left === 0 ? ' · اليوم' : ' · بعد ' + left + ' يوم'))) + '</span>';
 return h;
+}
+function fmtTs(c) {
+if (c && c.ts) { const d = new Date(c.ts); if (!isNaN(d.getTime())) return d.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + (c.edited ? ' (معدل)' : ''); }
+return (c && c.date) || '-';
+}
+function imgsHtml(c) {
+const list = (c && Array.isArray(c.imgs) ? c.imgs : []).filter(u => typeof u === 'string' && u.indexOf('data:image/') === 0);
+if (!list.length) return '';
+return '<div class="c-imgs">' + list.map(u => '<img class="c-img" src="' + esc(u) + '" alt="مرفق">').join('') + '</div>';
+}
+document.addEventListener('click', e => {
+const t = e.target;
+if (t && t.classList && t.classList.contains('c-img')) { document.getElementById('lbImg').src = t.src; document.getElementById('lightbox').style.display = 'flex'; }
+else if (t && t.id === 'lightbox') { t.style.display = 'none'; }
+});
+let PENDING_IMGS = [];
+function compressImg(file) {
+return new Promise((res, rej) => {
+const fr = new FileReader();
+fr.onerror = rej;
+fr.onload = () => {
+const im = new Image();
+im.onerror = rej;
+im.onload = () => {
+let w = im.width, h = im.height; const M = 1000;
+if (Math.max(w, h) > M) { const k = M / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
+const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+cv.getContext('2d').drawImage(im, 0, 0, w, h);
+let q = 0.72, out = cv.toDataURL('image/jpeg', q);
+while (out.length > 160000 && q > 0.35) { q -= 0.1; out = cv.toDataURL('image/jpeg', q); }
+res(out);
+};
+im.src = fr.result;
+};
+fr.readAsDataURL(file);
+});
 }
 function calculateDays(v) {
 if (!v) return 0;
@@ -489,7 +539,7 @@ tr.innerHTML =
 '<td>' + esc(r.tech || '-') + '</td>' +
 '<td>' + infoCell(r) + '</td>' +
 '<td>' + (r.hasUpdate ? '<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>' : '<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
-'<td>' + (r.lastComment ? '<span class="last-text">' + esc(r.lastComment.text) + '</span><span class="last-date"><i class="far fa-clock"></i> ' + esc(r.lastComment.date) + '</span>' : '<span style="color:var(--red); font-weight:800; font-size:.8rem;">لا يوجد أي تبرير مرفوع</span>') + '</td>' +
+'<td>' + (r.lastComment ? '<span class="last-text">' + esc(r.lastComment.text) + '</span><span class="last-date"><i class="far fa-clock"></i> ' + esc(fmtTs(r.lastComment)) + (r.comments.length > 1 ? ' · ' + r.comments.length + ' ردود' : '') + (r.lastComment.imgs && r.lastComment.imgs.length ? ' · <i class="fas fa-paperclip"></i> ' + r.lastComment.imgs.length : '') + '</span>' : '<span style="color:var(--red); font-weight:800; font-size:.8rem;">لا يوجد أي تبرير مرفوع</span>') + '</td>' +
 '<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button></td>';
 Array.from(tr.children).forEach((td, i) => { if (COLS[i]) td.setAttribute('data-label', COLS[i].label); });
 tr.querySelector('.btn-update').addEventListener('click', () => window.openModal(r.id));
@@ -553,6 +603,8 @@ renderCommentsList(order);
 $('fBk').value = order.backup || '';
 $('fUs').value = order.usage || '';
 $('fEta').value = order.eta || '';
+$('fWr').value = order.warranty || '';
+PENDING_IMGS = []; $('fImgs').value = ''; renderPrev();
 $('commentModal').style.display = 'flex';
 };
 
@@ -560,13 +612,13 @@ function renderCommentsList(order) {
 const box = $('modalHistory');
 box.innerHTML = '';
 if (order.comments && order.comments.length > 0) {
-order.comments.forEach((c, index) => {
+order.comments.map((c, i) => [c, i]).reverse().forEach(([c, index]) => {
 const item = document.createElement('div');
 item.className = 'comment-item';
-item.innerHTML = '<div class="comment-meta"><span class="comment-date"><i class="fas fa-clock"></i> ' + esc(c.date) + '</span>' +
+item.innerHTML = '<div class="comment-meta"><span class="comment-date"><i class="fas fa-clock"></i> ' + esc(fmtTs(c)) + (c.author ? ' · ' + esc(c.author) : '') + '</span>' +
 '<div class="comment-actions"><button class="btn-inline-act btn-inline-edit" title="تعديل هذا النص"><i class="fas fa-edit"></i></button>' +
 '<button class="btn-inline-act btn-inline-delete" title="مسح هذا التحديث"><i class="fas fa-trash-alt"></i></button></div></div>' +
-'<div class="comment-text">' + esc(c.text) + '</div>';
+'<div class="comment-text">' + esc(c.text) + '</div>' + ((c.backup || c.usage || c.eta || c.warranty) ? '<div style="margin-top:6px">' + infoCell(c) + '</div>' : '') + imgsHtml(c);
 item.querySelector('.btn-inline-edit').addEventListener('click', () => window.editCommentTrigger(index));
 item.querySelector('.btn-inline-delete').addEventListener('click', () => window.deleteCommentTrigger(index));
 box.appendChild(item);
@@ -576,6 +628,18 @@ box.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:30px 0;">
 }
 }
 
+function renderPrev() { $('imgPrev').innerHTML = PENDING_IMGS.map((u, i) => '<span class="pv"><img src="' + u + '" alt=""><button type="button" data-i="' + i + '">×</button></span>').join(''); }
+$('fImgs').addEventListener('change', async () => {
+const files = Array.from($('fImgs').files || []);
+for (const f of files) {
+if (PENDING_IMGS.length >= 3) { alert('الحد الأقصى 3 صور لكل رد.'); break; }
+if (!f.type || f.type.indexOf('image/') !== 0) { alert('الملفات المسموحة صور فقط.'); continue; }
+try { PENDING_IMGS.push(await compressImg(f)); } catch (e) { alert('تعذر قراءة الصورة: ' + f.name); }
+}
+$('fImgs').value = '';
+renderPrev();
+});
+$('imgPrev').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (b) { PENDING_IMGS.splice(+b.dataset.i, 1); renderPrev(); } });
 window.closeModal = function () { $('commentModal').style.display = 'none'; };
 $('commentModal').addEventListener('click', e => { if (e.target.id === 'commentModal') window.closeModal(); });
 
@@ -601,7 +665,7 @@ const dt = $('appDate').value;
 if (!num || !dt) { alert("برجاء تعبئة رقم وتاريخ التعميد المرجعي للتوثيق الإداري."); return; }
 text = '[تم التعميد رسميًا] - بموجب تعميد رقم: (' + num + ') الصادر بتاريخ: ' + dt + '. ' + text;
 }
-const bk = $('fBk').value, us = $('fUs').value, eta = $('fEta').value;
+const bk = $('fBk').value, us = $('fUs').value, eta = $('fEta').value, wr = $('fWr').value;
 if (!bk || !us) { alert("برجاء تحديد: هل يوجد جهاز بديل؟ وحالة الجهاز (متوقف كليًا / يعمل جزئيًا)."); return; }
 if (!text) text = 'جهاز بديل: ' + BKL[bk] + ' | الحالة: ' + USL[us] + (eta ? ' | الإصلاح المتوقع: ' + eta : '');
 
@@ -614,16 +678,22 @@ const orderRef = doc(db, "pending_orders", order.docId);
 const updated = order.comments ? [...order.comments] : [];
 const stamp = new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
 if (currentCommentEditIndex === null) {
-const nc = { text: text, date: stamp, author: profile.email, backup: bk, usage: us };
+const nc = { text: text, date: stamp, author: profile.email, backup: bk, usage: us, ts: new Date().toISOString() };
 if (eta) nc.eta = eta;
+if (wr) nc.warranty = wr;
+if (PENDING_IMGS.length) nc.imgs = PENDING_IMGS.slice();
 updated.push(nc);
 } else {
 updated[currentCommentEditIndex].text = text;
 updated[currentCommentEditIndex].backup = bk;
 updated[currentCommentEditIndex].usage = us;
 if (eta) updated[currentCommentEditIndex].eta = eta; else delete updated[currentCommentEditIndex].eta;
+if (wr) updated[currentCommentEditIndex].warranty = wr; else delete updated[currentCommentEditIndex].warranty;
+updated[currentCommentEditIndex].edited = true;
+if (PENDING_IMGS.length) updated[currentCommentEditIndex].imgs = (updated[currentCommentEditIndex].imgs || []).concat(PENDING_IMGS).slice(0, 3);
 updated[currentCommentEditIndex].date = stamp + " (معدل)";
 }
+if (JSON.stringify(updated).length > 850000) { alert('حجم المرفقات كبير جدًا لهذا الأمر، قلل عدد الصور أو احذف بعضها.'); return; }
 await updateDoc(orderRef, { comments: updated });
 window.closeModal();
 loadSiteOrders();
@@ -668,5 +738,6 @@ alert("تعذر مسح الكومنت، تحقق من الصلاحيات وال�
 
 loadSiteOrders();
 </script>
+<div id="lightbox"><img id="lbImg" alt=""></div>
 </body>
 </html>

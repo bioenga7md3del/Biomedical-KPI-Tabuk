@@ -113,6 +113,10 @@ th.nosort { cursor: default; }
 .update-date { display: block; font-size: .72rem; color: var(--muted); font-weight: 700; }
 .no-update { color: #dc2626; font-weight: 800; font-size: .76rem; background: #fee2e2; padding: 3px 8px; border-radius: 4px; display: inline-block; border: 1px solid #fca5a5; }
 
+.c-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.c-img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1; cursor: zoom-in; }
+#lightbox { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.88); z-index: 3000; align-items: center; justify-content: center; cursor: zoom-out; }
+#lightbox img { max-width: 94vw; max-height: 90vh; border-radius: 10px; }
 .ib { display: flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; margin: 2px 0; width: fit-content; white-space: nowrap; }
 .ib-ok { background: #dcfce7; color: #166534; } .ib-bad { background: #fee2e2; color: #991b1b; } .ib-warn { background: #fef08a; color: #854d0e; } .ib-blue { background: #dbeafe; color: #1d4ed8; } .ib-mute { background: #e2e8f0; color: #475569; }
 .badge { padding: 5px 11px; border-radius: 6px; font-weight: 800; font-size: .78rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
@@ -251,6 +255,8 @@ th { background: #eee !important; position: static; }
 <select id="fUsage"><option value="All">الكل</option><option value="stopped">متوقف كليًا</option><option value="partial">يعمل جزئيًا</option><option value="none">لم تُحدَّد</option></select></div>
 <div class="fg"><label><i class="fas fa-clone"></i> الجهاز البديل</label>
 <select id="fBackup"><option value="All">الكل</option><option value="yes">متوفر</option><option value="no">غير متوفر</option><option value="na">لا يحتاج</option><option value="none">لم يُحدَّد</option></select></div>
+<div class="fg"><label><i class="fas fa-shield-halved"></i> حالة الضمان</label>
+<select id="fWarranty"><option value="All">الكل</option><option value="in">تحت الضمان</option><option value="out">خارج الضمان</option><option value="unk">لا أعلم</option><option value="none">لم تُحدَّد</option></select></div>
 <div class="fg"><label><i class="fas fa-comment-dots"></i> الإفادة</label>
 <select id="fReply"><option value="All">الكل</option><option value="with_update">يوجد إفادة</option><option value="no_update">بانتظار الإفادة</option></select></div>
 </div>
@@ -314,6 +320,7 @@ await requireRole(['admin', 'manager']);
 
 // الحالات التي تُعتبر "تحت الإجراء" (كل ما عداها = عطل نشط)
 const BKL = { yes: 'جهاز بديل متوفر', no: 'لا يوجد جهاز بديل', na: 'لا يحتاج بديل' };
+const WRL = { in: 'تحت الضمان', out: 'خارج الضمان', unk: 'الضمان غير معروف' };
 const USL = { stopped: 'متوقف كليًا', partial: 'يعمل جزئيًا' };
 function etaCalc(eta) {
 if (!eta) return null;
@@ -323,20 +330,35 @@ if (isNaN(d.getTime())) return null;
 return Math.round((d.getTime() - t0.getTime()) / 86400000);
 }
 function latestInfo(comments) {
-let bk = null, us = null, eta = null;
-comments.forEach(c => { if (c.backup) bk = c.backup; if (c.usage) us = c.usage; if (c.eta) eta = c.eta; });
+let bk = null, us = null, eta = null, wr = null;
+comments.forEach(c => { if (c.backup) bk = c.backup; if (c.usage) us = c.usage; if (c.eta) eta = c.eta; if (c.warranty) wr = c.warranty; });
 const left = etaCalc(eta);
-return { backup: bk, usage: us, eta: eta, etaMs: eta && left !== null ? new Date(eta + 'T00:00:00').getTime() : 0, etaLeft: left, etaOver: left !== null && left < 0 };
+return { backup: bk, usage: us, eta: eta, warranty: wr, etaMs: eta && left !== null ? new Date(eta + 'T00:00:00').getTime() : 0, etaLeft: left, etaOver: left !== null && left < 0 };
 }
 function infoCell(o) {
 const left = etaCalc(o.eta);
-if (!o.backup && !o.usage && !o.eta) return '<span class="ib ib-mute">لم تُحدَّد</span>';
+if (!o.backup && !o.usage && !o.eta && !o.warranty) return '<span class="ib ib-mute">لم تُحدَّد</span>';
 let h = '';
+if (o.warranty) h += '<span class="ib ' + (o.warranty === 'in' ? 'ib-ok' : 'ib-mute') + '"><i class="fas fa-shield-halved"></i> ' + (WRL[o.warranty] || '') + '</span>';
 if (o.usage) h += '<span class="ib ' + (o.usage === 'stopped' ? 'ib-bad' : 'ib-warn') + '"><i class="fas fa-' + (o.usage === 'stopped' ? 'power-off' : 'battery-half') + '"></i> ' + (USL[o.usage] || '') + '</span>';
 if (o.backup) h += '<span class="ib ' + (o.backup === 'yes' ? 'ib-ok' : (o.backup === 'no' ? 'ib-bad' : 'ib-mute')) + '"><i class="fas fa-' + (o.backup === 'no' ? 'ban' : 'clone') + '"></i> ' + (BKL[o.backup] || '') + '</span>';
 if (o.eta) h += '<span class="ib ' + (left !== null && left < 0 ? 'ib-bad' : 'ib-blue') + '"><i class="far fa-calendar-check"></i> ' + esc(o.eta) + (left === null ? '' : (left < 0 ? ' · متأخر ' + (-left) + ' يوم' : (left === 0 ? ' · اليوم' : ' · بعد ' + left + ' يوم'))) + '</span>';
 return h;
 }
+function fmtTs(c) {
+if (c && c.ts) { const d = new Date(c.ts); if (!isNaN(d.getTime())) return d.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + (c.edited ? ' (معدل)' : ''); }
+return (c && c.date) || '-';
+}
+function imgsHtml(c) {
+const list = (c && Array.isArray(c.imgs) ? c.imgs : []).filter(u => typeof u === 'string' && u.indexOf('data:image/') === 0);
+if (!list.length) return '';
+return '<div class="c-imgs">' + list.map(u => '<img class="c-img" src="' + esc(u) + '" alt="مرفق">').join('') + '</div>';
+}
+document.addEventListener('click', e => {
+const t = e.target;
+if (t && t.classList && t.classList.contains('c-img')) { document.getElementById('lbImg').src = t.src; document.getElementById('lightbox').style.display = 'flex'; }
+else if (t && t.id === 'lightbox') { t.style.display = 'none'; }
+});
 const IN_PROGRESS = [];
 const STATUS_AR = { 'Active': 'نشط', 'Assigned': 'مكلّف', 'Pending for Approval': 'بانتظار الاعتماد', 'Approved': 'معتمد' };
 const STATUS_CLS = { 'Active': 'st-Active', 'Assigned': 'st-Assigned', 'Pending for Approval': 'st-PendingApproval', 'Approved': 'st-Approved' };
@@ -436,7 +458,7 @@ let QUICK = null;
 function getFiltered() {
 const q = $('fSearch').value.trim().toLowerCase();
 const site = $('fSite').value, dept = $('fDept').value, tech = $('fTech').value;
-const st = $('fStatus').value, age = $('fAge').value, rep = $('fReply').value, fu = $('fUsage').value, fb = $('fBackup').value;
+const st = $('fStatus').value, age = $('fAge').value, rep = $('fReply').value, fu = $('fUsage').value, fb = $('fBackup').value, fw = $('fWarranty').value;
 return MASTER.filter(r => {
 if (q && !r._search.includes(q)) return false;
 if (site !== 'All' && r.site !== site) return false;
@@ -446,6 +468,7 @@ if (st !== 'All' && r.status !== st) return false;
 if (age !== 'All' && r.ageCat !== age) return false;
 if (fu !== 'All' && (fu === 'none' ? !!r.usage : r.usage !== fu)) return false;
 if (fb !== 'All' && (fb === 'none' ? !!r.backup : r.backup !== fb)) return false;
+if (fw !== 'All' && (fw === 'none' ? !!r.warranty : r.warranty !== fw)) return false;
 if (rep === 'with_update' && !r.hasUpdate) return false;
 if (rep === 'no_update' && r.hasUpdate) return false;
 if (QUICK === 'critical' && r.ageCat !== 'red') return false;
@@ -479,6 +502,7 @@ if ($('fStatus').value !== 'All') add('الحالة', STATUS_AR[$('fStatus').val
 if ($('fAge').value !== 'All') add('التقادم', AGE_AR[$('fAge').value]);
 if ($('fUsage').value !== 'All') add('حالة الجهاز', $('fUsage').options[$('fUsage').selectedIndex].text);
 if ($('fBackup').value !== 'All') add('الجهاز البديل', $('fBackup').options[$('fBackup').selectedIndex].text);
+if ($('fWarranty').value !== 'All') add('الضمان', $('fWarranty').options[$('fWarranty').selectedIndex].text);
 if ($('fReply').value !== 'All') add('الإفادة', $('fReply').value === 'no_update' ? 'بدون إفادة' : 'بإفادة');
 if (QUICK) add('فلتر سريع', document.querySelector('.chip[data-quick="' + QUICK + '"]').textContent.trim());
 $('activeFilters').textContent = parts.length ? 'الفلاتر المفعّلة: ' + parts.join(' | ') : '';
@@ -542,7 +566,7 @@ tr.innerHTML =
 '<td class="col-tech">' + esc(row.tech || '-') + '</td>' +
 '<td class="col-info">' + infoCell(row) + '</td>' +
 '<td class="col-update">' + (row.lastComment
-? '<span class="update-text">' + esc(row.lastComment.text) + '</span><span class="update-date"><i class="far fa-clock"></i> ' + esc(row.lastComment.date) + '</span>'
+? '<span class="update-text">' + esc(row.lastComment.text) + '</span><span class="update-date"><i class="far fa-clock"></i> ' + esc(fmtTs(row.lastComment)) + (row.comments.length > 1 ? ' · ' + row.comments.length + ' ردود' : '') + (row.lastComment.imgs && row.lastComment.imgs.length ? ' · 📎 ' + row.lastComment.imgs.length : '') + '</span>'
 : '<span class="no-update"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
 '<td class="header-actions-col"><button class="btn-timeline"><i class="fas fa-route"></i> المسار</button></td>';
 tr.querySelector('.btn-timeline').addEventListener('click', () => window.showTimeline(row.id));
@@ -654,7 +678,7 @@ $('tl-meta').innerHTML =
 const body = $('tl-body');
 body.innerHTML = '';
 const nodes = [{ label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل والمتابعة الفنية.', icon: 'fa-file-medical', color: '#8b5cf6' }];
-order.comments.forEach(c => nodes.push({ label: 'تحديث من الموقع', date: c.date, text: c.text, icon: 'fa-user-edit', color: '#f59e0b', extra: (c.backup || c.usage || c.eta) ? '<div style="margin-top:8px">' + infoCell(c) + '</div>' : '' }));
+order.comments.forEach(c => nodes.push({ label: 'تحديث من الموقع', date: fmtTs(c), text: c.text, icon: 'fa-user-edit', color: '#f59e0b', extra: ((c.backup || c.usage || c.eta || c.warranty) ? '<div style="margin-top:8px">' + infoCell(c) + '</div>' : '') + imgsHtml(c) }));
 nodes.forEach(n => {
 body.insertAdjacentHTML('beforeend',
 '<div class="timeline-item"><div class="timeline-dot" style="border-color:' + n.color + ';"></div>' +
@@ -682,6 +706,8 @@ const rows = sortRows(VIEW[n], SORT[n]).map(r => ({
 'حالة الجهاز': r.usage ? USL[r.usage] : '',
 'الجهاز البديل': r.backup ? BKL[r.backup] : '',
 'موعد الإصلاح المتوقع': r.eta || '',
+'حالة الضمان': r.warranty ? WRL[r.warranty] : '',
+'عدد المرفقات': r.lastComment && r.lastComment.imgs ? r.lastComment.imgs.length : 0,
 'آخر إفادة': r.lastUpdate,
 'تاريخ الإفادة': r.lastComment ? r.lastComment.date : ''
 }));
@@ -704,7 +730,7 @@ setTimeout(() => { window.print(); }, 400);
 };
 
 // ===== Filters wiring =====
-['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply', 'fUsage', 'fBackup'].forEach(id => $(id).addEventListener('change', window.applyFilters));
+['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply', 'fUsage', 'fBackup', 'fWarranty'].forEach(id => $(id).addEventListener('change', window.applyFilters));
 let tm;
 $('fSearch').addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(window.applyFilters, 200); });
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
@@ -715,7 +741,7 @@ window.applyFilters();
 }));
 window.resetFilters = () => {
 $('fSearch').value = '';
-['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply', 'fUsage', 'fBackup'].forEach(id => { $(id).value = 'All'; });
+['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply', 'fUsage', 'fBackup', 'fWarranty'].forEach(id => { $(id).value = 'All'; });
 QUICK = null;
 document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
 window.applyFilters();
@@ -729,5 +755,6 @@ window.reloadData = loadData;
 
 loadData();
 </script>
+<div id="lightbox"><img id="lbImg" alt=""></div>
 </body>
 </html>
