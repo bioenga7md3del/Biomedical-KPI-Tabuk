@@ -181,23 +181,36 @@ td.empty::before { content: none; }
 
 #printSheet { display: none; }
 @media print {
-@page { size: A4 landscape; margin: 10mm; }
+@page { size: A4 landscape; margin: 9mm; }
 html, body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 #appScreen, #commentModal, #lightbox { display: none !important; }
-#printSheet { display: block !important; direction: rtl; font-family: 'Tajawal', sans-serif; color: #000; }
-#printSheet h2 { font-size: 15pt; margin: 0 0 4px; color: #1e3a8a; }
-#printSheet .ps-meta { font-size: 9.5pt; font-weight: 700; color: #334155; margin-bottom: 8px; line-height: 1.7; }
-#printSheet .ps-leg { font-size: 8.5pt; margin-bottom: 8px; color: #334155; }
-#printSheet .ps-leg i { display: inline-block; width: 11px; height: 11px; border: 1px solid #94a3b8; vertical-align: middle; margin: 0 4px 0 2px; }
-#printSheet table { display: table !important; width: 100% !important; border-collapse: collapse; table-layout: auto; border: 1px solid #64748b; }
+#printSheet { display: block !important; direction: rtl; font-family: 'Tajawal', sans-serif; color: #0f172a; }
+#printSheet .ps-head { display: flex; align-items: center; gap: 14px; padding-bottom: 10px; border-bottom: 3px solid #1e3a8a; margin-bottom: 10px; }
+#printSheet .ps-head img { height: 64px; object-fit: contain; }
+#printSheet .ps-title { flex: 1; }
+#printSheet .ps-title h2 { font-size: 18pt; margin: 0; color: #1e3a8a; font-weight: 800; }
+#printSheet .ps-title p { margin: 2px 0 0; font-size: 11pt; font-weight: 700; color: #2563eb; }
+#printSheet .ps-info { text-align: left; font-size: 9pt; font-weight: 700; color: #475569; line-height: 1.7; }
+#printSheet .ps-stats { display: flex; gap: 8px; margin-bottom: 8px; }
+#printSheet .ps-stat { flex: 1; border: 1px solid #cbd5e1; border-right: 4px solid var(--c); border-radius: 6px; padding: 5px 10px; background: #f8fafc !important; }
+#printSheet .ps-stat b { display: block; font-size: 15pt; line-height: 1.1; color: var(--c); }
+#printSheet .ps-stat span { font-size: 8.5pt; font-weight: 700; color: #475569; }
+#printSheet .ps-note { font-size: 8.5pt; font-weight: 700; color: #334155; margin-bottom: 6px; }
+#printSheet .ps-leg { font-size: 8pt; margin-bottom: 6px; color: #475569; font-weight: 700; }
+#printSheet .ps-leg i { display: inline-block; width: 11px; height: 11px; border: 1px solid #94a3b8; border-radius: 2px; vertical-align: middle; margin: 0 8px 0 3px; }
+#printSheet table { display: table !important; width: 100% !important; border-collapse: collapse; table-layout: auto; border: 1px solid #1e3a8a; }
 #printSheet thead { display: table-header-group !important; }
 #printSheet tbody { display: table-row-group !important; }
 #printSheet tr { display: table-row !important; width: auto !important; page-break-inside: avoid; border: none; margin: 0; padding: 0; }
-#printSheet th, #printSheet td { display: table-cell !important; width: auto !important; border: 1px solid #94a3b8 !important; padding: 4px 6px !important; font-size: 8.5pt; text-align: right; vertical-align: top; line-height: 1.45; word-break: break-word; }
+#printSheet th, #printSheet td { display: table-cell !important; width: auto !important; border: 1px solid #cbd5e1 !important; padding: 4px 6px !important; font-size: 8.5pt; text-align: right; vertical-align: top; line-height: 1.45; word-break: break-word; }
 #printSheet td::before { content: none !important; }
-#printSheet th { background: #e2e8f0 !important; font-weight: 800; }
+#printSheet th { background: #1e3a8a !important; color: #fff !important; font-weight: 800; border-color: #1e3a8a !important; text-align: center; }
 #printSheet tr.pr-y td { background: #fef9c3 !important; }
 #printSheet tr.pr-r td { background: #fee2e2 !important; }
+#printSheet td.pr-age { text-align: center; font-weight: 800; }
+#printSheet tr.pr-r td.pr-age { color: #b91c1c; } #printSheet tr.pr-y td.pr-age { color: #a16207; }
+#printSheet .ps-none { color: #b91c1c; font-weight: 800; }
+#printSheet .ps-foot { margin-top: 8px; padding-top: 5px; border-top: 1px solid #cbd5e1; font-size: 8pt; color: #64748b; display: flex; justify-content: space-between; }
 #printSheet .ltr { direction: ltr; unicode-bidi: embed; display: inline-block; }
 }
 </style>
@@ -394,17 +407,24 @@ const notes = [];
 const sel = (id) => { const e = $(id); return e && e.value !== 'All' ? e.options[e.selectedIndex].text : ''; };
 if ($('fSearch').value.trim()) notes.push('بحث: ' + $('fSearch').value.trim());
 [['fStatus', 'الحالة'], ['fTech', 'الفني'], ['fAge', 'التقادم'], ['fReply', 'الإفادة']].forEach(x => { const v = sel(x[0]); if (v) notes.push(x[1] + ': ' + v); });
-let h = '<h2>كشف الأعطال - ' + esc(currentSite) + '</h2>' +
-'<div class="ps-meta">تاريخ الطباعة: ' + esc(new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })) + ' | عدد الأوامر: ' + rows.length + ' | مرتبة من الأقدم إلى الأحدث' + (notes.length ? '<br>' + esc(notes.join(' | ')) : '') + '</div>' +
-'<div class="ps-leg"><i style="background:#fff"></i>حتى 5 أيام <i style="background:#fef9c3"></i>أكثر من 5 إلى 30 <i style="background:#fee2e2"></i>أكثر من 30 يوم</div>';
+const now = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const nRed = rows.filter(r => r.ageCat === 'red').length, nYel = rows.filter(r => r.ageCat === 'yellow').length, nNo = rows.filter(r => !r.hasUpdate).length;
+let h = '<div class="ps-head"><img src="TabukCluster.jpeg" alt="" onerror="this.style.display=\'none\'"><div class="ps-title"><h2>كشف الأجهزة المتعطلة</h2><p>' + esc(currentSite) + '</p></div><div class="ps-info">تاريخ الطباعة: <span class="ltr">' + esc(now) + '</span><br>Active + Assigned - مرتبة من الأقدم إلى الأحدث</div></div>' +
+'<div class="ps-stats">' +
+'<div class="ps-stat" style="--c:#1e3a8a"><b>' + rows.length + '</b><span>إجمالي الأوامر</span></div>' +
+'<div class="ps-stat" style="--c:#dc2626"><b>' + nRed + '</b><span>حرجة (أكثر من 30 يوم)</span></div>' +
+'<div class="ps-stat" style="--c:#ca8a04"><b>' + nYel + '</b><span>متأخرة (5 إلى 30 يوم)</span></div>' +
+'<div class="ps-stat" style="--c:#ea580c"><b>' + nNo + '</b><span>بانتظار الإفادة</span></div></div>' +
+(notes.length ? '<div class="ps-note">الفلاتر المطبقة: ' + esc(notes.join(' | ')) + '</div>' : '') +
+'<div class="ps-leg"><i style="background:#fff"></i>حتى 5 أيام<i style="background:#fef9c3"></i>أكثر من 5 إلى 30<i style="background:#fee2e2"></i>أكثر من 30 يوم</div>';
 h += '<table><thead><tr><th>م</th><th>رقم الأمر</th><th>تاريخ العطل</th><th>المدة (يوم)</th><th>الحالة</th><th>القسم</th><th>الجهاز</th><th>الفني</th><th>معلومات الجهاز والإصلاح</th><th>آخر إفادة</th></tr></thead><tbody>';
 if (!rows.length) h += '<tr><td colspan="10" style="text-align:center">لا توجد أوامر</td></tr>';
 rows.forEach((r, i) => {
 const cls = r.ageCat === 'red' ? 'pr-r' : (r.ageCat === 'yellow' ? 'pr-y' : '');
 const lc = r.lastComment;
-h += '<tr class="' + cls + '"><td>' + (i + 1) + '</td><td><b>' + esc(r.id) + '</b></td><td><span class="ltr">' + esc(String(r.failDate || r.startDate || '-').substring(0, 16)) + '</span></td><td><b>' + r.agingDays + '</b></td><td>' + esc(STATUS_AR[r.status] || r.status) + '</td><td>' + esc(r.dept || '-') + '</td><td>' + esc(r.device || '') + '</td><td>' + esc(r.tech || '-') + '</td><td>' + esc(infoText(r)) + '</td><td>' + (lc ? esc(lc.text || '') + '<br><small>' + esc(fmtTs(lc)) + '</small>' : '<b>بانتظار الإفادة</b>') + '</td></tr>';
+h += '<tr class="' + cls + '"><td style="text-align:center">' + (i + 1) + '</td><td><b>' + esc(r.id) + '</b></td><td><span class="ltr">' + esc(String(r.failDate || r.startDate || '-').substring(0, 16)) + '</span></td><td class="pr-age">' + r.agingDays + '</td><td>' + esc(STATUS_AR[r.status] || r.status) + '</td><td>' + esc(r.dept || '-') + '</td><td>' + esc(r.device || '') + '</td><td>' + esc(r.tech || '-') + '</td><td>' + esc(infoText(r)) + '</td><td>' + (lc ? esc(lc.text || '') + '<br><small style="color:#64748b">' + esc(fmtTs(lc)) + '</small>' : '<span class="ps-none">بانتظار الإفادة</span>') + '</td></tr>';
 });
-h += '</tbody></table>';
+h += '</tbody></table><div class="ps-foot"><span>Biomedical KPI Tabuk</span><span>' + esc(currentSite) + ' - ' + rows.length + ' أمر</span></div>';
 $('printSheet').innerHTML = h;
 }
 window.addEventListener('beforeprint', buildPrintSheet);
