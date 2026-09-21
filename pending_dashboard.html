@@ -223,7 +223,7 @@ th { background: #eee !important; position: static; }
 
 <!-- KPIs -->
 <div class="grid-kpi">
-<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">الأعطال المفتوحة</div><div class="kpi-val" id="k-active" style="color:var(--red)">0</div><div class="kpi-sub">Active + Assigned وغيرها</div></div></div>
+<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">الأعطال المفتوحة</div><div class="kpi-val" id="k-active" style="color:var(--red)">0</div><div class="kpi-sub">Active + Assigned</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#dcfce7;color:var(--green)"><i class="fas fa-leaf"></i></div><div><div class="kpi-label">حديثة (&lt; 5 أيام)</div><div class="kpi-val" id="k-green" style="color:var(--green)">0</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-hourglass-half"></i></div><div><div class="kpi-label">متأخرة (5-30 يوم)</div><div class="kpi-val" id="k-yellow" style="color:var(--yellow)">0</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">حرجة (+30 يوم)</div><div class="kpi-val" id="k-red" style="color:var(--red)">0</div></div></div>
@@ -281,7 +281,7 @@ th { background: #eee !important; position: static; }
 <div class="panel-head">
 <div class="panel-title">
 <div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div>
-<div><h3>الأعطال النشطة <span class="count-pill" id="c-t1">0</span></h3><small>كل الأوامر المفتوحة: Active و Assigned وغيرها</small></div>
+<div><h3>الأعطال النشطة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر العمل بحالة Active و Assigned</small></div>
 </div>
 <div class="panel-tools"><button class="btn-action" onclick="exportTable(1)"><i class="fas fa-file-excel" style="color:#16a34a"></i> تصدير Excel</button></div>
 </div>
@@ -391,6 +391,7 @@ const snap = await getDocs(query(collection(db, "pending_orders"), where("isComp
 MASTER = [];
 snap.forEach(d => {
 const r = d.data();
+if (r.status && r.status !== 'Active' && r.status !== 'Assigned') return;
 r.agingDays = calculateDays(r.failDate || r.startDate || r.createdAt);
 r.ageCat = r.agingDays < 5 ? 'green' : (r.agingDays <= 30 ? 'yellow' : 'red');
 r.comments = Array.isArray(r.comments) ? r.comments : [];
