@@ -117,6 +117,12 @@ tbody tr:hover { background: #f0f9ff; }
 .quick-replies-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .btn-quick { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; font-size: .84rem; font-weight: 700; transition: .2s; }
 .btn-quick:hover { background: #e2e8f0; border-color: #94a3b8; }
+.ib { display: flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; margin: 2px 0; width: fit-content; white-space: nowrap; }
+.ib-ok { background: #dcfce7; color: #166534; } .ib-bad { background: #fee2e2; color: #991b1b; } .ib-warn { background: #fef08a; color: #854d0e; } .ib-blue { background: #dbeafe; color: #1d4ed8; } .ib-mute { background: #e2e8f0; color: #475569; }
+.info-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: #fefce8; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+.info-fields label { display: block; font-size: .8rem; font-weight: 700; color: #854d0e; margin-bottom: 4px; }
+.info-fields select, .info-fields input { width: 100%; padding: 8px; border: 1px solid #fcd34d; border-radius: 6px; font-family: 'Tajawal'; font-size: .9rem; background: #fff; }
+@media (max-width: 600px) { .info-fields { grid-template-columns: 1fr; } }
 #approvalFields { display: none; background: #f0f9ff; border: 1px solid #bae6fd; padding: 14px; border-radius: 10px; margin-bottom: 14px; }
 .fields-row { display: flex; gap: 10px; }
 .fields-row div { flex: 1; }
@@ -209,14 +215,14 @@ th { background: #eee !important; position: static; }
 <div class="panel-head">
 <div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>الأعطال النشطة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر مفتوحة (Active) لم يبدأ الإجراء عليها</small></div></div>
 </div>
-<div class="table-wrap"><table id="table1"><thead id="head1"></thead><tbody id="body1"><tr><td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم...</td></tr></tbody></table></div>
+<div class="table-wrap"><table id="table1"><thead id="head1"></thead><tbody id="body1"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم...</td></tr></tbody></table></div>
 </div>
 
 <div class="panel tp-purple">
 <div class="panel-head">
 <div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-gears"></i></div><div><h3>أوامر عمل تحت الإجراء <span class="count-pill" id="c-t2">0</span></h3><small>مكلّف بها فني أو بانتظار الاعتماد</small></div></div>
 </div>
-<div class="table-wrap"><table id="table2"><thead id="head2"></thead><tbody id="body2"><tr><td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</td></tr></tbody></table></div>
+<div class="table-wrap"><table id="table2"><thead id="head2"></thead><tbody id="body2"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</td></tr></tbody></table></div>
 </div>
 
 </div>
@@ -248,6 +254,11 @@ th { background: #eee !important; position: static; }
 </div>
 </div>
 
+<div class="info-fields">
+<div><label>هل يوجد جهاز بديل؟ *</label><select id="fBk"><option value="">اختر...</option><option value="yes">نعم، يوجد جهاز بديل</option><option value="no">لا يوجد جهاز بديل</option><option value="na">لا يحتاج جهاز بديل</option></select></div>
+<div><label>حالة الجهاز *</label><select id="fUs"><option value="">اختر...</option><option value="stopped">متوقف كليًا</option><option value="partial">يعمل بشكل جزئي</option></select></div>
+<div><label>الوقت المتوقع للإصلاح</label><input type="date" id="fEta"></div>
+</div>
 <label id="lblWriteType" style="font-weight: 700; color: #475569; margin-bottom: 8px; display: block; font-size: .95rem;">إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:</label>
 <textarea id="modalNewComment" placeholder="اكتب مبررات التأخير أو كمل على الرد السريع هنا..." maxlength="1000"></textarea>
 
@@ -274,6 +285,7 @@ const COLS = [
 { key: 'status', label: 'الحالة' },
 { key: 'device', label: 'الجهاز الطبي المتأثر' },
 { key: 'tech', label: 'الفني المسند إليه' },
+{ key: null, label: 'الجهاز والإصلاح المتوقع' },
 { key: 'hasUpdate', label: 'حالة الإفادة' },
 { key: 'lastUpdate', label: 'آخر مبرر مسجل' },
 { key: null, label: 'إجراءات' }
@@ -292,6 +304,30 @@ $('lblSiteName').textContent = currentSite;
 $('btnLogout').addEventListener('click', logout);
 $('btnReload').addEventListener('click', loadSiteOrders);
 
+const BKL = { yes: 'جهاز بديل متوفر', no: 'لا يوجد جهاز بديل', na: 'لا يحتاج بديل' };
+const USL = { stopped: 'متوقف كليًا', partial: 'يعمل جزئيًا' };
+function etaCalc(eta) {
+if (!eta) return null;
+const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+const d = new Date(eta + 'T00:00:00');
+if (isNaN(d.getTime())) return null;
+return Math.round((d.getTime() - t0.getTime()) / 86400000);
+}
+function latestInfo(comments) {
+let bk = null, us = null, eta = null;
+comments.forEach(c => { if (c.backup) bk = c.backup; if (c.usage) us = c.usage; if (c.eta) eta = c.eta; });
+const left = etaCalc(eta);
+return { backup: bk, usage: us, eta: eta, etaMs: eta && left !== null ? new Date(eta + 'T00:00:00').getTime() : 0, etaLeft: left, etaOver: left !== null && left < 0 };
+}
+function infoCell(o) {
+const left = etaCalc(o.eta);
+if (!o.backup && !o.usage && !o.eta) return '<span class="ib ib-mute">لم تُحدَّد</span>';
+let h = '';
+if (o.usage) h += '<span class="ib ' + (o.usage === 'stopped' ? 'ib-bad' : 'ib-warn') + '"><i class="fas fa-' + (o.usage === 'stopped' ? 'power-off' : 'battery-half') + '"></i> ' + (USL[o.usage] || '') + '</span>';
+if (o.backup) h += '<span class="ib ' + (o.backup === 'yes' ? 'ib-ok' : (o.backup === 'no' ? 'ib-bad' : 'ib-mute')) + '"><i class="fas fa-' + (o.backup === 'no' ? 'ban' : 'clone') + '"></i> ' + (BKL[o.backup] || '') + '</span>';
+if (o.eta) h += '<span class="ib ' + (left !== null && left < 0 ? 'ib-bad' : 'ib-blue') + '"><i class="far fa-calendar-check"></i> ' + esc(o.eta) + (left === null ? '' : (left < 0 ? ' · متأخر ' + (-left) + ' يوم' : (left === 0 ? ' · اليوم' : ' · بعد ' + left + ' يوم'))) + '</span>';
+return h;
+}
 function calculateDays(v) {
 if (!v) return 0;
 let d = null;
@@ -324,6 +360,7 @@ r.comments = Array.isArray(r.comments) ? r.comments : [];
 r.hasUpdate = r.comments.length > 0;
 r.lastComment = r.hasUpdate ? r.comments[r.comments.length - 1] : null;
 r.lastUpdate = r.lastComment ? String(r.lastComment.text || '') : '';
+Object.assign(r, latestInfo(r.comments));
 r.status = r.status || 'Active';
 r.group = IN_PROGRESS.includes(r.status) ? 2 : 1;
 r._search = [r.id, r.device, r.tech, r.lastUpdate].join(' ').toLowerCase();
@@ -334,7 +371,7 @@ fillSelect('fTech', uniq('tech'));
 applyFilters();
 } catch (error) {
 console.error(error);
-$('body1').innerHTML = '<tr><td colspan="8" class="empty" style="color:var(--red)">حدث خلل أثناء جلب البيانات المباشرة من السحابة.</td></tr>';
+$('body1').innerHTML = '<tr><td colspan="9" class="empty" style="color:var(--red)">حدث خلل أثناء جلب البيانات المباشرة من السحابة.</td></tr>';
 $('body2').innerHTML = '';
 }
 }
@@ -406,7 +443,7 @@ tbody.innerHTML = '';
 const rows = sortRows(VIEW[n], SORT[n]);
 $('c-t' + n).textContent = rows.length;
 if (!rows.length) {
-tbody.innerHTML = '<tr><td colspan="8" class="empty"><i class="far fa-face-smile"></i> ' + (LOCAL_ORDERS.length ? 'لا توجد أوامر مطابقة في هذا الجدول.' : 'ممتاز جداً! لا توجد أي أوامر عمل معلقة لموقعكم حالياً.') + '</td></tr>';
+tbody.innerHTML = '<tr><td colspan="9" class="empty"><i class="far fa-face-smile"></i> ' + (LOCAL_ORDERS.length ? 'لا توجد أوامر مطابقة في هذا الجدول.' : 'ممتاز جداً! لا توجد أي أوامر عمل معلقة لموقعكم حالياً.') + '</td></tr>';
 return;
 }
 rows.forEach(r => {
@@ -420,6 +457,7 @@ tr.innerHTML =
 '<td><span class="badge ' + (STATUS_CLS[r.status] || 'st-other') + '">' + esc(STATUS_AR[r.status] || r.status) + '</span></td>' +
 '<td title="' + esc(device) + '">' + esc(device.length > 45 ? device.substring(0, 45) + '...' : device) + '</td>' +
 '<td>' + esc(r.tech || '-') + '</td>' +
+'<td>' + infoCell(r) + '</td>' +
 '<td>' + (r.hasUpdate ? '<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>' : '<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
 '<td>' + (r.lastComment ? '<span class="last-text">' + esc(r.lastComment.text) + '</span><span class="last-date"><i class="far fa-clock"></i> ' + esc(r.lastComment.date) + '</span>' : '<span style="color:var(--red); font-weight:800; font-size:.8rem;">لا يوجد أي تبرير مرفوع</span>') + '</td>' +
 '<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button></td>';
@@ -481,6 +519,9 @@ $('btnSaveComment').innerHTML = '<i class="fas fa-save"></i> حفظ المبرر
 const order = LOCAL_ORDERS.find(o => o.id === orderId);
 $('modalInfo').innerHTML = '<b>الجهاز:</b> ' + esc(order.device) + '<br><b>الحالة:</b> ' + esc(STATUS_AR[order.status] || order.status) + ' &nbsp;|&nbsp; <b>الفني:</b> ' + esc(order.tech || '-') + ' &nbsp;|&nbsp; <b>التأخير:</b> ' + order.agingDays + ' يوم';
 renderCommentsList(order);
+$('fBk').value = order.backup || '';
+$('fUs').value = order.usage || '';
+$('fEta').value = order.eta || '';
 $('commentModal').style.display = 'flex';
 };
 
@@ -529,7 +570,9 @@ const dt = $('appDate').value;
 if (!num || !dt) { alert("برجاء تعبئة رقم وتاريخ التعميد المرجعي للتوثيق الإداري."); return; }
 text = '[تم التعميد رسميًا] - بموجب تعميد رقم: (' + num + ') الصادر بتاريخ: ' + dt + '. ' + text;
 }
-if (!text) { alert("الرجاء كتابة أو اختيار نص التحديث والمبرر أولاً."); return; }
+const bk = $('fBk').value, us = $('fUs').value, eta = $('fEta').value;
+if (!bk || !us) { alert("برجاء تحديد: هل يوجد جهاز بديل؟ وحالة الجهاز (متوقف كليًا / يعمل جزئيًا)."); return; }
+if (!text) text = 'جهاز بديل: ' + BKL[bk] + ' | الحالة: ' + USL[us] + (eta ? ' | الإصلاح المتوقع: ' + eta : '');
 
 const btn = $('btnSaveComment');
 btn.disabled = true;
@@ -540,9 +583,14 @@ const orderRef = doc(db, "pending_orders", order.docId);
 const updated = order.comments ? [...order.comments] : [];
 const stamp = new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
 if (currentCommentEditIndex === null) {
-updated.push({ text: text, date: stamp, author: profile.email });
+const nc = { text: text, date: stamp, author: profile.email, backup: bk, usage: us };
+if (eta) nc.eta = eta;
+updated.push(nc);
 } else {
 updated[currentCommentEditIndex].text = text;
+updated[currentCommentEditIndex].backup = bk;
+updated[currentCommentEditIndex].usage = us;
+if (eta) updated[currentCommentEditIndex].eta = eta; else delete updated[currentCommentEditIndex].eta;
 updated[currentCommentEditIndex].date = stamp + " (معدل)";
 }
 await updateDoc(orderRef, { comments: updated });
@@ -561,6 +609,9 @@ window.editCommentTrigger = function (index) {
 const order = LOCAL_ORDERS.find(o => o.id === currentEditingOrderId);
 currentCommentEditIndex = index;
 $('modalNewComment').value = order.comments[index].text;
+$('fBk').value = order.comments[index].backup || '';
+$('fUs').value = order.comments[index].usage || '';
+$('fEta').value = order.comments[index].eta || '';
 $('approvalFields').style.display = 'none';
 $('lblWriteType').textContent = "تعديل وتصحيح نص المبرر المختار:";
 $('btnSaveComment').innerHTML = '<i class="fas fa-edit"></i> حفظ التعديلات الآن وإرسالها للأدمن';

@@ -113,6 +113,8 @@ th.nosort { cursor: default; }
 .update-date { display: block; font-size: .72rem; color: var(--muted); font-weight: 700; }
 .no-update { color: #dc2626; font-weight: 800; font-size: .76rem; background: #fee2e2; padding: 3px 8px; border-radius: 4px; display: inline-block; border: 1px solid #fca5a5; }
 
+.ib { display: flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; margin: 2px 0; width: fit-content; white-space: nowrap; }
+.ib-ok { background: #dcfce7; color: #166534; } .ib-bad { background: #fee2e2; color: #991b1b; } .ib-warn { background: #fef08a; color: #854d0e; } .ib-blue { background: #dbeafe; color: #1d4ed8; } .ib-mute { background: #e2e8f0; color: #475569; }
 .badge { padding: 5px 11px; border-radius: 6px; font-weight: 800; font-size: .78rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .age-green { background: #dcfce7; color: #166534; }
 .age-yellow { background: #fef08a; color: #854d0e; }
@@ -194,6 +196,7 @@ th { background: #eee !important; position: static; }
 <div class="option-item"><input type="checkbox" id="p-site" checked><label>الموقع / المستشفى</label></div>
 <div class="option-item"><input type="checkbox" id="p-device" checked><label>بيانات الجهاز</label></div>
 <div class="option-item"><input type="checkbox" id="p-tech" checked><label>اسم الفني</label></div>
+<div class="option-item"><input type="checkbox" id="p-info" checked><label>الجهاز والإصلاح المتوقع</label></div>
 <div class="option-item"><input type="checkbox" id="p-update" checked><label>آخر تحديث من الموقع</label></div>
 <div class="option-item"><input type="checkbox" id="p-t1" checked><label>طباعة جدول الأعطال النشطة</label></div>
 <div class="option-item"><input type="checkbox" id="p-t2" checked><label>طباعة جدول أوامر العمل تحت الإجراء</label></div>
@@ -226,6 +229,9 @@ th { background: #eee !important; position: static; }
 <div class="kpi-card"><div class="kpi-ico" style="background:#dcfce7;color:var(--green)"><i class="fas fa-leaf"></i></div><div><div class="kpi-label">حديثة (&lt; 5 أيام)</div><div class="kpi-val" id="k-green" style="color:var(--green)">0</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-hourglass-half"></i></div><div><div class="kpi-label">متأخرة (5-30 يوم)</div><div class="kpi-val" id="k-yellow" style="color:var(--yellow)">0</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">حرجة (+30 يوم)</div><div class="kpi-val" id="k-red" style="color:var(--red)">0</div></div></div>
+<div class="kpi-card" style="cursor:pointer" onclick="quickSet('nobackup')"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-ban"></i></div><div><div class="kpi-label">بدون جهاز بديل</div><div class="kpi-val" id="k-nobackup" style="color:var(--red)">0</div><div class="kpi-sub">اضغط للفلترة</div></div></div>
+<div class="kpi-card" style="cursor:pointer" onclick="quickSet('stopped')"><div class="kpi-ico" style="background:#fef3c7;color:#b45309"><i class="fas fa-power-off"></i></div><div><div class="kpi-label">متوقفة كليًا</div><div class="kpi-val" id="k-stopped" style="color:#b45309">0</div><div class="kpi-sub" id="k-partial-sub">-</div></div></div>
+<div class="kpi-card" style="cursor:pointer" onclick="quickSet('etaover')"><div class="kpi-ico" style="background:#e0f2fe;color:var(--primary-2)"><i class="fas fa-calendar-xmark"></i></div><div><div class="kpi-label">موعد الإصلاح متجاوز</div><div class="kpi-val" id="k-etaover" style="color:var(--primary-2)">0</div><div class="kpi-sub" id="k-eta-sub">-</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#ffedd5;color:var(--orange)"><i class="fas fa-comment-slash"></i></div><div><div class="kpi-label">بدون إفادة</div><div class="kpi-val" id="k-noreply" style="color:var(--orange)">0</div></div></div>
 </div>
 
@@ -243,6 +249,10 @@ th { background: #eee !important; position: static; }
 <div class="fg"><label><i class="fas fa-flag"></i> حالة الأمر</label><select id="fStatus"><option value="All">كل الحالات</option></select></div>
 <div class="fg"><label><i class="fas fa-clock"></i> التقادم</label>
 <select id="fAge"><option value="All">كل الفترات</option><option value="green">حديثة (أقل من 5 أيام)</option><option value="yellow">متأخرة (5 إلى 30)</option><option value="red">حرجة (أكثر من 30)</option></select></div>
+<div class="fg"><label><i class="fas fa-power-off"></i> حالة الجهاز</label>
+<select id="fUsage"><option value="All">الكل</option><option value="stopped">متوقف كليًا</option><option value="partial">يعمل جزئيًا</option><option value="none">لم تُحدَّد</option></select></div>
+<div class="fg"><label><i class="fas fa-clone"></i> الجهاز البديل</label>
+<select id="fBackup"><option value="All">الكل</option><option value="yes">متوفر</option><option value="no">غير متوفر</option><option value="na">لا يحتاج</option><option value="none">لم يُحدَّد</option></select></div>
 <div class="fg"><label><i class="fas fa-comment-dots"></i> الإفادة</label>
 <select id="fReply"><option value="All">الكل</option><option value="with_update">يوجد إفادة</option><option value="no_update">بانتظار الإفادة</option></select></div>
 </div>
@@ -250,6 +260,9 @@ th { background: #eee !important; position: static; }
 <button class="chip" data-quick="critical"><i class="fas fa-fire"></i> الحرجة فقط</button>
 <button class="chip" data-quick="noreply"><i class="fas fa-comment-slash"></i> بدون إفادة</button>
 <button class="chip" data-quick="critical_noreply"><i class="fas fa-bolt"></i> حرجة وبدون إفادة</button>
+<button class="chip" data-quick="nobackup"><i class="fas fa-ban"></i> بدون جهاز بديل</button>
+<button class="chip" data-quick="stopped"><i class="fas fa-power-off"></i> متوقف كليًا</button>
+<button class="chip" data-quick="etaover"><i class="fas fa-calendar-xmark"></i> موعد الإصلاح متجاوز</button>
 <button class="chip" data-quick="week"><i class="fas fa-calendar-day"></i> آخر 7 أيام</button>
 </div>
 <div class="active-filters" id="activeFilters"></div>
@@ -260,6 +273,8 @@ th { background: #eee !important; position: static; }
 <div class="chart-card"><h4><i class="fas fa-hospital" style="color:var(--primary-2)"></i> الأوامر حسب الموقع</h4><div class="chart-box"><canvas id="chSite"></canvas></div></div>
 <div class="chart-card"><h4><i class="fas fa-chart-pie" style="color:var(--purple)"></i> توزيع الحالات</h4><div class="chart-box"><canvas id="chStatus"></canvas></div></div>
 <div class="chart-card"><h4><i class="fas fa-hourglass-half" style="color:var(--yellow)"></i> توزيع التقادم</h4><div class="chart-box"><canvas id="chAge"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-power-off" style="color:#b45309"></i> حالة تشغيل الأجهزة</h4><div class="chart-box"><canvas id="chUsage"></canvas></div></div>
+<div class="chart-card"><h4><i class="fas fa-clone" style="color:var(--primary-2)"></i> توفر الجهاز البديل</h4><div class="chart-box"><canvas id="chBackup"></canvas></div></div>
 <div class="chart-card"><h4><i class="fas fa-user-gear" style="color:var(--green)"></i> أعلى الفنيين حملاً</h4><div class="chart-box"><canvas id="chTech"></canvas></div></div>
 </div>
 
@@ -275,7 +290,7 @@ th { background: #eee !important; position: static; }
 <div class="table-wrap">
 <table id="table1">
 <thead id="head1"></thead>
-<tbody id="body1"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
+<tbody id="body1"><tr><td colspan="10" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -292,7 +307,7 @@ th { background: #eee !important; position: static; }
 <div class="table-wrap">
 <table id="table2">
 <thead id="head2"></thead>
-<tbody id="body2"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
+<tbody id="body2"><tr><td colspan="10" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -316,6 +331,30 @@ import { collection, getDocs, query, where } from "https://www.gstatic.com/fireb
 await requireRole(['admin', 'manager']);
 
 // الحالات التي تُعتبر "تحت الإجراء" (كل ما عداها = عطل نشط)
+const BKL = { yes: 'جهاز بديل متوفر', no: 'لا يوجد جهاز بديل', na: 'لا يحتاج بديل' };
+const USL = { stopped: 'متوقف كليًا', partial: 'يعمل جزئيًا' };
+function etaCalc(eta) {
+if (!eta) return null;
+const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+const d = new Date(eta + 'T00:00:00');
+if (isNaN(d.getTime())) return null;
+return Math.round((d.getTime() - t0.getTime()) / 86400000);
+}
+function latestInfo(comments) {
+let bk = null, us = null, eta = null;
+comments.forEach(c => { if (c.backup) bk = c.backup; if (c.usage) us = c.usage; if (c.eta) eta = c.eta; });
+const left = etaCalc(eta);
+return { backup: bk, usage: us, eta: eta, etaMs: eta && left !== null ? new Date(eta + 'T00:00:00').getTime() : 0, etaLeft: left, etaOver: left !== null && left < 0 };
+}
+function infoCell(o) {
+const left = etaCalc(o.eta);
+if (!o.backup && !o.usage && !o.eta) return '<span class="ib ib-mute">لم تُحدَّد</span>';
+let h = '';
+if (o.usage) h += '<span class="ib ' + (o.usage === 'stopped' ? 'ib-bad' : 'ib-warn') + '"><i class="fas fa-' + (o.usage === 'stopped' ? 'power-off' : 'battery-half') + '"></i> ' + (USL[o.usage] || '') + '</span>';
+if (o.backup) h += '<span class="ib ' + (o.backup === 'yes' ? 'ib-ok' : (o.backup === 'no' ? 'ib-bad' : 'ib-mute')) + '"><i class="fas fa-' + (o.backup === 'no' ? 'ban' : 'clone') + '"></i> ' + (BKL[o.backup] || '') + '</span>';
+if (o.eta) h += '<span class="ib ' + (left !== null && left < 0 ? 'ib-bad' : 'ib-blue') + '"><i class="far fa-calendar-check"></i> ' + esc(o.eta) + (left === null ? '' : (left < 0 ? ' · متأخر ' + (-left) + ' يوم' : (left === 0 ? ' · اليوم' : ' · بعد ' + left + ' يوم'))) + '</span>';
+return h;
+}
 const IN_PROGRESS = ['Assigned', 'Pending for Approval', 'Approved'];
 const STATUS_AR = { 'Active': 'نشط', 'Assigned': 'مكلّف', 'Pending for Approval': 'بانتظار الاعتماد', 'Approved': 'معتمد' };
 const STATUS_CLS = { 'Active': 'st-Active', 'Assigned': 'st-Assigned', 'Pending for Approval': 'st-PendingApproval', 'Approved': 'st-Approved' };
@@ -330,6 +369,7 @@ const COLS = [
 { key: 'site', label: 'الموقع', cls: 'col-site' },
 { key: 'device', label: 'الجهاز الطبي', cls: 'col-device' },
 { key: 'tech', label: 'الفني', cls: 'col-tech' },
+{ key: 'etaMs', label: 'الجهاز والإصلاح المتوقع', cls: 'col-info' },
 { key: 'lastUpdate', label: 'آخر إفادة / تحديث من الموقع', cls: 'col-update' },
 { key: null, label: 'الإجراءات', cls: 'header-actions-col p-hide-screen' }
 ];
@@ -375,6 +415,7 @@ r.comments = Array.isArray(r.comments) ? r.comments : [];
 r.hasUpdate = r.comments.length > 0;
 r.lastComment = r.hasUpdate ? r.comments[r.comments.length - 1] : null;
 r.lastUpdate = r.lastComment ? String(r.lastComment.text || '') : '';
+Object.assign(r, latestInfo(r.comments));
 r.status = r.status || 'Active';
 r.group = IN_PROGRESS.includes(r.status) ? 2 : 1;
 r._search = [r.id, r.controlNo, r.device, r.tech, r.site, r.dept, r.lastUpdate].join(' ').toLowerCase();
@@ -412,7 +453,7 @@ let QUICK = null;
 function getFiltered() {
 const q = $('fSearch').value.trim().toLowerCase();
 const site = $('fSite').value, dept = $('fDept').value, tech = $('fTech').value;
-const st = $('fStatus').value, age = $('fAge').value, rep = $('fReply').value;
+const st = $('fStatus').value, age = $('fAge').value, rep = $('fReply').value, fu = $('fUsage').value, fb = $('fBackup').value;
 return MASTER.filter(r => {
 if (q && !r._search.includes(q)) return false;
 if (site !== 'All' && r.site !== site) return false;
@@ -420,12 +461,17 @@ if (dept !== 'All' && r.dept !== dept) return false;
 if (tech !== 'All' && r.tech !== tech) return false;
 if (st !== 'All' && r.status !== st) return false;
 if (age !== 'All' && r.ageCat !== age) return false;
+if (fu !== 'All' && (fu === 'none' ? !!r.usage : r.usage !== fu)) return false;
+if (fb !== 'All' && (fb === 'none' ? !!r.backup : r.backup !== fb)) return false;
 if (rep === 'with_update' && !r.hasUpdate) return false;
 if (rep === 'no_update' && r.hasUpdate) return false;
 if (QUICK === 'critical' && r.ageCat !== 'red') return false;
 if (QUICK === 'noreply' && r.hasUpdate) return false;
 if (QUICK === 'critical_noreply' && !(r.ageCat === 'red' && !r.hasUpdate)) return false;
 if (QUICK === 'week' && r.agingDays > 7) return false;
+if (QUICK === 'nobackup' && r.backup !== 'no') return false;
+if (QUICK === 'stopped' && r.usage !== 'stopped') return false;
+if (QUICK === 'etaover' && !r.etaOver) return false;
 return true;
 });
 }
@@ -450,6 +496,8 @@ if ($('fDept').value !== 'All') add('القسم', $('fDept').value);
 if ($('fTech').value !== 'All') add('الفني', $('fTech').value);
 if ($('fStatus').value !== 'All') add('الحالة', STATUS_AR[$('fStatus').value] || $('fStatus').value);
 if ($('fAge').value !== 'All') add('التقادم', AGE_AR[$('fAge').value]);
+if ($('fUsage').value !== 'All') add('حالة الجهاز', $('fUsage').options[$('fUsage').selectedIndex].text);
+if ($('fBackup').value !== 'All') add('الجهاز البديل', $('fBackup').options[$('fBackup').selectedIndex].text);
 if ($('fReply').value !== 'All') add('الإفادة', $('fReply').value === 'no_update' ? 'بدون إفادة' : 'بإفادة');
 if (QUICK) add('فلتر سريع', document.querySelector('.chip[data-quick="' + QUICK + '"]').textContent.trim());
 $('activeFilters').textContent = parts.length ? 'الفلاتر المفعّلة: ' + parts.join(' | ') : '';
@@ -478,6 +526,7 @@ function sortRows(rows, s) {
 return rows.slice().sort((a, b) => {
 let x = a[s.key], y = b[s.key];
 if (s.key === 'agingDays') return (x - y) * s.dir;
+if (s.key === 'etaMs') { const f = v => v || 9e15; return (f(x) - f(y)) * s.dir; }
 if (s.key === 'failDate') { x = a.agingDays; y = b.agingDays; return (y - x) * s.dir; }
 return String(x || '').localeCompare(String(y || ''), 'ar') * s.dir;
 });
@@ -491,7 +540,7 @@ const rows = sortRows(VIEW[n], SORT[n]);
 $('c-t' + n).textContent = rows.length;
 
 if (!rows.length) {
-tbody.innerHTML = '<tr><td colspan="9" class="empty"><i class="far fa-face-smile"></i> لا توجد أوامر مطابقة في هذا الجدول.</td></tr>';
+tbody.innerHTML = '<tr><td colspan="10" class="empty"><i class="far fa-face-smile"></i> لا توجد أوامر مطابقة في هذا الجدول.</td></tr>';
 return;
 }
 
@@ -510,6 +559,7 @@ tr.innerHTML =
 '<td class="col-site" style="font-weight:700;">' + esc(row.site) + '</td>' +
 '<td class="col-device" title="' + esc(device) + '">' + esc(shortDev) + '</td>' +
 '<td class="col-tech">' + esc(row.tech || '-') + '</td>' +
+'<td class="col-info">' + infoCell(row) + '</td>' +
 '<td class="col-update">' + (row.lastComment
 ? '<span class="update-text">' + esc(row.lastComment.text) + '</span><span class="update-date"><i class="far fa-clock"></i> ' + esc(row.lastComment.date) + '</span>'
 : '<span class="no-update"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
@@ -535,6 +585,11 @@ $('k-green').textContent = g;
 $('k-yellow').textContent = y;
 $('k-red').textContent = r;
 $('k-noreply').textContent = nr;
+$('k-nobackup').textContent = data.filter(i => i.backup === 'no').length;
+$('k-stopped').textContent = data.filter(i => i.usage === 'stopped').length;
+$('k-partial-sub').textContent = 'يعمل جزئيًا: ' + data.filter(i => i.usage === 'partial').length;
+$('k-etaover').textContent = data.filter(i => i.etaOver).length;
+$('k-eta-sub').textContent = 'بموعد محدد: ' + data.filter(i => i.eta).length;
 $('h-total').textContent = data.length;
 $('h-avg').textContent = data.length ? Math.round(sum / data.length) : 0;
 $('h-reply').textContent = data.length ? Math.round(((data.length - nr) / data.length) * 100) + '%' : '0%';
@@ -594,6 +649,12 @@ datasets: [{ data: [ag.green || 0, ag.yellow || 0, ag.red || 0], backgroundColor
 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
 });
 
+// حالة التشغيل + الجهاز البديل
+const uc = countBy(data, r => r.usage === 'stopped' ? 'متوقف كليًا' : (r.usage === 'partial' ? 'يعمل جزئيًا' : 'لم تُحدَّد'));
+draw('chUsage', { type: 'doughnut', data: { labels: Object.keys(uc), datasets: [{ data: Object.values(uc), backgroundColor: Object.keys(uc).map(k => k === 'متوقف كليًا' ? '#dc2626' : (k === 'يعمل جزئيًا' ? '#eab308' : '#cbd5e1')), borderWidth: 2, borderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' } } } });
+const bc = countBy(data, r => r.backup === 'yes' ? 'بديل متوفر' : (r.backup === 'no' ? 'لا يوجد بديل' : (r.backup === 'na' ? 'لا يحتاج بديل' : 'لم يُحدَّد')));
+draw('chBackup', { type: 'doughnut', data: { labels: Object.keys(bc), datasets: [{ data: Object.values(bc), backgroundColor: Object.keys(bc).map(k => k === 'بديل متوفر' ? '#16a34a' : (k === 'لا يوجد بديل' ? '#dc2626' : (k === 'لا يحتاج بديل' ? '#0284c7' : '#cbd5e1'))), borderWidth: 2, borderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom' } } } });
+
 // الفنيون
 const th = Object.entries(countBy(data, r => r.tech)).sort((a, b) => b[1] - a[1]).slice(0, 8);
 draw('chTech', {
@@ -614,13 +675,13 @@ $('tl-meta').innerHTML =
 const body = $('tl-body');
 body.innerHTML = '';
 const nodes = [{ label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل والمتابعة الفنية.', icon: 'fa-file-medical', color: '#8b5cf6' }];
-order.comments.forEach(c => nodes.push({ label: 'تحديث من الموقع', date: c.date, text: c.text, icon: 'fa-user-edit', color: '#f59e0b' }));
+order.comments.forEach(c => nodes.push({ label: 'تحديث من الموقع', date: c.date, text: c.text, icon: 'fa-user-edit', color: '#f59e0b', extra: (c.backup || c.usage || c.eta) ? '<div style="margin-top:8px">' + infoCell(c) + '</div>' : '' }));
 nodes.forEach(n => {
 body.insertAdjacentHTML('beforeend',
 '<div class="timeline-item"><div class="timeline-dot" style="border-color:' + n.color + ';"></div>' +
 '<div style="font-weight:800; color:var(--primary);"><i class="fas ' + n.icon + '"></i> ' + esc(n.label) +
 ' <span style="font-size:.8rem; color:#64748b; font-weight:normal; margin-right:10px;">(' + esc(String(n.date)) + ')</span></div>' +
-'<div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0; margin-top:8px; font-size:.95rem;">' + esc(n.text) + '</div></div>');
+'<div style="background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0; margin-top:8px; font-size:.95rem;">' + esc(n.text) + (n.extra || '') + '</div></div>');
 });
 $('timelineModal').style.display = 'flex';
 };
@@ -639,6 +700,9 @@ const rows = sortRows(VIEW[n], SORT[n]).map(r => ({
 'القسم': r.dept || '',
 'الجهاز': r.device || '',
 'الفني': r.tech || '',
+'حالة الجهاز': r.usage ? USL[r.usage] : '',
+'الجهاز البديل': r.backup ? BKL[r.backup] : '',
+'موعد الإصلاح المتوقع': r.eta || '',
 'آخر إفادة': r.lastUpdate,
 'تاريخ الإفادة': r.lastComment ? r.lastComment.date : ''
 }));
@@ -652,7 +716,7 @@ XLSX.writeFile(wb, (n === 1 ? 'active_faults_' : 'in_progress_') + new Date().to
 window.openPrintConfig = () => { $('printConfigModal').style.display = 'flex'; };
 window.closePrintConfig = () => { $('printConfigModal').style.display = 'none'; };
 window.executePrint = () => {
-const mapping = { 'p-fail': '.col-fail', 'p-aging': '.col-aging', 'p-status': '.col-status', 'p-site': '.col-site', 'p-device': '.col-device', 'p-tech': '.col-tech', 'p-update': '.col-update' };
+const mapping = { 'p-fail': '.col-fail', 'p-aging': '.col-aging', 'p-status': '.col-status', 'p-site': '.col-site', 'p-device': '.col-device', 'p-tech': '.col-tech', 'p-info': '.col-info', 'p-update': '.col-update' };
 document.querySelectorAll('.p-hide').forEach(el => el.classList.remove('p-hide'));
 Object.keys(mapping).forEach(k => { if (!$(k).checked) document.querySelectorAll(mapping[k]).forEach(el => el.classList.add('p-hide')); });
 if (!$('p-t1').checked) $('panelT1').classList.add('p-hide');
@@ -662,7 +726,7 @@ setTimeout(() => { window.print(); }, 400);
 };
 
 // ===== Filters wiring =====
-['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply'].forEach(id => $(id).addEventListener('change', window.applyFilters));
+['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply', 'fUsage', 'fBackup'].forEach(id => $(id).addEventListener('change', window.applyFilters));
 let tm;
 $('fSearch').addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(window.applyFilters, 200); });
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
@@ -673,9 +737,14 @@ window.applyFilters();
 }));
 window.resetFilters = () => {
 $('fSearch').value = '';
-['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply'].forEach(id => { $(id).value = 'All'; });
+['fSite', 'fDept', 'fTech', 'fStatus', 'fAge', 'fReply', 'fUsage', 'fBackup'].forEach(id => { $(id).value = 'All'; });
 QUICK = null;
 document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+window.applyFilters();
+};
+window.quickSet = (q) => {
+QUICK = (QUICK === q) ? null : q;
+document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset.quick === QUICK));
 window.applyFilters();
 };
 window.reloadData = loadData;
