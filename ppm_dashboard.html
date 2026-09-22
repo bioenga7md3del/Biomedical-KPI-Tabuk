@@ -263,7 +263,7 @@ site: o.site || 'Unknown',
 dept: o.dept || '-',
 device: o.device || 'Device',
 tech: o.tech || 'Unknown',
-rawStatus: String(o.rawStatus || '').trim(),
+rawStatus: String(o.status || '').trim(),
 dStart: parseDate(o.dStart),
 dSign: parseDate(o.dSign)
 };

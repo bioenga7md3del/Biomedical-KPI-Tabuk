@@ -343,7 +343,7 @@ return { type: 'CM', site: site, isClosed: isClosed, resp: resp, fix: fix };
 
 function buildPpmExecRow(o) {
 const now = new Date();
-const rawStatus = String(o.rawStatus || '').trim();
+const rawStatus = String(o.status || '').trim();
 const sl = rawStatus.toLowerCase();
 const isClosed = sl === 'signed off';
 const dStart = parseDate(o.dStart);
