@@ -175,6 +175,7 @@ function readRows(wb, requiredCols) {
 function normalizeCm(row) {
   return {
     id: s(row['#']) || s(row['Control No']),
+    controlNo: s(row['Control No']),
     site: s(row['Site']) || 'Unknown',
     dept: s(row['Department']),
     device: s(row['ECRI Code']) || s(row['Equipment Name']) || 'Device',
