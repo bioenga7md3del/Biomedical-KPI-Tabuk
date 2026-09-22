@@ -272,9 +272,13 @@ const DAY = 86400000;
 window.addEventListener('DOMContentLoaded', async () => {
 const badge = $('statusBadge');
 try {
-const snap = await getDoc(doc(db, 'maintenance_data', 'cm'));
 RAW_DATA = [];
-if (snap.exists()) (snap.data().rows || []).forEach(o => RAW_DATA.push(buildCmRow(o)));
+const metaSnap = await getDoc(doc(db, 'maintenance_data', 'cm_meta'));
+if (metaSnap.exists()) {
+const n = metaSnap.data().totalChunks || 0;
+const chunkSnaps = await Promise.all(Array.from({ length: n }, (_, i) => getDoc(doc(db, 'maintenance_data', 'cm_' + i))));
+chunkSnaps.forEach(cs => { if (cs.exists()) (cs.data().rows || []).forEach(o => RAW_DATA.push(buildCmRow(o))); });
+}
 if (RAW_DATA.length === 0) {
 badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-times"></i> لا توجد بيانات';
 } else {

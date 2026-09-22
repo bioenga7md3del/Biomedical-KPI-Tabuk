@@ -314,9 +314,17 @@ window.addEventListener('DOMContentLoaded', async () => {
 const badge = $('statusBadge');
 let rows = [];
 try {
-const [cmSnap, ppmSnap] = await Promise.all([getDoc(doc(db, 'maintenance_data', 'cm')), getDoc(doc(db, 'maintenance_data', 'ppm'))]);
-if (cmSnap.exists()) (cmSnap.data().rows || []).forEach(o => rows.push(buildCmExecRow(o)));
-if (ppmSnap.exists()) (ppmSnap.data().rows || []).forEach(o => { const r = buildPpmExecRow(o); if (r) rows.push(r); });
+const [cmMetaSnap, ppmMetaSnap] = await Promise.all([getDoc(doc(db, 'maintenance_data', 'cm_meta')), getDoc(doc(db, 'maintenance_data', 'ppm_meta'))]);
+if (cmMetaSnap.exists()) {
+const n = cmMetaSnap.data().totalChunks || 0;
+const snaps = await Promise.all(Array.from({ length: n }, (_, i) => getDoc(doc(db, 'maintenance_data', 'cm_' + i))));
+snaps.forEach(cs => { if (cs.exists()) (cs.data().rows || []).forEach(o => rows.push(buildCmExecRow(o))); });
+}
+if (ppmMetaSnap.exists()) {
+const n = ppmMetaSnap.data().totalChunks || 0;
+const snaps = await Promise.all(Array.from({ length: n }, (_, i) => getDoc(doc(db, 'maintenance_data', 'ppm_' + i))));
+snaps.forEach(cs => { if (cs.exists()) (cs.data().rows || []).forEach(o => { const r = buildPpmExecRow(o); if (r) rows.push(r); }); });
+}
 if (rows.length > 0) {
 badge.className = 'status-badge st-success';
 badge.innerHTML = '<i class="fas fa-check-circle"></i> المؤشرات محدثة';

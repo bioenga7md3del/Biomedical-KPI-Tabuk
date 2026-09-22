@@ -142,7 +142,7 @@ th { background: #f8fafc; position: sticky; top: 0; }
 
 <script type="module">
 import { requireRole, db, esc } from "./firebase-init.js";
-import { doc, getDoc, setDoc, addDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc, addDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const { profile } = await requireRole(['admin']);
 
@@ -216,13 +216,13 @@ async function buildPlan(type, rawRows, fileName) {
   });
   const rows = Array.from(map.values());
   const sites = new Set(rows.map(function (r) { return r.site; }));
-  let oldCount = 0;
+  let oldCount = 0, oldTotalChunks = 0;
   try {
-    const oldSnap = await getDoc(doc(db, 'maintenance_data', docId));
-    if (oldSnap.exists()) oldCount = (oldSnap.data().rows || []).length;
+    const oldMetaSnap = await getDoc(doc(db, 'maintenance_data', docId + '_meta'));
+    if (oldMetaSnap.exists()) { oldCount = oldMetaSnap.data().count || 0; oldTotalChunks = oldMetaSnap.data().totalChunks || 0; }
   } catch (e) { console.error(e); }
   const bigDrop = oldCount > 0 && rows.length < oldCount * 0.6;
-  return { type: type, docId: docId, rows: rows, fileName: fileName, newCount: rows.length, oldCount: oldCount, siteCount: sites.size, skipped: skipped, dupes: dupes, bigDrop: bigDrop };
+  return { type: type, docId: docId, rows: rows, fileName: fileName, newCount: rows.length, oldCount: oldCount, oldTotalChunks: oldTotalChunks, siteCount: sites.size, skipped: skipped, dupes: dupes, bigDrop: bigDrop };
 }
 
 function statBox(cls, label, value) {
@@ -250,15 +250,47 @@ function renderPreview(p, els) {
   }
 }
 
+function chunkRows(rows, maxBytes) {
+  const enc = new TextEncoder();
+  const chunks = [];
+  let current = [];
+  let currentBytes = 2;
+  for (const row of rows) {
+    const rowBytes = enc.encode(JSON.stringify(row)).length + 1;
+    if (current.length > 0 && currentBytes + rowBytes > maxBytes) {
+      chunks.push(current);
+      current = [];
+      currentBytes = 2;
+    }
+    current.push(row);
+    currentBytes += rowBytes;
+  }
+  if (current.length > 0 || chunks.length === 0) chunks.push(current);
+  return chunks;
+}
+
 async function applyPlan(p, logFn) {
   logFn('جاري الحفظ في قاعدة البيانات...');
-  await setDoc(doc(db, 'maintenance_data', p.docId), {
-    rows: p.rows,
+  const chunks = chunkRows(p.rows, 700000);
+  for (let i = 0; i < chunks.length; i++) {
+    await setDoc(doc(db, 'maintenance_data', p.docId + '_' + i), {
+      rows: chunks[i],
+      chunkIndex: i,
+      totalChunks: chunks.length
+    });
+  }
+  await setDoc(doc(db, 'maintenance_data', p.docId + '_meta'), {
+    totalChunks: chunks.length,
     count: p.rows.length,
     fileName: p.fileName,
     updatedAt: new Date(),
     by: profile.email
   });
+  if (p.oldTotalChunks > chunks.length) {
+    for (let i = chunks.length; i < p.oldTotalChunks; i++) {
+      try { await deleteDoc(doc(db, 'maintenance_data', p.docId + '_' + i)); } catch (e) { console.error(e); }
+    }
+  }
   await addDoc(collection(db, 'maint_sync_log'), {
     at: new Date(),
     by: profile.email,
