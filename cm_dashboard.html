@@ -152,7 +152,7 @@ body.pd tr { page-break-inside: avoid; }
 <div id="emptyState">
 <i class="fas fa-server" style="font-size:4rem; margin-bottom:1rem; color:#cbd5e1"></i>
 <h3>جاري الاتصال بالبيانات...</h3>
-<p>جاري قراءة ملف data/CM.xlsx</p>
+<p>جاري تحميل البيانات من قاعدة البيانات...</p>
 </div>
 
 <div id="dashboard" style="display:none">
@@ -256,7 +256,9 @@ body.pd tr { page-break-inside: avoid; }
 </div>
 </div>
 
-<script>
+<script type="module">
+import { db } from "./firebase-init.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 const FILE_URL = 'data/CM.xlsx';
 const IN_PROGRESS = ['pending for approval', 'approved'];
 let RAW_DATA = [];
@@ -270,9 +272,9 @@ const DAY = 86400000;
 window.addEventListener('DOMContentLoaded', async () => {
 const badge = $('statusBadge');
 try {
-const res = await fetch(FILE_URL);
-if (!res.ok) throw new Error("File not found");
-RAW_DATA = parseExcel(await res.arrayBuffer());
+const snap = await getDocs(collection(db, 'cm_orders'));
+RAW_DATA = [];
+snap.forEach(d => RAW_DATA.push(buildCmRow(d.data())));
 if (RAW_DATA.length === 0) {
 badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-times"></i> لا توجد بيانات';
 } else {
@@ -289,41 +291,35 @@ badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-e
 }
 });
 
-function parseExcel(buf) {
-const wb = XLSX.read(buf, { type: 'array' });
-const ws = wb.Sheets[wb.SheetNames[0]];
-const json = XLSX.utils.sheet_to_json(ws);
-return json.map(row => {
-const get = k => row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
-const status = String(get('Status')).trim();
+function buildCmRow(o) {
+const status = String(o.status || '').trim();
 const isClosed = status.toLowerCase() === 'signed off';
-const dFail = parseDate(get('Fail Date') || get('fail date'));
-const dStart = parseDate(get('start date') || get('Start Date'));
-const dSign = parseDate(get('sign off date') || get('Completion Date'));
+const dFail = parseDate(o.dFail);
+const dStart = parseDate(o.dStart);
+const dSign = parseDate(o.dSign);
 let resp = null, fix = null;
 if (dFail && dStart) resp = (dStart - dFail) / DAY;
 if (dFail && dSign && isClosed) fix = (dSign - dFail) / DAY;
-const o = {
+const row = {
 type: 'CM',
-id: get('#') || get('Control No') || '-',
-site: get('Site') || 'Unknown',
-dept: get('Department') || '-',
-device: get('ECRI Code') || get('Equipment Name') || 'Device',
-serial: get('Serial number') || get('Serial No'),
-tech: get('Assigned To') || 'Unknown',
+id: o.id || '-',
+site: o.site || 'Unknown',
+dept: o.dept || '-',
+device: o.device || 'Device',
+serial: o.serial || '',
+tech: o.tech || 'Unknown',
 status: status,
 isOpen: !isClosed,
 dFail: dFail,
 resp: resp > 0 ? resp : 0,
 fix: fix > 0 ? fix : 0,
-cls: String(get('Classification') || '').trim()
+cls: String(o.cls || '').trim()
 };
-o.age = (o.isOpen && dFail) ? Math.max(0, Math.floor((Date.now() - dFail.getTime()) / DAY)) : 0;
-o.group = !o.isOpen ? 0 : (IN_PROGRESS.includes(status.toLowerCase()) ? 2 : 1);
-o.ageCls = o.age <= 5 ? 'w' : (o.age <= 30 ? 'y' : 'r');
-o._search = [o.id, o.device, o.serial, o.tech, o.site, o.dept].join(' ').toLowerCase();
-return o;
-});
+row.age = (row.isOpen && dFail) ? Math.max(0, Math.floor((Date.now() - dFail.getTime()) / DAY)) : 0;
+row.group = !row.isOpen ? 0 : (IN_PROGRESS.includes(status.toLowerCase()) ? 2 : 1);
+row.ageCls = row.age <= 5 ? 'w' : (row.age <= 30 ? 'y' : 'r');
+row._search = [row.id, row.device, row.serial, row.tech, row.site, row.dept].join(' ').toLowerCase();
+return row;
 }
 
 function parseDate(v) {

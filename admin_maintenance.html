@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رفع بيانات CM / PPM - C-Panel</title>
+
+<style>html { visibility: hidden; }</style>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+:root { --bg: #f1f5f9; --surface: #ffffff; }
+* { box-sizing: border-box; outline: none; }
+body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: #334155; margin: 0; padding: 40px; }
+
+.container { max-width: 1000px; margin: 0 auto; }
+.header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.btn-back { background: #0f172a; color: #ffffff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #cbd5e1; display: flex; align-items: center; gap: 8px; transition: 0.2s;}
+.btn-back:hover { background: #1e293b; transform: translateX(-5px); }
+
+.card { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; text-align: center; border-top: 5px solid var(--accent); margin-bottom: 24px; }
+.card.cm { --accent: #dc2626; }
+.card.ppm { --accent: #16a34a; }
+h1 { margin-top: 0; color: #0f172a; font-size: 1.5rem; }
+h2 { margin: 0 0 15px; color: #0f172a; font-size: 1.2rem; text-align: right; }
+
+.upload-area { border: 2px dashed #cbd5e1; padding: 30px; border-radius: 8px; background: #f8fafc; margin-top: 20px; transition: 0.2s; }
+.upload-area:hover { border-color: var(--accent); }
+
+.btn-action { background: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 6px; font-family: 'Tajawal'; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 1.05rem; }
+.btn-action:disabled { background: #94a3b8; cursor: not-allowed; }
+.btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+
+.status-msg { font-weight: 700; color: #0284c7; margin-top: 15px; font-size: 1.05rem; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 20px 0; }
+.stat { border-radius: 10px; padding: 14px; border: 1px solid #e2e8f0; background: #f8fafc; }
+.stat b { display: block; font-size: 1.7rem; margin-top: 4px; }
+.stat span { font-weight: 700; font-size: 0.85rem; color: #64748b; }
+.s-new b { color: #16a34a; } .s-del b { color: #dc2626; } .s-site b { color: #0284c7; } .s-skip b { color: #d99e04; }
+
+.warn { background: #fffbeb; border: 1px solid #fde68a; color: #854d0e; padding: 12px 15px; border-radius: 8px; font-size: 0.92rem; margin: 10px 0; line-height: 1.6; text-align: right; }
+.danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+.confirm-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-weight: 700; text-align: right; }
+.confirm-row input { width: 20px; height: 20px; }
+
+.tbl-wrap { max-height: 280px; overflow: auto; border-top: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; text-align: right; white-space: nowrap; }
+th { background: #f8fafc; position: sticky; top: 0; }
+
+.log-box { background: #0f172a; color: #38bdf8; padding: 20px; border-radius: 8px; text-align: right; font-family: monospace; font-size: 0.9rem; max-height: 250px; overflow-y: auto; display: none; white-space: pre-wrap; margin-top: 20px; border: 1px solid #334155;}
+.actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+.hist-title { text-align: right; font-size: 0.95rem; margin: 0 0 10px; color: #475569; }
+.type-badge { padding: 2px 8px; border-radius: 5px; font-weight: 800; font-size: 0.75rem; }
+.type-CM { background: #fee2e2; color: #991b1b; }
+.type-PPM { background: #dcfce7; color: #166534; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="header-nav">
+<h2 style="margin: 0; color: #1e3a8a;"><i class="fas fa-file-excel"></i> رفع بيانات الصيانة (CM / PPM)</h2>
+<a href="admin.html" class="btn-back"><i class="fas fa-arrow-right"></i> رجوع للوحة الإدارة (Admin)</a>
+</div>
+
+<div class="card cm">
+<h1><i class="fas fa-tools" style="color:#dc2626"></i> الصيانة التصحيحية (CM)</h1>
+<p style="color:#64748b; line-height:1.7;">ارفع ملف I-Assets الخاص بالصيانة التصحيحية. سيتم استبدال كل البيانات الحالية في لوحة CM ببيانات هذا الملف بالكامل.</p>
+<div class="upload-area">
+<i class="fas fa-file-excel" style="font-size:2.6rem; color:#dc2626; margin-bottom:12px;"></i><br>
+<input type="file" id="fileCm" accept=".xlsx,.xls,.csv" style="margin-bottom:18px; font-family:'Tajawal';"><br>
+<button class="btn-action" id="btnPreviewCm" disabled>معاينة التغييرات <i class="fas fa-search"></i></button>
+<div class="status-msg" id="statusCm">جاري التحقق من الصلاحية...</div>
+</div>
+</div>
+
+<div class="card cm" id="previewCardCm" style="display:none; border-top-color:#0284c7;">
+<h1 style="font-size:1.3rem;">معاينة قبل التنفيذ - CM</h1>
+<div id="previewFileCm" style="color:#64748b; margin-bottom:5px;"></div>
+<div class="stats" id="statsBoxCm"></div>
+<div id="warnBoxCm"></div>
+<div id="confirmBoxCm"></div>
+<div class="actions">
+<button class="btn-action" id="btnApplyCm" style="background:#16a34a">تنفيذ الاستبدال <i class="fas fa-cloud-upload-alt"></i></button>
+<button class="btn-action btn-secondary" id="btnCancelCm">إلغاء</button>
+</div>
+</div>
+
+<div class="log-box" id="logCm"></div>
+
+<div class="card cm" style="border-top-color:#64748b;">
+<h2><i class="fas fa-history"></i> آخر عمليات رفع CM</h2>
+<div class="tbl-wrap" style="border-top:none;">
+<table>
+<thead><tr><th>التاريخ</th><th>بواسطة</th><th>الملف</th><th>عدد الأوامر</th><th>محذوف</th></tr></thead>
+<tbody id="logBodyCm"><tr><td colspan="5" style="text-align:center; color:#94a3b8;">جاري التحميل...</td></tr></tbody>
+</table>
+</div>
+</div>
+
+<div class="card ppm">
+<h1><i class="fas fa-calendar-check" style="color:#16a34a"></i> الصيانة الوقائية (PPM)</h1>
+<p style="color:#64748b; line-height:1.7;">ارفع ملف I-Assets الخاص بالصيانة الوقائية. سيتم استبدال كل البيانات الحالية في لوحة PPM ببيانات هذا الملف بالكامل.</p>
+<div class="upload-area">
+<i class="fas fa-file-excel" style="font-size:2.6rem; color:#16a34a; margin-bottom:12px;"></i><br>
+<input type="file" id="filePpm" accept=".xlsx,.xls,.csv" style="margin-bottom:18px; font-family:'Tajawal';"><br>
+<button class="btn-action" id="btnPreviewPpm" disabled>معاينة التغييرات <i class="fas fa-search"></i></button>
+<div class="status-msg" id="statusPpm">جاري التحقق من الصلاحية...</div>
+</div>
+</div>
+
+<div class="card ppm" id="previewCardPpm" style="display:none; border-top-color:#0284c7;">
+<h1 style="font-size:1.3rem;">معاينة قبل التنفيذ - PPM</h1>
+<div id="previewFilePpm" style="color:#64748b; margin-bottom:5px;"></div>
+<div class="stats" id="statsBoxPpm"></div>
+<div id="warnBoxPpm"></div>
+<div id="confirmBoxPpm"></div>
+<div class="actions">
+<button class="btn-action" id="btnApplyPpm" style="background:#16a34a">تنفيذ الاستبدال <i class="fas fa-cloud-upload-alt"></i></button>
+<button class="btn-action btn-secondary" id="btnCancelPpm">إلغاء</button>
+</div>
+</div>
+
+<div class="log-box" id="logPpm"></div>
+
+<div class="card ppm" style="border-top-color:#64748b;">
+<h2><i class="fas fa-history"></i> آخر عمليات رفع PPM</h2>
+<div class="tbl-wrap" style="border-top:none;">
+<table>
+<thead><tr><th>التاريخ</th><th>بواسطة</th><th>الملف</th><th>عدد الأوامر</th><th>محذوف</th></tr></thead>
+<tbody id="logBodyPpm"><tr><td colspan="5" style="text-align:center; color:#94a3b8;">جاري التحميل...</td></tr></tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+<script type="module">
+import { requireRole, db, esc } from "./firebase-init.js";
+import { collection, doc, getDocs, writeBatch, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const { profile } = await requireRole(['admin']);
+
+function s(v) { return String(v === undefined || v === null ? '' : v).trim(); }
+
+function parseDate(v) {
+  if (!v) return null;
+  if (v instanceof Date) return v;
+  const str = String(v).trim();
+  if (str === '-' || str === '') return null;
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return new Date(str.replace(' ', 'T'));
+  const parts = str.split(' ')[0].split(/[\/\-\.]/);
+  if (parts.length >= 3) {
+    const p0 = parseInt(parts[0]), p1 = parseInt(parts[1]) - 1, p2 = parseInt(parts[2]);
+    if (p0 > 1900) return new Date(p0, p1, p2);
+    return new Date(p2, p1, p0);
+  }
+  return null;
+}
+
+function readRows(wb, requiredCols) {
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  for (const startRow of [1, 0, 2]) {
+    const json = XLSX.utils.sheet_to_json(ws, { range: startRow, defval: '' });
+    if (json.length && requiredCols.every(c => Object.prototype.hasOwnProperty.call(json[0], c))) return { rows: json, missing: [] };
+  }
+  const first = XLSX.utils.sheet_to_json(ws, { range: 1, defval: '' })[0] || {};
+  return { rows: [], missing: requiredCols.filter(c => !Object.prototype.hasOwnProperty.call(first, c)) };
+}
+
+function normalizeCm(row) {
+  return {
+    id: s(row['#']) || s(row['Control No']),
+    site: s(row['Site']) || 'Unknown',
+    dept: s(row['Department']),
+    device: s(row['ECRI Code']) || s(row['Equipment Name']) || 'Device',
+    serial: s(row['Serial number']) || s(row['Serial No']),
+    tech: s(row['Assigned To']) || 'Unknown',
+    status: s(row['Status']) || 'Active',
+    dFail: s(row['Fail Date'] || row['fail date']),
+    dStart: s(row['start date'] || row['Start Date']),
+    dSign: s(row['sign off date'] || row['Completion Date']),
+    cls: s(row['Classification'])
+  };
+}
+
+function normalizePpm(row) {
+  return {
+    id: s(row['#']) || s(row['Control No']),
+    site: s(row['Site']) || 'Unknown',
+    dept: s(row['Department']),
+    device: s(row['ECRI Code']) || s(row['Equipment Name']) || 'Device',
+    tech: s(row['Assigned To']) || 'Unknown',
+    status: s(row['Status']) || 'Assigned',
+    dStart: s(row['start date'] || row['Start Date']),
+    dSign: s(row['sign off date'] || row['Completion Date'])
+  };
+}
+
+const REQUIRED = ['#', 'Site', 'Status', 'Assigned To'];
+
+async function buildPlan(type, rawRows, fileName) {
+  const norm = type === 'CM' ? normalizeCm : normalizePpm;
+  const coll = type === 'CM' ? 'cm_orders' : 'ppm_orders';
+  const map = new Map();
+  let skipped = 0, dupes = 0;
+  rawRows.forEach(function (row) {
+    const rec = norm(row);
+    if (!rec.id || rec.id === '-' || rec.id.indexOf('/') !== -1) { skipped++; return; }
+    if (map.has(rec.id)) dupes++;
+    map.set(rec.id, rec);
+  });
+  if (map.size === 0) throw new Error("لا توجد أوامر صالحة في الملف.");
+
+  const snap = await getDocs(collection(db, coll));
+  const oldIds = [];
+  snap.forEach(function (d) { oldIds.push(d.id); });
+  const toDeleteIds = oldIds.filter(function (id) { return !map.has(id); });
+
+  const dateField = type === 'CM' ? 'dFail' : 'dStart';
+  const dates = [];
+  map.forEach(function (r) {
+    const d = parseDate(r[dateField]) || parseDate(r.dStart);
+    if (d && !isNaN(d.getTime())) dates.push(d);
+  });
+  let range = null;
+  if (dates.length) {
+    const t = dates.map(function (d) { return d.getTime(); });
+    range = { from: new Date(Math.min.apply(null, t)), to: new Date(Math.max.apply(null, t)) };
+  }
+  const sites = new Set();
+  map.forEach(function (r) { sites.add(r.site); });
+
+  return {
+    type: type, coll: coll, fileName: fileName,
+    rows: Array.from(map.values()), newCount: map.size, oldCount: oldIds.length,
+    toDeleteIds: toDeleteIds, skipped: skipped, dupes: dupes, sitesCount: sites.size, range: range
+  };
+}
+
+function fmtRange(r) {
+  if (!r) return '-';
+  const f = function (d) { return d.toLocaleDateString('en-GB'); };
+  return f(r.from) + ' → ' + f(r.to);
+}
+
+function statBox(cls, label, n) { return '<div class="stat ' + cls + '"><span>' + label + '</span><b>' + n + '</b></div>'; }
+
+function renderPreview(p, els) {
+  els.previewFile.textContent = 'الملف: ' + p.fileName + ' — ' + p.newCount + ' أمر صالح في الملف (كان محفوظاً حالياً ' + p.oldCount + ' أمر)';
+  els.statsBox.innerHTML =
+    statBox('s-new', 'سيُحفظ', p.newCount) +
+    statBox('s-del', 'سيُحذف (غير موجود بالملف)', p.toDeleteIds.length) +
+    statBox('s-site', 'عدد المواقع', p.sitesCount) +
+    statBox('s-skip', 'تم تجاهله', p.skipped);
+
+  let warns = '<div class="warn">نطاق التواريخ في الملف: <b>' + esc(fmtRange(p.range)) + '</b></div>';
+  if (p.dupes > 0) warns += '<div class="warn">تم تجاهل ' + p.dupes + ' تكرار لنفس رقم الأمر داخل الملف (آخر صف هو المعتمد).</div>';
+  if (p.skipped > 0) warns += '<div class="warn">تم تخطي ' + p.skipped + ' صف بدون رقم أمر صالح.</div>';
+  const bigDrop = p.oldCount > 10 && (p.newCount / p.oldCount) < 0.6;
+  if (bigDrop) warns += '<div class="warn danger"><i class="fas fa-exclamation-circle"></i> عدد الأوامر في الملف الجديد (' + p.newCount + ') أقل بكثير من المحفوظ حالياً (' + p.oldCount + '). تأكد أنك رفعت الملف الكامل وليس ملفاً مفلتراً أو ناقصاً.</div>';
+  els.warnBox.innerHTML = warns;
+
+  els.confirmBox.innerHTML = bigDrop ? '<label class="confirm-row"><input type="checkbox" id="chk' + p.type + 'Big"> أؤكد أن هذا هو الملف الكامل وأوافق على استبدال ازبيانات</label>' : '';
+  const chk = document.getElementById('chk' + p.type + 'Big');
+  els.btnApply.disabled = !!chk;
+  if (chk) chk.addEventListener('change', function () { els.btnApply.disabled = !chk.checked; });
+
+  els.previewCard.style.display = 'block';
+  els.previewCard.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function commitInChunks(ops, logFn) {
+  for (let i = 0; i < ops.length; i += 400) {
+    const batch = writeBatch(db);
+    ops.slice(i, i + 400).forEach(function (fn) { fn(batch); });
+    await batch.commit();
+    logFn("> تم تنفيذ " + Math.min(i + 400, ops.length) + " / " + ops.length + " عملية");
+  }
+}
+
+async function loadHistory(type, tbodyId) {
+  const tb = document.getElementById(tbodyId);
+  try {
+    const snap = await getDocs(query(collection(db, 'maint_sync_log'), orderBy('at', 'desc'), limit(30)));
+    const rows = [];
+    snap.forEach(function (d) { const x = d.data(); if (x.type === type) rows.push(x); });
+    if (!rows.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">لا توجد عمليات مسجلة بعد.</td></tr>'; return; }
+    let html = '';
+    rows.slice(0, 8).forEach(function (x) {
+      const dt = new Date(x.at).toLocaleString('en-GB');
+      html += '<tr><td>' + esc(dt) + '</td><td style="direction:ltr;">' + esc(x.by) + '</td><td>' + esc(x.fileName) + '</td><td>' + esc(x.count) + '</td><td>' + esc(x.deleted) + '</td></tr>';
+    });
+    tb.innerHTML = html;
+  } catch (e) {
+    console.error(e);
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">السجل غير متاح (يتطلب نشر قواعد maint_sync_log).</td></tr>';
+  }
+}
+
+function setupSection(type) {
+  const suf = type; // 'Cm' or 'Ppm' passed already matched to element ids
+  const fileInput = document.getElementById('file' + suf);
+  const btnPreview = document.getElementById('btnPreview' + suf);
+  const btnApply = document.getElementById('btnApply' + suf);
+  const btnCancel = document.getElementById('btnCancel' + suf);
+  const statusMsg = document.getElementById('status' + suf);
+  const logBox = document.getElementById('log' + suf);
+  const previewCard = document.getElementById('previewCard' + suf);
+  const els = {
+    previewFile: document.getElementById('previewFile' + suf),
+    statsBox: document.getElementById('statsBox' + suf),
+    warnBox: document.getElementById('warnBox' + suf),
+    confirmBox: document.getElementById('confirmBox' + suf),
+    btnApply: btnApply,
+    previewCard: previewCard
+  };
+  const TYPE = suf === 'Cm' ? 'CM' : 'PPM';
+  let PLAN = null;
+
+  function ok(msg) { statusMsg.innerHTML = "<span style='color:#16a34a'>" + msg + "</span>"; }
+  function bad(msg) { statusMsg.innerHTML = "<span style='color:#dc2626'>" + msg + "</span>"; }
+  function log(msg) { logBox.style.display = 'block'; logBox.textContent += msg + "\n"; }
+
+  ok("<i class='fas fa-check-circle'></i> جاهز لاستقبال الملف!");
+  btnPreview.disabled = false;
+  loadHistory(TYPE, 'logBody' + suf);
+
+  btnPreview.addEventListener('click', function () {
+    const file = fileInput.files[0];
+    if (!file) { alert("اختر ملف إكسل أولاً!"); return; }
+    btnPreview.disabled = true;
+    previewCard.style.display = 'none';
+    statusMsg.innerHTML = "<i class='fas fa-spinner fa-spin'></i> جاري قراءة الملف ومقارنته بالسيرفر...";
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const parsed = readRows(wb, REQUIRED);
+        if (!parsed.rows.length) {
+          throw new Error("الملف غير مطابق للتنسيق المتوقع. الأعمدة الناقصة: " + (parsed.missing.join(', ') || 'غير معروفة'));
+        }
+        PLAN = await buildPlan(TYPE, parsed.rows, file.name);
+        renderPreview(PLAN, els);
+        ok("تمت المعاينة، راجع التغييرات ثم اضغط تنفيذ الاستبدال.");
+      } catch (err) {
+        console.error(err);
+        bad("❌ " + esc(err.message));
+      }
+      btnPreview.disabled = false;
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  btnCancel.addEventListener('click', function () {
+    PLAN = null;
+    previewCard.style.display = 'none';
+    ok("تم الإلغاء، لم يتم تعديل أي بيانات.");
+  });
+
+  btnApply.addEventListener('click', async function () {
+    if (!PLAN) return;
+    const p = PLAN;
+    btnApply.disabled = true;
+    btnCancel.disabled = true;
+    logBox.textContent = '';
+    log("> بدء التنفيذ...");
+    const now = new Date().toISOString();
+    const ops = [];
+    p.toDeleteIds.forEach(function (id) { ops.push(function (b) { b.delete(doc(db, p.coll, id)); }); });
+    p.rows.forEach(function (rec) { ops.push(function (b) { b.set(doc(db, p.coll, rec.id), rec); }); });
+
+    try {
+      await commitInChunks(ops, log);
+      log("\n> تم حفظ " + p.newCount + " أمر");
+      log("> تم حذف " + p.toDeleteIds.length + " أمر لم يعد موجوداً بالملف");
+      try {
+        await addDoc(collection(db, 'maint_sync_log'), { at: now, by: profile.email, type: p.type, fileName: p.fileName, count: p.newCount, deleted: p.toDeleteIds.length, skipped: p.skipped, dupes: p.dupes });
+      } catch (e) {
+        console.error(e);
+        log("> تنبيه: لم يُحفظ سجل العملية (تأكد من نشر قواعد maint_sync_log).");
+      }
+      ok("اكتمل الاستبدال بنجاح! يمكنك الآن فتح لوحة " + p.type + " لمشاهدة البيانات الجديدة فوراً.");
+      previewCard.style.display = 'none';
+      PLAN = null;
+      fileInput.value = '';
+      loadHistory(TYPE, 'logBody' + suf);
+    } catch (err) {
+      console.error(err);
+      bad("❌ فشل التنفيذ: " + esc(err.message));
+      log("> خطأ: " + err.message);
+      btnApply.disabled = false;
+    }
+    btnCancel.disabled = false;
+  });
+}
+
+setupSection('Cm');
+setupSection('Ppm');
+</script>
+</body>
+</html>
