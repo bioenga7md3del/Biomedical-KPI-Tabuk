@@ -142,7 +142,7 @@ th { background: #f8fafc; position: sticky; top: 0; }
 
 <script type="module">
 import { requireRole, db, esc } from "./firebase-init.js";
-import { collection, doc, getDocs, writeBatch, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, addDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const { profile } = await requireRole(['admin']);
 
@@ -150,15 +150,14 @@ function s(v) { return String(v === undefined || v === null ? '' : v).trim(); }
 
 function parseDate(v) {
   if (!v) return null;
-  if (v instanceof Date) return v;
   const str = String(v).trim();
-  if (str === '-' || str === '') return null;
+  if (!str) return null;
   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return new Date(str.replace(' ', 'T'));
   const parts = str.split(' ')[0].split(/[\/\-\.]/);
   if (parts.length >= 3) {
     const p0 = parseInt(parts[0]), p1 = parseInt(parts[1]) - 1, p2 = parseInt(parts[2]);
     if (p0 > 1900) return new Date(p0, p1, p2);
-    return new Date(p2, p1, p0);
+    if (p2 > 1900) return new Date(p2, p1, p0);
   }
   return null;
 }
@@ -206,82 +205,71 @@ const REQUIRED = ['#', 'Site', 'Status', 'Assigned To'];
 
 async function buildPlan(type, rawRows, fileName) {
   const norm = type === 'CM' ? normalizeCm : normalizePpm;
-  const coll = type === 'CM' ? 'cm_orders' : 'ppm_orders';
+  const docId = type === 'CM' ? 'cm' : 'ppm';
   const map = new Map();
   let skipped = 0, dupes = 0;
   rawRows.forEach(function (row) {
     const rec = norm(row);
-    if (!rec.id || rec.id === '-' || rec.id.indexOf('/') !== -1) { skipped++; return; }
+    if (!rec.id || rec.id.indexOf('/') !== -1) { skipped++; return; }
     if (map.has(rec.id)) dupes++;
     map.set(rec.id, rec);
   });
-  if (map.size === 0) throw new Error("لا توجد أوامر صالحة في الملف.");
-
-  const snap = await getDocs(collection(db, coll));
-  const oldIds = [];
-  snap.forEach(function (d) { oldIds.push(d.id); });
-  const toDeleteIds = oldIds.filter(function (id) { return !map.has(id); });
-
-  const dateField = type === 'CM' ? 'dFail' : 'dStart';
-  const dates = [];
-  map.forEach(function (r) {
-    const d = parseDate(r[dateField]) || parseDate(r.dStart);
-    if (d && !isNaN(d.getTime())) dates.push(d);
-  });
-  let range = null;
-  if (dates.length) {
-    const t = dates.map(function (d) { return d.getTime(); });
-    range = { from: new Date(Math.min.apply(null, t)), to: new Date(Math.max.apply(null, t)) };
-  }
-  const sites = new Set();
-  map.forEach(function (r) { sites.add(r.site); });
-
-  return {
-    type: type, coll: coll, fileName: fileName,
-    rows: Array.from(map.values()), newCount: map.size, oldCount: oldIds.length,
-    toDeleteIds: toDeleteIds, skipped: skipped, dupes: dupes, sitesCount: sites.size, range: range
-  };
+  const rows = Array.from(map.values());
+  const sites = new Set(rows.map(function (r) { return r.site; }));
+  let oldCount = 0;
+  try {
+    const oldSnap = await getDoc(doc(db, 'maintenance_data', docId));
+    if (oldSnap.exists()) oldCount = (oldSnap.data().rows || []).length;
+  } catch (e) { console.error(e); }
+  const bigDrop = oldCount > 0 && rows.length < oldCount * 0.6;
+  return { type: type, docId: docId, rows: rows, fileName: fileName, newCount: rows.length, oldCount: oldCount, siteCount: sites.size, skipped: skipped, dupes: dupes, bigDrop: bigDrop };
 }
 
-function fmtRange(r) {
-  if (!r) return '-';
-  const f = function (d) { return d.toLocaleDateString('en-GB'); };
-  return f(r.from) + ' → ' + f(r.to);
+function statBox(cls, label, value) {
+  return '<div class="stat-box ' + cls + '"><div class="stat-value">' + esc(String(value)) + '</div><div class="stat-label">' + esc(label) + '</div></div>';
 }
-
-function statBox(cls, label, n) { return '<div class="stat ' + cls + '"><span>' + label + '</span><b>' + n + '</b></div>'; }
 
 function renderPreview(p, els) {
   els.previewFile.textContent = 'الملف: ' + p.fileName + ' — ' + p.newCount + ' أمر صالح في الملف (كان محفوظاً حالياً ' + p.oldCount + ' أمر)';
+  const diff = p.newCount - p.oldCount;
+  const diffLabel = diff === 0 ? '0' : (diff > 0 ? ('+' + diff) : String(diff));
   els.statsBox.innerHTML =
     statBox('s-new', 'سيُحفظ', p.newCount) +
-    statBox('s-del', 'سيُحذف (غير موجود بالملف)', p.toDeleteIds.length) +
-    statBox('s-site', 'عدد المواقع', p.sitesCount) +
+    statBox('s-del', 'الفرق عن آخر رفعة', diffLabel) +
+    statBox('s-site', 'عدد المواقع', p.siteCount) +
     statBox('s-skip', 'تم تجاهله', p.skipped);
-
-  let warns = '<div class="warn">نطاق التواريخ في الملف: <b>' + esc(fmtRange(p.range)) + '</b></div>';
-  if (p.dupes > 0) warns += '<div class="warn">تم تجاهل ' + p.dupes + ' تكرار لنفس رقم الأمر داخل الملف (آخر صف هو المعتمد).</div>';
-  if (p.skipped > 0) warns += '<div class="warn">تم تخطي ' + p.skipped + ' صف بدون رقم أمر صالح.</div>';
-  const bigDrop = p.oldCount > 10 && (p.newCount / p.oldCount) < 0.6;
-  if (bigDrop) warns += '<div class="warn danger"><i class="fas fa-exclamation-circle"></i> عدد الأوامر في الملف الجديد (' + p.newCount + ') أقل بكثير من المحفوظ حالياً (' + p.oldCount + '). تأكد أنك رفعت الملف الكامل وليس ملفاً مفلتراً أو ناقصاً.</div>';
-  els.warnBox.innerHTML = warns;
-
-  els.confirmBox.innerHTML = bigDrop ? '<label class="confirm-row"><input type="checkbox" id="chk' + p.type + 'Big"> أؤكد أن هذا هو الملف الكامل وأوافق على استبدال ازبيانات</label>' : '';
-  const chk = document.getElementById('chk' + p.type + 'Big');
-  els.btnApply.disabled = !!chk;
-  if (chk) chk.addEventListener('change', function () { els.btnApply.disabled = !chk.checked; });
-
-  els.previewCard.style.display = 'block';
-  els.previewCard.scrollIntoView({ behavior: 'smooth' });
+  if (p.bigDrop) {
+    els.warnBox.style.display = 'block';
+    els.warnBox.innerHTML = '⚠️ عدد الأوامر في الملف الجديد (' + p.newCount + ') أقل بكثير من المحفوظ حالياً (' + p.oldCount + '). تأكد إنك رفعت الملف الصحيح والكامل قبل المتابعة.';
+    els.confirmBox.style.display = 'block';
+    els.confirmBox.innerHTML = '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="chk' + p.type + 'Big"> <span>أؤكد أنني اطلعت على التحذير وأن الملف صحيح وكامل</span></label>';
+  } else {
+    els.warnBox.style.display = 'none';
+    els.confirmBox.style.display = 'none';
+    els.confirmBox.innerHTML = '';
+  }
 }
 
-async function commitInChunks(ops, logFn) {
-  for (let i = 0; i < ops.length; i += 400) {
-    const batch = writeBatch(db);
-    ops.slice(i, i + 400).forEach(function (fn) { fn(batch); });
-    await batch.commit();
-    logFn("> تم تنفيذ " + Math.min(i + 400, ops.length) + " / " + ops.length + " عملية");
-  }
+async function applyPlan(p, logFn) {
+  logFn('جاري الحفظ في قاعدة البيانات...');
+  await setDoc(doc(db, 'maintenance_data', p.docId), {
+    rows: p.rows,
+    count: p.rows.length,
+    fileName: p.fileName,
+    updatedAt: new Date(),
+    by: profile.email
+  });
+  await addDoc(collection(db, 'maint_sync_log'), {
+    at: new Date(),
+    by: profile.email,
+    type: p.type,
+    fileName: p.fileName,
+    count: p.newCount,
+    deleted: Math.max(0, p.oldCount - p.newCount),
+    skipped: p.skipped,
+    dupes: p.dupes
+  });
+  logFn('تم الحفظ بنجاح: ' + p.rows.length + ' سجل.');
 }
 
 async function loadHistory(type, tbodyId) {
@@ -304,7 +292,8 @@ async function loadHistory(type, tbodyId) {
 }
 
 function setupSection(type) {
-  const suf = type; // 'Cm' or 'Ppm' passed already matched to element ids
+  const suf = type;
+  const TYPE = suf === 'Cm' ? 'CM' : 'PPM';
   const fileInput = document.getElementById('file' + suf);
   const btnPreview = document.getElementById('btnPreview' + suf);
   const btnApply = document.getElementById('btnApply' + suf);
@@ -316,89 +305,79 @@ function setupSection(type) {
     previewFile: document.getElementById('previewFile' + suf),
     statsBox: document.getElementById('statsBox' + suf),
     warnBox: document.getElementById('warnBox' + suf),
-    confirmBox: document.getElementById('confirmBox' + suf),
-    btnApply: btnApply,
-    previewCard: previewCard
+    confirmBox: document.getElementById('confirmBox' + suf)
   };
-  const TYPE = suf === 'Cm' ? 'CM' : 'PPM';
-  let PLAN = null;
+  let currentPlan = null;
 
-  function ok(msg) { statusMsg.innerHTML = "<span style='color:#16a34a'>" + msg + "</span>"; }
-  function bad(msg) { statusMsg.innerHTML = "<span style='color:#dc2626'>" + msg + "</span>"; }
-  function log(msg) { logBox.style.display = 'block'; logBox.textContent += msg + "\n"; }
+  function log(msg) {
+    if (!logBox) return;
+    logBox.style.display = 'block';
+    logBox.textContent += (logBox.textContent ? '\n' : '') + msg;
+  }
 
-  ok("<i class='fas fa-check-circle'></i> جاهز لاستقبال الملف!");
-  btnPreview.disabled = false;
-  loadHistory(TYPE, 'logBody' + suf);
-
-  btnPreview.addEventListener('click', function () {
-    const file = fileInput.files[0];
-    if (!file) { alert("اختر ملف إكسل أولاً!"); return; }
+  btnPreview.addEventListener('click', async function () {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) { statusMsg.textContent = 'اختر ملف أولاً.'; return; }
     btnPreview.disabled = true;
-    previewCard.style.display = 'none';
-    statusMsg.innerHTML = "<i class='fas fa-spinner fa-spin'></i> جاري قراءة الملف ومقارنته بالسيرفر...";
-
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-      try {
-        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-        const parsed = readRows(wb, REQUIRED);
-        if (!parsed.rows.length) {
-          throw new Error("الملف غير مطابق للتنسيق المتوقع. الأعمدة الناقصة: " + (parsed.missing.join(', ') || 'غير معروفة'));
-        }
-        PLAN = await buildPlan(TYPE, parsed.rows, file.name);
-        renderPreview(PLAN, els);
-        ok("تمت المعاينة، راجع التغييرات ثم اضغط تنفيذ الاستبدال.");
-      } catch (err) {
-        console.error(err);
-        bad("❌ " + esc(err.message));
+    statusMsg.textContent = 'جاري القراءة...';
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      const result = readRows(wb, REQUIRED);
+      if (result.missing.length) {
+        statusMsg.textContent = 'الملف ناقص أعمدة: ' + result.missing.join(', ');
+        btnPreview.disabled = false;
+        return;
       }
+      currentPlan = await buildPlan(TYPE, result.rows, file.name);
+      renderPreview(currentPlan, els);
+      previewCard.style.display = 'block';
+      statusMsg.textContent = '';
+      const chk = document.getElementById('chk' + TYPE + 'Big');
+      if (chk) chk.checked = false;
+    } catch (e) {
+      console.error(e);
+      statusMsg.textContent = 'حدث خطأ أثناء قراءة الملف: ' + (e.message || e);
+    } finally {
       btnPreview.disabled = false;
-    };
-    reader.readAsArrayBuffer(file);
-  });
-
-  btnCancel.addEventListener('click', function () {
-    PLAN = null;
-    previewCard.style.display = 'none';
-    ok("تم الإلغاء، لم يتم تعديل أي بيانات.");
+    }
   });
 
   btnApply.addEventListener('click', async function () {
-    if (!PLAN) return;
-    const p = PLAN;
-    btnApply.disabled = true;
-    btnCancel.disabled = true;
-    logBox.textContent = '';
-    log("> بدء التنفيذ...");
-    const now = new Date().toISOString();
-    const ops = [];
-    p.toDeleteIds.forEach(function (id) { ops.push(function (b) { b.delete(doc(db, p.coll, id)); }); });
-    p.rows.forEach(function (rec) { ops.push(function (b) { b.set(doc(db, p.coll, rec.id), rec); }); });
-
-    try {
-      await commitInChunks(ops, log);
-      log("\n> تم حفظ " + p.newCount + " أمر");
-      log("> تم حذف " + p.toDeleteIds.length + " أمر لم يعد موجوداً بالملف");
-      try {
-        await addDoc(collection(db, 'maint_sync_log'), { at: now, by: profile.email, type: p.type, fileName: p.fileName, count: p.newCount, deleted: p.toDeleteIds.length, skipped: p.skipped, dupes: p.dupes });
-      } catch (e) {
-        console.error(e);
-        log("> تنبيه: لم يُحفظ سجل العملية (تأكد من نشر قواعد maint_sync_log).");
+    if (!currentPlan) return;
+    if (currentPlan.bigDrop) {
+      const chk = document.getElementById('chk' + TYPE + 'Big');
+      if (!chk || !chk.checked) {
+        statusMsg.textContent = 'أكّد الاطلاع على التحذير قبل المتابعة.';
+        return;
       }
-      ok("اكتمل الاستبدال بنجاح! يمكنك الآن فتح لوحة " + p.type + " لمشاهدة البيانات الجديدة فوراً.");
+    }
+    btnApply.disabled = true;
+    if (logBox) logBox.textContent = '';
+    try {
+      await applyPlan(currentPlan, log);
+      statusMsg.textContent = 'تم الحفظ بنجاح.';
       previewCard.style.display = 'none';
-      PLAN = null;
       fileInput.value = '';
+      currentPlan = null;
       loadHistory(TYPE, 'logBody' + suf);
-    } catch (err) {
-      console.error(err);
-      bad("❌ فشل التنفيذ: " + esc(err.message));
-      log("> خطأ: " + err.message);
+    } catch (e) {
+      console.error(e);
+      log('خطأ: ' + (e.message || e));
+      statusMsg.textContent = 'فشل الحفظ.';
+    } finally {
       btnApply.disabled = false;
     }
-    btnCancel.disabled = false;
   });
+
+  btnCancel.addEventListener('click', function () {
+    currentPlan = null;
+    previewCard.style.display = 'none';
+    fileInput.value = '';
+    statusMsg.textContent = '';
+  });
+
+  loadHistory(TYPE, 'logBody' + suf);
 }
 
 setupSection('Cm');

@@ -258,7 +258,7 @@ body.pd tr { page-break-inside: avoid; }
 
 <script type="module">
 import { db } from "./firebase-init.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 const FILE_URL = 'data/CM.xlsx';
 const IN_PROGRESS = ['pending for approval', 'approved'];
 let RAW_DATA = [];
@@ -272,9 +272,9 @@ const DAY = 86400000;
 window.addEventListener('DOMContentLoaded', async () => {
 const badge = $('statusBadge');
 try {
-const snap = await getDocs(collection(db, 'cm_orders'));
+const snap = await getDoc(doc(db, 'maintenance_data', 'cm'));
 RAW_DATA = [];
-snap.forEach(d => RAW_DATA.push(buildCmRow(d.data())));
+if (snap.exists()) (snap.data().rows || []).forEach(o => RAW_DATA.push(buildCmRow(o)));
 if (RAW_DATA.length === 0) {
 badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-times"></i> لا توجد بيانات';
 } else {

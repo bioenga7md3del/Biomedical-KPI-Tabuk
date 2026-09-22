@@ -222,7 +222,7 @@ tbody tr:hover { background: #f0f9ff; }
 
 <script type="module">
 import { db } from "./firebase-init.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 const FILE_URL = 'data/PPM.xlsx';
 const TARGET = 90;
 const DAY = 86400000;
@@ -238,9 +238,9 @@ const now = new Date();
 $('monthFilter').value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
 const badge = $('statusBadge');
 try {
-const snap = await getDocs(collection(db, 'ppm_orders'));
+const snap = await getDoc(doc(db, 'maintenance_data', 'ppm'));
 RAW_DATA = [];
-snap.forEach(d => RAW_DATA.push(buildPpmRow(d.data())));
+if (snap.exists()) (snap.data().rows || []).forEach(o => RAW_DATA.push(buildPpmRow(o)));
 if (RAW_DATA.length === 0) {
 badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-times"></i> لا توجد بيانات';
 } else {

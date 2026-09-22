@@ -303,7 +303,7 @@ document.getElementById('loginEmail').addEventListener('keypress', e => { if (e.
 <!-- ============ المؤشرات التنفيذية (من قاعدة البيانات) ============ -->
 <script type="module">
 import { db } from "./firebase-init.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 const SOURCES = [{ url: 'data/PPM.xlsx', type: 'PPM' }, { url: 'data/CM.xlsx', type: 'CM' }];
 const TARGET = 90;
 const DAY = 86400000;
@@ -314,9 +314,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 const badge = $('statusBadge');
 let rows = [];
 try {
-const [cmSnap, ppmSnap] = await Promise.all([getDocs(collection(db, 'cm_orders')), getDocs(collection(db, 'ppm_orders'))]);
-cmSnap.forEach(d => rows.push(buildCmExecRow(d.data())));
-ppmSnap.forEach(d => { const r = buildPpmExecRow(d.data()); if (r) rows.push(r); });
+const [cmSnap, ppmSnap] = await Promise.all([getDoc(doc(db, 'maintenance_data', 'cm')), getDoc(doc(db, 'maintenance_data', 'ppm'))]);
+if (cmSnap.exists()) (cmSnap.data().rows || []).forEach(o => rows.push(buildCmExecRow(o)));
+if (ppmSnap.exists()) (ppmSnap.data().rows || []).forEach(o => { const r = buildPpmExecRow(o); if (r) rows.push(r); });
 if (rows.length > 0) {
 badge.className = 'status-badge st-success';
 badge.innerHTML = '<i class="fas fa-check-circle"></i> المؤشرات محدثة';
