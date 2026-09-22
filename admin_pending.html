@@ -105,7 +105,7 @@ th { background: #f8fafc; position: sticky; top: 0; }
 
 <script type="module">
 import { requireRole, db, esc } from "./firebase-init.js";
-import { collection, doc, getDocs, writeBatch, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, writeBatch, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const { profile } = await requireRole(['admin']);
 
@@ -199,7 +199,7 @@ async function buildPlan(rawRows, fileName) {
   const fb = new Map();
   snap.forEach(function (d) { fb.set(d.id, d.data()); });
 
-  const plan = { fileName: fileName, fileCount: fileMap.size, skipped: skipped, dupes: dupes, nonCorrective: nonCorrective,
+  const plan = { fileName: fileName, fileCount: fileMap.size, skipped: skipped, dupes: dupes, nonCorrective: nonCorrective, rows: [...fileMap.values()],
                  added: [], updated: [], reopened: [], unchanged: 0, toClose: [], statusChanges: 0, openBefore: 0 };
 
   fileMap.forEach(function (rec, id) {
@@ -285,6 +285,119 @@ btnCancel.addEventListener('click', function () {
   ok("تم الإلغاء، لم يتم تعديل أي بيانات.");
 });
 
+function isOpenPendingStatus(status) {
+  var v = String(status || "").trim().toLowerCase();
+  return v === "active" || v === "assigned" || v.indexOf("نشط") !== -1 || v.indexOf("مكلف") !== -1;
+}
+
+function chunkRowsForCm(rows, maxBytes) {
+  const enc = new TextEncoder();
+  const chunks = [];
+  let current = [];
+  let currentBytes = 2;
+  for (const row of rows) {
+    const rowBytes = enc.encode(JSON.stringify(row)).length + 1;
+    if (current.length > 0 && currentBytes + rowBytes > maxBytes) {
+      chunks.push(current);
+      current = [];
+      currentBytes = 2;
+    }
+    current.push(row);
+    currentBytes += rowBytes;
+  }
+  if (current.length > 0 || chunks.length === 0) chunks.push(current);
+  return chunks;
+}
+
+async function syncPendingToCm(pendingRows) {
+  const docId = "cm";
+  const metaSnap = await getDoc(doc(db, "maintenance_data", docId + "_meta"));
+  let cmRows = [];
+  let oldTotalChunks = 0;
+  let cmFileName = "";
+  if (metaSnap.exists()) {
+    const meta = metaSnap.data();
+    oldTotalChunks = meta.totalChunks || 0;
+    cmFileName = meta.fileName || "";
+    for (let i = 0; i < oldTotalChunks; i++) {
+      const chunkSnap = await getDoc(doc(db, "maintenance_data", docId + "_" + i));
+      if (chunkSnap.exists()) {
+        const data = chunkSnap.data();
+        cmRows = cmRows.concat(data.rows || []);
+      }
+    }
+  }
+  if (cmRows.length === 0) {
+    return { skipped: true, reason: "no-cm-data" };
+  }
+
+  const byControlNo = new Map();
+  cmRows.forEach(function (r, idx) {
+    const cn = s(r.controlNo || r.id);
+    if (cn) byControlNo.set(cn, idx);
+  });
+
+  let addedCount = 0, reopenedCount = 0, closedCount = 0, matchedCount = 0;
+
+  pendingRows.forEach(function (rec) {
+    const cn = s(rec.controlNo);
+    if (!cn) return;
+    const open = isOpenPendingStatus(rec.status);
+    const idx = byControlNo.get(cn);
+    if (idx !== undefined) {
+      const cmRec = cmRows[idx];
+      const wasOpen = isOpenPendingStatus(cmRec.status);
+      matchedCount++;
+      if (open && !wasOpen) {
+        cmRec.status = "Active";
+        reopenedCount++;
+      } else if (!open && wasOpen) {
+        cmRec.status = "Completed";
+        if (!cmRec.dSign) cmRec.dSign = rec.failDate || "";
+        closedCount++;
+      }
+    } else if (open) {
+      cmRows.push({
+        id: cn,
+        controlNo: cn,
+        site: rec.site,
+        dept: rec.dept,
+        device: rec.device,
+        serial: "",
+        status: "Active",
+        dFail: rec.failDate,
+        dStart: rec.startDate,
+        dSign: "",
+        cls: ""
+      });
+      byControlNo.set(cn, cmRows.length - 1);
+      addedCount++;
+    }
+  });
+
+  const chunks = chunkRowsForCm(cmRows, 700000);
+  for (let i = 0; i < chunks.length; i++) {
+    await setDoc(doc(db, "maintenance_data", docId + "_" + i), {
+      rows: chunks[i],
+      chunkIndex: i,
+      totalChunks: chunks.length
+    });
+  }
+  await setDoc(doc(db, "maintenance_data", docId + "_meta"), {
+    totalChunks: chunks.length,
+    count: cmRows.length,
+    fileName: cmFileName,
+    updatedAt: new Date(),
+    by: profile.email
+  });
+  if (oldTotalChunks > chunks.length) {
+    for (let i = chunks.length; i < oldTotalChunks; i++) {
+      try { await deleteDoc(doc(db, "maintenance_data", docId + "_" + i)); } catch (e) { console.error(e); }
+    }
+  }
+
+  return { skipped: false, matchedCount: matchedCount, addedCount: addedCount, reopenedCount: reopenedCount, closedCount: closedCount, totalCm: cmRows.length };
+}
 async function commitInChunks(ops) {
   for (let i = 0; i < ops.length; i += 400) {
     const batch = writeBatch(db);
@@ -329,6 +442,18 @@ btnApply.addEventListener('click', async function () {
 
   try {
     await commitInChunks(ops);
+    try {
+      log("\n> جارِ تحديث الصيانة التصحيحية...");
+      const syncRes = await syncPendingToCm(p.rows);
+      if (syncRes.skipped) {
+        log("> تخطي تحديث الصيانة التصحيحية: لا توجد بيانات صيانة تصحيحية مرفوعة بعد.");
+      } else {
+        log("> تم تحديث الصيانة التصحيحية: " + syncRes.addedCount + " أمر جديد، " + syncRes.reopenedCount + " أعيد فتحه، " + syncRes.closedCount + " تم إقفاله");
+      }
+    } catch (e) {
+      console.error(e);
+      log("> تعذر تحديث الصيانة التصحيحية: " + (e && e.message ? e.message : e));
+    }
     log("\n> تمت الإضافة: " + p.added.length + " أمر جديد");
     log("> تم التحديث: " + p.updated.length + " أمر");
     log("> أعيد فتحه: " + p.reopened.length + " أمر");
