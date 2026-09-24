@@ -550,15 +550,18 @@ function renderIndicators(data) {
   ], ind.longest, 'fix', 'desc');
   renderSortTable('tbl-tech', [
     { key: 'name', label: 'الفني' },
-    { key: 'af', label: 'متوسط مدة الإصلاح', format: function (v) { return fmtDays(v); } },
+    { key: 'ar', label: 'متوسط الاستجابة', format: function (v) { return fmtDays(v); } },
+    { key: 'af', label: 'متوسط الإصلاح', format: function (v) { return fmtDays(v); } },
     { key: 'n', label: 'عدد الأوامر المغلقة' },
     { key: 'rate', label: 'نسبة الإنجاز', format: function (v) { return v + '%'; } }
   ], ind.techAll, 'af', 'asc');
-  var deptSiteRows = ind.byDept.map(function (x) { return { type: 'قسم', name: x.name, t: x.t, rate: x.rate }; }).concat(ind.bySite.map(function (x) { return { type: 'موقع', name: x.name, t: x.t, rate: x.rate }; }));
+  var deptSiteRows = ind.byDept.map(function (x) { return { type: 'قسم', name: x.name, t: x.t, ar: x.ar, af: x.af, rate: x.rate }; }).concat(ind.bySite.map(function (x) { return { type: 'موقع', name: x.name, t: x.t, ar: x.ar, af: x.af, rate: x.rate }; }));
   renderSortTable('tbl-dept-site', [
     { key: 'type', label: 'النوع' },
     { key: 'name', label: 'الاسم' },
     { key: 't', label: 'عدد الأوامر' },
+    { key: 'ar', label: 'متوسط الاستجابة', format: function (v) { return fmtDays(v); } },
+    { key: 'af', label: 'متوسط الإصلاح', format: function (v) { return fmtDays(v); } },
     { key: 'rate', label: 'نسبة الإنجاز', format: function (v) { return v + '%'; } }
   ], deptSiteRows, 't', 'desc');
 }
