@@ -161,6 +161,7 @@ body.pd tr { page-break-inside: avoid; }
 <div>
 <h2><i class="fas fa-screwdriver-wrench"></i> أداء الصيانة التصحيحية</h2>
 <p id="heroSub">-</p>
+<div class="site-filter-row"><label for="siteFilterSel" style="font-size:.85rem;color:#64748b">فلترة حسب المواقع:</label><select id="siteFilterSel" class="trend-month-sel"><option value="">كل المواقع</option></select></div>
 </div>
 <div class="hero-stats">
 <div class="hero-stat"><b id="h-total">0</b><span>إجمالي البلاغات</span></div>
@@ -209,14 +210,18 @@ body.pd tr { page-break-inside: avoid; }
 .sort-table td{padding:7px 10px;border-bottom:1px solid var(--border,#eef0f2)}
 .sort-table tbody tr:hover{background:rgba(59,130,246,.06)}
 .trend-month-sel{padding:5px 10px;border-radius:8px;border:1px solid var(--border,#e5e7eb);font-family:inherit;font-size:13px;background:#fff;color:inherit}
+.tbl-filter-row{padding:0 16px 12px}
+.tbl-filter-input{width:100%;max-width:280px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:13px}
+.tbl-filter-input:focus{outline:none;border-color:#7c3aed}
+.site-filter-row{margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 </style>
 <div class="ind-grid">
 <div class="panel panel-wide tp-blue"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--blue,#3b82f6)"><i class="fas fa-screwdriver-wrench"></i></div><div><h3>الأجهزة الأكثر صيانة</h3><small>الأجهزة الأكثر تكرارًا في عدد أوامر الشغل</small></div></div></div><div class="table-scroll"><div id="tbl-device-count"></div></div></div>
 <div class="panel panel-wide tp-cyan"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--cyan,#06b6d4)"><i class="fas fa-hourglass-half"></i></div><div><h3>الأجهزة الأكثر تعطلاً (وقتًا)</h3><small>إجمالي أيام التوقف عن العمل لكل جهاز</small></div></div></div><div class="table-scroll"><div id="tbl-device-downtime"></div></div></div>
 <div class="panel panel-wide tp-orange"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--orange)"><i class="fas fa-rotate"></i></div><div><h3>الوحدات المتكررة الأعطال</h3><small>Lemons - وحدات (حسب الكونترول نمبر) تعطلت مرتين فأكثر</small></div></div></div><div class="table-scroll"><div id="tbl-serial"></div></div></div>
 <div class="panel panel-wide tp-red"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-stopwatch"></i></div><div><h3>أطول أوامر الشغل المنفردة (أعلى 20)</h3><small>أعلى 20 أوامر شغل من حيث مدة الإصلاح</small></div></div></div><div class="table-scroll"><div id="tbl-longest"></div></div></div>
-<div class="panel panel-wide tp-purple"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-user-gear"></i></div><div><h3>أداء الفنيين</h3><small>متوسط مدة الإصلاح وعدد الأوامر ونسبة الإنجاز لكل فني</small></div></div></div><div class="table-scroll"><div id="tbl-tech"></div></div></div>
-<div class="panel panel-wide tp-blue"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--blue,#3b82f6)"><i class="fas fa-building"></i></div><div><h3>الأقسام والمواقع</h3><small>الأكثر عددًا في أوامر الشغل</small></div></div></div><div class="table-scroll"><div id="tbl-dept-site"></div></div></div>
+<div class="panel panel-wide tp-blue"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--blue,#3b82f6)"><i class="fas fa-map-marker-alt"></i></div><div><h3>تقييم المواقع</h3><small>متوسط الاستجابة والإصلاح ونسبة الإنجاز لكل موقع</small></div></div></div><div class="table-scroll"><div id="tbl-site"></div></div></div>
+<div class="panel panel-wide tp-purple"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-user-gear"></i></div><div><h3>أداء الفنيين</h3><small>متوسط مدة الإصلاح وعدد الأوامر ونسبة الإنجاز لكل فني</small></div></div></div><div class="tbl-filter-row"><input type="text" id="techNameFilter" oninput="applyTechFilter()" placeholder="ابحث باسم الفني..." class="tbl-filter-input"></div><div class="table-scroll"><div id="tbl-tech"></div></div></div>
 </div>
 </div>
 </div>
@@ -229,6 +234,7 @@ const IN_PROGRESS = ['pending for approval', 'approved'];
 let RAW_DATA = [];
 let VIEW = [];
 let QUICK = null;
+let SITE_FILTER = '';
 const charts = {};
 const $ = id => document.getElementById(id);
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -268,6 +274,7 @@ badge.className = 'status-badge st-success'; badge.innerHTML = '<i class="fas fa
 $('emptyState').style.display = 'none';
 $('dashboard').style.display = 'block';
 setReportLabel();
+populateSiteFilter();
 updateDashboard();
 }
 } catch (e) {
@@ -326,8 +333,18 @@ return null;
 function avg(arr, k) { return arr.length ? arr.reduce((a, b) => a + b[k], 0) / arr.length : null; }
 function f1(v) { return v == null ? '-' : v.toFixed(1); }
 
+function populateSiteFilter() {
+var sel = document.getElementById('siteFilterSel');
+if (!sel) return;
+var sites = {};
+RAW_DATA.forEach(function (r) { if (r.site) sites[r.site] = true; });
+var names = Object.keys(sites).sort(function (a, b) { return String(a).localeCompare(String(b), 'ar'); });
+sel.innerHTML = '<option value="">كل المواقع</option>' + names.map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('');
+sel.onchange = function () { SITE_FILTER = sel.value; updateDashboard(); };
+}
+
 function updateDashboard() {
-const data = RAW_DATA;
+const data = SITE_FILTER ? RAW_DATA.filter(function (r) { return r.site === SITE_FILTER; }) : RAW_DATA;
 VIEW = data;
 const total = data.length;
 const closedArr = data.filter(x => !x.isOpen);
@@ -467,7 +484,7 @@ sel.innerHTML = '<option value="">كل الفترة</option>' + keys.map(functio
 var parts = k.split('-'); var y = parts[0]; var mo = parseInt(parts[1], 10);
 return '<option value="' + k + '">' + (names[mo - 1] || mo) + ' ' + y + '</option>';
 }).join('');
-sel.onchange = function () { renderTrendChart(RAW_DATA, sel.value); };
+sel.onchange = function () { renderTrendChart(data, sel.value); };
 }
 function groupByControlNo(data) {
 var g = {};
@@ -529,6 +546,25 @@ function computeIndicators(data) {
   return { byDeviceCount: byDeviceCount, byDeviceDowntime: byDeviceDowntime, bySerial: bySerial, longest: longest, techAll: techAll, byDept: byDept, bySite: bySite };
 }
 
+let LAST_TECH_ALL = [];
+var TECH_COLS = [
+    { key: 'name', label: 'الفني' },
+    { key: 'ar', label: 'متوسط الاستجابة', format: function (v) { return fmtDays(v); } },
+    { key: 'af', label: 'متوسط الإصلاح', format: function (v) { return fmtDays(v); } },
+    { key: 'n', label: 'عدد الأوامر المغلقة' },
+    { key: 'rate', label: 'نسبة الإنجاز', format: function (v) { return v + '%'; } }
+  ];
+function filterTechRows(rows) {
+var inp = document.getElementById('techNameFilter');
+var q = inp ? String(inp.value || '').trim().toLowerCase() : '';
+if (!q) return rows;
+return rows.filter(function (x) { return String(x.name || '').toLowerCase().indexOf(q) !== -1; });
+}
+function renderTechTable(rows) {
+renderSortTable('tbl-tech', TECH_COLS, rows, 'af', 'asc');
+}
+window.applyTechFilter = function () { renderTechTable(filterTechRows(LAST_TECH_ALL)); };
+
 function renderIndicators(data) {
   var ind = computeIndicators(data);
   var colsDevice = [
@@ -548,22 +584,15 @@ function renderIndicators(data) {
     { key: 'fix', label: 'مدة الإصلاح', format: function (v) { return fmtDays(v); } },
     { key: 'id', label: 'رقم الأمر' }
   ], ind.longest, 'fix', 'desc');
-  renderSortTable('tbl-tech', [
-    { key: 'name', label: 'الفني' },
-    { key: 'ar', label: 'متوسط الاستجابة', format: function (v) { return fmtDays(v); } },
-    { key: 'af', label: 'متوسط الإصلاح', format: function (v) { return fmtDays(v); } },
-    { key: 'n', label: 'عدد الأوامر المغلقة' },
-    { key: 'rate', label: 'نسبة الإنجاز', format: function (v) { return v + '%'; } }
-  ], ind.techAll, 'af', 'asc');
-  var deptSiteRows = ind.byDept.map(function (x) { return { type: 'قسم', name: x.name, t: x.t, ar: x.ar, af: x.af, rate: x.rate }; }).concat(ind.bySite.map(function (x) { return { type: 'موقع', name: x.name, t: x.t, ar: x.ar, af: x.af, rate: x.rate }; }));
-  renderSortTable('tbl-dept-site', [
-    { key: 'type', label: 'النوع' },
-    { key: 'name', label: 'الاسم' },
+  LAST_TECH_ALL = ind.techAll;
+  renderTechTable(filterTechRows(LAST_TECH_ALL));
+  var siteRows = ind.bySite.map(function (x) { return { name: x.name, t: x.t, ar: x.ar, af: x.af, rate: x.rate }; });
+  renderSortTable('tbl-site', [{ key: 'name', label: 'الاسم' },
     { key: 't', label: 'عدد الأوامر' },
     { key: 'ar', label: 'متوسط الاستجابة', format: function (v) { return fmtDays(v); } },
     { key: 'af', label: 'متوسط الإصلاح', format: function (v) { return fmtDays(v); } },
     { key: 'rate', label: 'نسبة الإنجاز', format: function (v) { return v + '%'; } }
-  ], deptSiteRows, 't', 'desc');
+  ], siteRows, 't', 'desc');
 }
 
 
