@@ -215,8 +215,8 @@ body.pd tr { page-break-inside: avoid; }
 <div class="panel panel-wide tp-cyan"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--cyan,#06b6d4)"><i class="fas fa-hourglass-half"></i></div><div><h3>الأجهزة الأكثر تعطلاً (وقتًا)</h3><small>إجمالي أيام التوقف عن العمل لكل جهاز</small></div></div></div><div class="table-scroll"><div id="tbl-device-downtime"></div></div></div>
 <div class="panel panel-wide tp-orange"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--orange)"><i class="fas fa-rotate"></i></div><div><h3>الوحدات المتكررة الأعطال</h3><small>Lemons - وحدات (حسب الكونترول نمبر) تعطلت مرتين فأكثر</small></div></div></div><div class="table-scroll"><div id="tbl-serial"></div></div></div>
 <div class="panel panel-wide tp-red"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-stopwatch"></i></div><div><h3>أطول أوامر الشغل المنفردة (أعلى 20)</h3><small>أعلى 20 أوامر شغل من حيث مدة الإصلاح</small></div></div></div><div class="table-scroll"><div id="tbl-longest"></div></div></div>
-<div class="panel tp-purple"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-user-gear"></i></div><div><h3>أداء الفنيين</h3><small>متوسط زمن الإصلاح - الأسرع والأبطأ</small></div></div></div><div class="ind-split"><div><h4>الأسرع</h4><div class="rank-list" id="rl-tech-fast"></div></div><div><h4>الأبطأ</h4><div class="rank-list" id="rl-tech-slow"></div></div></div></div>
-<div class="panel tp-blue"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--blue,#3b82f6)"><i class="fas fa-building"></i></div><div><h3>الأقسام والمواقع</h3><small>الأكثر عددًا في أوامر الشغل</small></div></div></div><div class="ind-split"><div><h4>الأقسام</h4><div class="rank-list" id="rl-dept"></div></div><div><h4>المواقع</h4><div class="rank-list" id="rl-site"></div></div></div></div>
+<div class="panel panel-wide tp-purple"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-user-gear"></i></div><div><h3>أداء الفنيين</h3><small>متوسط مدة الإصلاح وعدد الأوامر ونسبة الإنجاز لكل فني</small></div></div></div><div class="table-scroll"><div id="tbl-tech"></div></div></div>
+<div class="panel panel-wide tp-blue"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--blue,#3b82f6)"><i class="fas fa-building"></i></div><div><h3>الأقسام والمواقع</h3><small>الأكثر عددًا في أوامر الشغل</small></div></div></div><div class="table-scroll"><div id="tbl-dept-site"></div></div></div>
 </div>
 </div>
 </div>
@@ -523,11 +523,10 @@ function computeIndicators(data) {
   var bySerial = byControl.filter(function (x) { return x.t >= 2; }).slice().sort(function (a, b) { return b.t - a.t; }).slice(0, 20);
   var longest = closed.filter(function (r) { return r.fix > 0; }).sort(function (a, b) { return b.fix - a.fix; }).slice(0, 20);
   var techStats = groupStats(data, 'tech').filter(function (x) { return x.n >= 2; });
-  var fastest = techStats.slice().sort(function (a, b) { return a.af - b.af; }).slice(0, 5);
-  var slowest = techStats.slice().sort(function (a, b) { return b.af - a.af; }).slice(0, 5);
+  var techAll = techStats.slice().sort(function (a, b) { return a.af - b.af; });
   var byDept = groupStats(data, 'dept').filter(function(x){return x.name && x.name !== '-';}).sort(function (a, b) { return b.t - a.t; }).slice(0, 10);
   var bySite = groupStats(data, 'site').sort(function (a, b) { return b.t - a.t; }).slice(0, 10);
-  return { byDeviceCount: byDeviceCount, byDeviceDowntime: byDeviceDowntime, bySerial: bySerial, longest: longest, fastest: fastest, slowest: slowest, byDept: byDept, bySite: bySite };
+  return { byDeviceCount: byDeviceCount, byDeviceDowntime: byDeviceDowntime, bySerial: bySerial, longest: longest, techAll: techAll, byDept: byDept, bySite: bySite };
 }
 
 function renderIndicators(data) {
@@ -549,10 +548,19 @@ function renderIndicators(data) {
     { key: 'fix', label: 'مدة الإصلاح', format: function (v) { return fmtDays(v); } },
     { key: 'id', label: 'رقم الأمر' }
   ], ind.longest, 'fix', 'desc');
-  renderRankList('rl-tech-fast', ind.fastest.map(function (x) { return { name: x.name, value: x.af, valueLabel: fmtDays(x.af), color: 'var(--green,#22c55e)', sub: 'نسبة الإنجاز ' + x.rate + '%' }; }));
-  renderRankList('rl-tech-slow', ind.slowest.map(function (x) { return { name: x.name, value: x.af, valueLabel: fmtDays(x.af), color: 'var(--red,#ef4444)', sub: 'نسبة الإنجاز ' + x.rate + '%' }; }));
-  renderRankList('rl-dept', ind.byDept.map(function (x) { return { name: x.name, value: x.t, valueLabel: x.t + ' أمر', sub: 'نسبة الإنجاز ' + x.rate + '%' }; }));
-  renderRankList('rl-site', ind.bySite.map(function (x) { return { name: x.name, value: x.t, valueLabel: x.t + ' أمر', sub: 'نسبة الإنجاز ' + x.rate + '%' }; }));
+  renderSortTable('tbl-tech', [
+    { key: 'name', label: 'الفني' },
+    { key: 'af', label: 'متوسط مدة الإصلاح', format: function (v) { return fmtDays(v); } },
+    { key: 'n', label: 'عدد الأوامر المغلقة' },
+    { key: 'rate', label: 'نسبة الإنجاز', format: function (v) { return v + '%'; } }
+  ], ind.techAll, 'af', 'asc');
+  var deptSiteRows = ind.byDept.map(function (x) { return { type: 'قسم', name: x.name, t: x.t, rate: x.rate }; }).concat(ind.bySite.map(function (x) { return { type: 'موقع', name: x.name, t: x.t, rate: x.rate }; }));
+  renderSortTable('tbl-dept-site', [
+    { key: 'type', label: 'النوع' },
+    { key: 'name', label: 'الاسم' },
+    { key: 't', label: 'عدد الأوامر' },
+    { key: 'rate', label: 'نسبة الإنجاز', format: function (v) { return v + '%'; } }
+  ], deptSiteRows, 't', 'desc');
 }
 
 
