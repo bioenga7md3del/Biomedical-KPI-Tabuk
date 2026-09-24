@@ -172,18 +172,17 @@ body.pd tr { page-break-inside: avoid; }
 <div class="grid-kpi">
 <div class="kpi-card"><div class="kpi-ico" style="background:#dbeafe;color:var(--primary-2)"><i class="fas fa-clipboard-list"></i></div><div><div class="kpi-label">إجمالي البلاغات</div><div class="kpi-val" id="kpi-total" style="color:var(--primary-2)">0</div><div class="kpi-sub">Total Corrective WOs</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#dcfce7;color:var(--green)"><i class="fas fa-circle-check"></i></div><div><div class="kpi-label">تم الإنجاز</div><div class="kpi-val" id="kpi-closed" style="color:var(--green)">0</div><div class="kpi-sub" id="kpi-rate-sub">Signed Off</div></div></div>
-<div class="kpi-card"><div class="kpi-ico" style="background:#fee2e2;color:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><div class="kpi-label">أجهزة متعطلة</div><div class="kpi-val" id="kpi-active" style="color:var(--red)">0</div><div class="kpi-sub">Active + Assigned</div></div></div>
-<div class="kpi-card"><div class="kpi-ico" style="background:#ede9fe;color:var(--purple)"><i class="fas fa-gears"></i></div><div><div class="kpi-label">تحت الإجراء</div><div class="kpi-val" id="kpi-progress" style="color:var(--purple)">0</div><div class="kpi-sub">بانتظار الاعتماد</div></div></div>
+
 <div class="kpi-card"><div class="kpi-ico" style="background:#ffedd5;color:var(--orange)"><i class="fas fa-bolt"></i></div><div><div class="kpi-label">متوسط الاستجابة</div><div class="kpi-val" id="kpi-resp" style="color:var(--orange)">0</div><div class="kpi-sub">أيام (Fail → Start)</div></div></div>
 <div class="kpi-card"><div class="kpi-ico" style="background:#cffafe;color:var(--cyan)"><i class="fas fa-stopwatch"></i></div><div><div class="kpi-label">متوسط الإصلاح</div><div class="kpi-val" id="kpi-fix" style="color:var(--cyan)">0</div><div class="kpi-sub">أيام (Fail → Closed)</div></div></div>
-<div class="kpi-card"><div class="kpi-ico" style="background:#fef9c3;color:var(--yellow)"><i class="fas fa-fire"></i></div><div><div class="kpi-label">مفتوحة متأخرة (+7 أيام)</div><div class="kpi-val" id="kpi-late" style="color:var(--yellow)">0</div><div class="kpi-sub">تحتاج تصعيد</div></div></div>
+
 </div>
 
 <div class="charts">
-<div class="chart-card wide"><h4><i class="fas fa-chart-line" style="color:var(--primary-2)"></i> الاتجاه اليومي للبلاغات (المسجّل مقابل المنجز)</h4><div class="chart-box"><canvas id="chTrend"></canvas></div></div>
+<div class="chart-card wide"><h4 style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;"><span><i class="fas fa-chart-line" style="color:var(--primary-2)"></i> الاتجاه اليومي للبلاغات (المسجّل مقابل المنجز)</span><select id="trendMonthSel" class="trend-month-sel"><option value="">كل الفترة</option></select></h4><div class="chart-box"><canvas id="chTrend"></canvas></div></div>
 <div class="chart-card"><h4 id="mainChartTitle"><i class="fas fa-hospital" style="color:var(--primary-2)"></i> المواقع الأكثر تسجيلاً للأعطال</h4><div class="chart-box"><canvas id="chartMain"></canvas></div></div>
 <div class="chart-card"><h4><i class="fas fa-chart-pie" style="color:var(--yellow)"></i> أكثر الأجهزة تعطلاً (Top 10)</h4><div class="chart-box"><canvas id="chartDevices"></canvas></div></div>
-<div class="chart-card"><h4><i class="fas fa-circle-half-stroke" style="color:var(--purple)"></i> توزيع حالات الأوامر</h4><div class="chart-box"><canvas id="chStatus"></canvas></div></div>
+
 <div class="chart-card"><h4><i class="fas fa-user-gear" style="color:var(--green)"></i> أعلى الفنيين إنجازاً (Top 10)</h4><div class="chart-box"><canvas id="chTech"></canvas></div></div>
 </div>
 
@@ -203,12 +202,19 @@ body.pd tr { page-break-inside: avoid; }
 .rank-empty{padding:20px;text-align:center;color:var(--muted);font-size:.85rem}
 .ind-split{display:grid;grid-template-columns:1fr 1fr}
 .ind-split h4{font-size:.8rem;margin:12px 16px 0;color:var(--muted)}
+.panel-wide{grid-column:1/-1}
+.table-scroll{overflow-x:auto;padding:10px 16px 16px}
+.sort-table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
+.sort-table th{position:sticky;top:0;background:var(--card-bg,#fff);cursor:pointer;user-select:none;text-align:right;padding:8px 10px;border-bottom:2px solid var(--border,#e5e7eb);font-weight:700}
+.sort-table td{padding:7px 10px;border-bottom:1px solid var(--border,#eef0f2)}
+.sort-table tbody tr:hover{background:rgba(59,130,246,.06)}
+.trend-month-sel{padding:5px 10px;border-radius:8px;border:1px solid var(--border,#e5e7eb);font-family:inherit;font-size:13px;background:#fff;color:inherit}
 </style>
 <div class="ind-grid">
-<div class="panel tp-blue"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--blue,#3b82f6)"><i class="fas fa-screwdriver-wrench"></i></div><div><h3>الأجهزة الأكثر صيانة</h3><small>الأجهزة الأكثر تكرارًا في عدد أوامر الشغل</small></div></div></div><div class="rank-list" id="rl-device-count"></div></div>
-<div class="panel tp-cyan"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--cyan,#06b6d4)"><i class="fas fa-hourglass-half"></i></div><div><h3>الأجهزة الأكثر تعطلاً (وقتًا)</h3><small>إجمالي أيام التوقف عن العمل لكل جهاز</small></div></div></div><div class="rank-list" id="rl-device-downtime"></div></div>
-<div class="panel tp-orange"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--orange)"><i class="fas fa-rotate"></i></div><div><h3>الوحدات المتكررة الأعطال</h3><small>Lemons - وحدات (بالرقم التسلسلي) تعطلت مرتين فأكثر</small></div></div></div><div class="rank-list" id="rl-serial"></div></div>
-<div class="panel tp-red"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-stopwatch"></i></div><div><h3>أطول أوامر الشغل المنفردة</h3><small>أعلى 5 أوامر شغل من حيث مدة الإصلاح</small></div></div></div><div class="rank-list" id="rl-longest"></div></div>
+<div class="panel panel-wide tp-blue"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--blue,#3b82f6)"><i class="fas fa-screwdriver-wrench"></i></div><div><h3>الأجهزة الأكثر صيانة</h3><small>الأجهزة الأكثر تكرارًا في عدد أوامر الشغل</small></div></div></div><div class="table-scroll"><div id="tbl-device-count"></div></div></div>
+<div class="panel panel-wide tp-cyan"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--cyan,#06b6d4)"><i class="fas fa-hourglass-half"></i></div><div><h3>الأجهزة الأكثر تعطلاً (وقتًا)</h3><small>إجمالي أيام التوقف عن العمل لكل جهاز</small></div></div></div><div class="table-scroll"><div id="tbl-device-downtime"></div></div></div>
+<div class="panel panel-wide tp-orange"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--orange)"><i class="fas fa-rotate"></i></div><div><h3>الوحدات المتكررة الأعطال</h3><small>Lemons - وحدات (بالرقم التسلسلي) تعطلت مرتين فأكثر</small></div></div></div><div class="table-scroll"><div id="tbl-serial"></div></div></div>
+<div class="panel panel-wide tp-red"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-stopwatch"></i></div><div><h3>أطول أوامر الشغل المنفردة</h3><small>أعلى 5 أوامر شغل من حيث مدة الإصلاح</small></div></div></div><div class="table-scroll"><div id="tbl-longest"></div></div></div>
 <div class="panel tp-purple"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--purple)"><i class="fas fa-user-gear"></i></div><div><h3>أداء الفنيين</h3><small>متوسط زمن الإصلاح - الأسرع والأبطأ</small></div></div></div><div class="ind-split"><div><h4>الأسرع</h4><div class="rank-list" id="rl-tech-fast"></div></div><div><h4>الأبطأ</h4><div class="rank-list" id="rl-tech-slow"></div></div></div></div>
 <div class="panel tp-blue"><div class="panel-head"><div class="panel-title"><div class="pi" style="background:var(--blue,#3b82f6)"><i class="fas fa-building"></i></div><div><h3>الأقسام والمواقع</h3><small>الأكثر عددًا في أوامر الشغل</small></div></div></div><div class="ind-split"><div><h4>الأقسام</h4><div class="rank-list" id="rl-dept"></div></div><div><h4>المواقع</h4><div class="rank-list" id="rl-site"></div></div></div></div>
 </div>
@@ -234,9 +240,26 @@ try {
 RAW_DATA = [];
 const metaSnap = await getDoc(doc(db, 'maintenance_data', 'cm_meta'));
 if (metaSnap.exists()) {
-const n = metaSnap.data().totalChunks || 0;
+const meta = metaSnap.data();
+const n = meta.totalChunks || 0;
+const CACHE_KEY = 'cmCacheV1';
+let rawRows = null;
+try {
+const cachedRaw = localStorage.getItem(CACHE_KEY);
+if (cachedRaw) {
+const cached = JSON.parse(cachedRaw);
+if (cached && cached.updatedAt === meta.updatedAt && cached.totalChunks === n && Array.isArray(cached.rows)) {
+rawRows = cached.rows;
+}
+}
+} catch (e) { rawRows = null; }
+if (!rawRows) {
 const chunkSnaps = await Promise.all(Array.from({ length: n }, (_, i) => getDoc(doc(db, 'maintenance_data', 'cm_' + i))));
-chunkSnaps.forEach(cs => { if (cs.exists()) (cs.data().rows || []).forEach(o => RAW_DATA.push(buildCmRow(o))); });
+rawRows = [];
+chunkSnaps.forEach(cs => { if (cs.exists()) (cs.data().rows || []).forEach(o => rawRows.push(o)); });
+try { localStorage.setItem(CACHE_KEY, JSON.stringify({ updatedAt: meta.updatedAt, totalChunks: n, rows: rawRows })); } catch (e) {}
+}
+rawRows.forEach(o => RAW_DATA.push(buildCmRow(o)));
 }
 if (RAW_DATA.length === 0) {
 badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-times"></i> لا توجد بيانات';
@@ -269,6 +292,7 @@ site: o.site || 'Unknown',
 dept: o.dept || '-',
 device: o.device || 'Device',
 serial: o.serial || '',
+controlNo: o.controlNo || '',
 tech: o.tech || 'Unknown',
 status: status,
 isOpen: !isClosed,
@@ -317,11 +341,8 @@ const aR = avg(closedArr, 'resp'), aF = avg(closedArr, 'fix');
 $('kpi-total').textContent = total;
 $('kpi-closed').textContent = closed;
 $('kpi-rate-sub').textContent = 'نسبة الإنجاز ' + rate + '%';
-$('kpi-active').textContent = active;
-$('kpi-progress').textContent = prog;
 $('kpi-resp').textContent = f1(aR);
 $('kpi-fix').textContent = f1(aF);
-$('kpi-late').textContent = late;
 $('h-total').textContent = total;
 $('h-rate').textContent = rate + '%';
 $('h-fix').textContent = f1(aF);
@@ -345,18 +366,8 @@ function renderCharts(data) {
 Chart.defaults.font.family = 'Tajawal'; Chart.defaults.font.weight = '600';
 const siteVal = 'All';
 
-// trend
-const byDay = {};
-data.forEach(r => { if (!r.dFail) return; const k = dayKey(r.dFail); if (!byDay[k]) byDay[k] = { t: 0, c: 0 }; byDay[k].t++; if (!r.isOpen) byDay[k].c++; });
-const days = Object.keys(byDay).sort();
-draw('chTrend', {
-type: 'line',
-data: { labels: days.map(d => d.substring(5)), datasets: [
-{ label: 'بلاغات مسجّلة', data: days.map(d => byDay[d].t), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.12)', fill: true, tension: .35, pointRadius: 2 },
-{ label: 'منجزة', data: days.map(d => byDay[d].c), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.08)', fill: true, tension: .35, pointRadius: 2 }
-] },
-options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-});
+renderTrendChart(data, '');
+populateTrendMonths(data);
 
 // main (site or dept)
 const groupBy = siteVal === 'All' ? 'site' : 'dept';
@@ -381,17 +392,6 @@ draw('chartDevices', {
 type: 'doughnut',
 data: { labels: dt.map(x => x[0]), datasets: [{ data: dt.map(x => x[1]), backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'], borderWidth: 2, borderColor: '#fff' }] },
 options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } } } }
-});
-
-// status
-const sg = {};
-data.forEach(r => { const k = r.status || 'غير محدد'; sg[k] = (sg[k] || 0) + 1; });
-const sk = Object.keys(sg);
-const scol = { 'Signed Off': '#16a34a', 'Active': '#dc2626', 'Assigned': '#2563eb', 'Pending for Approval': '#7c3aed', 'Approved': '#0891b2' };
-draw('chStatus', {
-type: 'doughnut',
-data: { labels: sk, datasets: [{ data: sk.map(k => sg[k]), backgroundColor: sk.map(k => scol[k] || '#94a3b8'), borderWidth: 2, borderColor: '#fff' }] },
-options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom' } } }
 });
 
 // technicians (closed)
@@ -442,12 +442,86 @@ function renderRankList(id, items) {
   }).join('');
 }
 
+
+function renderTrendChart(data, month) {
+var byDay = {};
+data.forEach(function (r) { if (!r.dFail) return; var k = dayKey(r.dFail); if (month && k.slice(0, 7) !== month) return; if (!byDay[k]) byDay[k] = { t: 0, c: 0 }; byDay[k].t++; if (!r.isOpen) byDay[k].c++; });
+var days = Object.keys(byDay).sort();
+draw('chTrend', {
+type: 'line',
+data: { labels: days.map(function (d) { return d.substring(5); }), datasets: [
+{ label: 'بلاغات مسجّلة', data: days.map(function (d) { return byDay[d].t; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.12)', fill: true, tension: .35, pointRadius: 2 },
+{ label: 'منجزة', data: days.map(function (d) { return byDay[d].c; }), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.08)', fill: true, tension: .35, pointRadius: 2 }
+] },
+options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
+}
+function populateTrendMonths(data) {
+var sel = document.getElementById('trendMonthSel');
+if (!sel) return;
+var months = {};
+data.forEach(function (r) { if (!r.dFail) return; months[dayKey(r.dFail).slice(0, 7)] = true; });
+var keys = Object.keys(months).sort();
+var names = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+sel.innerHTML = '<option value="">كل الفترة</option>' + keys.map(function (k) {
+var parts = k.split('-'); var y = parts[0]; var mo = parseInt(parts[1], 10);
+return '<option value="' + k + '">' + (names[mo - 1] || mo) + ' ' + y + '</option>';
+}).join('');
+sel.onchange = function () { renderTrendChart(RAW_DATA, sel.value); };
+}
+function groupByControlNo(data) {
+var g = {};
+data.forEach(function (r) {
+var k = r.controlNo || '';
+if (!k) return;
+if (!g[k]) g[k] = { name: k, device: r.device, site: r.site, dept: r.dept, t: 0, c: 0, o: 0, rs: 0, fs: 0, n: 0 };
+var x = g[k]; x.t++;
+if (r.isOpen) x.o++; else { x.c++; x.rs += r.resp; x.fs += r.fix; x.n++; }
+});
+return Object.values(g).map(function (x) { x.rate = x.t ? Math.round(x.c / x.t * 100) : 0; x.ar = x.n ? x.rs / x.n : null; x.af = x.n ? x.fs / x.n : null; return x; });
+}
+function renderSortTable(containerId, cols, rows, defaultSortKey, defaultDir) {
+var el = document.getElementById(containerId);
+if (!el) return;
+var state = { key: defaultSortKey, dir: defaultDir || 'desc' };
+function render() {
+var sorted = rows.slice().sort(function (a, b) {
+var av = a[state.key], bv = b[state.key];
+if (av == null) av = '';
+if (bv == null) bv = '';
+var cmp = (typeof av === 'number' && typeof bv === 'number') ? (av - bv) : String(av).localeCompare(String(bv), 'ar');
+return state.dir === 'asc' ? cmp : -cmp;
+});
+var thead = '<tr>' + cols.map(function (c) {
+var arrow = c.key === state.key ? (state.dir === 'asc' ? ' ▲' : ' ▼') : '';
+return '<th data-key="' + c.key + '">' + esc(c.label) + arrow + '</th>';
+}).join('') + '</tr>';
+var tbody = sorted.map(function (r, i) {
+return '<tr>' + cols.map(function (c) {
+var v = r[c.key];
+var out = c.format ? c.format(v, r, i) : esc(v == null ? '' : String(v));
+return '<td>' + out + '</td>';
+}).join('') + '</tr>';
+}).join('');
+el.innerHTML = '<table class="sort-table"><thead>' + thead + '</thead><tbody>' + tbody + '</tbody></table>';
+Array.prototype.forEach.call(el.querySelectorAll('th'), function (th) {
+th.onclick = function () {
+var k = th.getAttribute('data-key');
+if (state.key === k) { state.dir = state.dir === 'asc' ? 'desc' : 'asc'; } else { state.key = k; state.dir = 'desc'; }
+render();
+};
+});
+}
+render();
+}
+
 function computeIndicators(data) {
   var closed = data.filter(function (r) { return !r.isOpen; });
-  var byDeviceCount = groupStats(data, 'device').filter(function(x){return x.name && x.name !== '-';}).sort(function (a, b) { return b.t - a.t; }).slice(0, 10);
-  var byDeviceDowntime = groupStats(data, 'device').filter(function (x) { return x.fs > 0; }).sort(function (a, b) { return b.fs - a.fs; }).slice(0, 10);
-  var bySerial = groupStats(data.filter(function (r) { return r.serial; }), 'serial').filter(function (x) { return x.t >= 2; }).sort(function (a, b) { return b.t - a.t; }).slice(0, 10);
-  var longest = closed.filter(function (r) { return r.fix > 0; }).sort(function (a, b) { return b.fix - a.fix; }).slice(0, 5);
+  var byControl = groupByControlNo(data);
+  var byDeviceCount = byControl.filter(function (x) { return x.name; }).slice().sort(function (a, b) { return b.t - a.t; }).slice(0, 20);
+  var byDeviceDowntime = byControl.filter(function (x) { return x.fs > 0; }).slice().sort(function (a, b) { return b.fs - a.fs; }).slice(0, 20);
+  var bySerial = byControl.filter(function (x) { return x.t >= 2; }).slice().sort(function (a, b) { return b.t - a.t; }).slice(0, 20);
+  var longest = closed.filter(function (r) { return r.fix > 0; }).sort(function (a, b) { return b.fix - a.fix; }).slice(0, 20);
   var techStats = groupStats(data, 'tech').filter(function (x) { return x.n >= 2; });
   var fastest = techStats.slice().sort(function (a, b) { return a.af - b.af; }).slice(0, 5);
   var slowest = techStats.slice().sort(function (a, b) { return b.af - a.af; }).slice(0, 5);
@@ -458,14 +532,27 @@ function computeIndicators(data) {
 
 function renderIndicators(data) {
   var ind = computeIndicators(data);
-  renderRankList('rl-device-count', ind.byDeviceCount.map(function (x) { return { name: x.name, value: x.t, valueLabel: x.t + ' أمر' }; }));
-  renderRankList('rl-device-downtime', ind.byDeviceDowntime.map(function (x) { return { name: x.name, value: x.fs, valueLabel: fmtDays(x.fs) }; }));
-  renderRankList('rl-serial', ind.bySerial.map(function (x) { return { name: x.name, value: x.t, valueLabel: x.t + ' عطل' }; }));
-  renderRankList('rl-longest', ind.longest.map(function (x) { return { name: x.device + ' (' + x.id + ')', value: x.fix, valueLabel: fmtDays(x.fix), sub: (x.site || '') + ' / ' + (x.dept || '') + ' / ' + (x.tech || '') }; }));
-  renderRankList('rl-tech-fast', ind.fastest.map(function (x) { return { name: x.name, value: x.af, valueLabel: fmtDays(x.af), color: 'var(--green,#22c55e)' }; }));
-  renderRankList('rl-tech-slow', ind.slowest.map(function (x) { return { name: x.name, value: x.af, valueLabel: fmtDays(x.af), color: 'var(--red,#ef4444)' }; }));
-  renderRankList('rl-dept', ind.byDept.map(function (x) { return { name: x.name, value: x.t, valueLabel: x.t + ' أمر' }; }));
-  renderRankList('rl-site', ind.bySite.map(function (x) { return { name: x.name, value: x.t, valueLabel: x.t + ' أمر' }; }));
+  var colsDevice = [
+    { key: 'name', label: 'الكونترول نمبر' },
+    { key: 'device', label: 'الجهاز' },
+    { key: 'site', label: 'الموقع' },
+    { key: 'dept', label: 'القسم' }
+  ];
+  renderSortTable('tbl-device-count', colsDevice.concat([{ key: 't', label: 'عدد الأوامر' }]), ind.byDeviceCount, 't', 'desc');
+  renderSortTable('tbl-device-downtime', colsDevice.concat([{ key: 'fs', label: 'إجمالي أيام التوقف', format: function (v) { return fmtDays(v); } }]), ind.byDeviceDowntime, 'fs', 'desc');
+  renderSortTable('tbl-serial', colsDevice.concat([{ key: 't', label: 'عدد الأعطال' }]), ind.bySerial, 't', 'desc');
+  renderSortTable('tbl-longest', [
+    { key: 'controlNo', label: 'الكونترول نمبر' },
+    { key: 'device', label: 'الجهاز' },
+    { key: 'site', label: 'الموقع' },
+    { key: 'dept', label: 'القسم' },
+    { key: 'fix', label: 'مدة الإصلاح', format: function (v) { return fmtDays(v); } },
+    { key: 'id', label: 'رقم الأمر' }
+  ], ind.longest, 'fix', 'desc');
+  renderRankList('rl-tech-fast', ind.fastest.map(function (x) { return { name: x.name, value: x.af, valueLabel: fmtDays(x.af), color: 'var(--green,#22c55e)', sub: 'نسبة الإنجاز ' + x.rate + '%' }; }));
+  renderRankList('rl-tech-slow', ind.slowest.map(function (x) { return { name: x.name, value: x.af, valueLabel: fmtDays(x.af), color: 'var(--red,#ef4444)', sub: 'نسبة الإنجاز ' + x.rate + '%' }; }));
+  renderRankList('rl-dept', ind.byDept.map(function (x) { return { name: x.name, value: x.t, valueLabel: x.t + ' أمر', sub: 'نسبة الإنجاز ' + x.rate + '%' }; }));
+  renderRankList('rl-site', ind.bySite.map(function (x) { return { name: x.name, value: x.t, valueLabel: x.t + ' أمر', sub: 'نسبة الإنجاز ' + x.rate + '%' }; }));
 }
 
 
