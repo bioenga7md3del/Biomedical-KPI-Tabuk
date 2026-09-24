@@ -290,6 +290,10 @@ function isOpenPendingStatus(status) {
   return v === "active" || v === "assigned" || v.indexOf("نشط") !== -1 || v.indexOf("مكلف") !== -1;
 }
 
+function isCmClosed(status) {
+  return String(status || "").trim().toLowerCase() === "signed off";
+}
+
 function chunkRowsForCm(rows, maxBytes) {
   const enc = new TextEncoder();
   const chunks = [];
@@ -331,46 +335,45 @@ async function syncPendingToCm(pendingRows) {
     return { skipped: true, reason: "no-cm-data" };
   }
 
-  const byControlNo = new Map();
+  const byId = new Map();
   cmRows.forEach(function (r, idx) {
-    const cn = s(r.controlNo || r.id);
-    if (cn) byControlNo.set(cn, idx);
+    const key = s(r.id);
+    if (key) byId.set(key, idx);
   });
 
   let addedCount = 0, reopenedCount = 0, closedCount = 0, matchedCount = 0;
 
   pendingRows.forEach(function (rec) {
-    const cn = s(rec.controlNo);
-    if (!cn) return;
+    const key = s(rec.id);
+    if (!key) return;
     const open = isOpenPendingStatus(rec.status);
-    const idx = byControlNo.get(cn);
+    const idx = byId.get(key);
     if (idx !== undefined) {
       const cmRec = cmRows[idx];
-      const wasOpen = isOpenPendingStatus(cmRec.status);
+      const wasOpen = !isCmClosed(cmRec.status);
       matchedCount++;
       if (open && !wasOpen) {
-        cmRec.status = "Active";
+        cmRec.status = rec.status || "Active";
         reopenedCount++;
       } else if (!open && wasOpen) {
-        cmRec.status = "Completed";
-        if (!cmRec.dSign) cmRec.dSign = rec.failDate || "";
+        cmRec.status = "Signed Off";
         closedCount++;
       }
     } else if (open) {
       cmRows.push({
-        id: cn,
-        controlNo: cn,
+        id: key,
+        controlNo: rec.controlNo || "",
         site: rec.site,
         dept: rec.dept,
         device: rec.device,
         serial: "",
-        status: "Active",
+        status: rec.status || "Active",
         dFail: rec.failDate,
         dStart: rec.startDate,
         dSign: "",
         cls: ""
       });
-      byControlNo.set(cn, cmRows.length - 1);
+      byId.set(key, cmRows.length - 1);
       addedCount++;
     }
   });
