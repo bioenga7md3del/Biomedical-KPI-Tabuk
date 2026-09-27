@@ -92,6 +92,13 @@ th { background: #f8fafc; position: sticky; top: 0; }
 
 <div class="log-box" id="logBox"></div>
 
+<div class="card" style="border-top-color:#16a34a;">
+<h2><i class="fas fa-bolt"></i> مزامنة فورية لكل الأوامر الحالية</h2>
+<p style="color: #64748b; line-height: 1.7;">يقوم هذا الزر بمزامنة كل أوامر العمل الموجودة حالياً في النظام (سواء المرفوعة من ملف Excel أو المضافة يدوياً من صفحة الموقع) مع تقرير الصيانة التصحيحية مباشرة، دون الحاجة لرفع ملف جديد أو انتظار الرفع القادم.</p>
+<button class="btn-action" id="btnSyncNow"><i class="fas fa-bolt"></i> مزامنة الآن</button>
+<div id="syncNowMsg" style="margin-top:10px; color:#334155; font-weight:600;"></div>
+</div>
+
 <div class="card" style="border-top-color:#64748b;">
 <h2><i class="fas fa-history"></i> آخر عمليات المزامنة</h2>
 <div class="tbl-wrap" style="border-top:none;">
@@ -101,6 +108,26 @@ th { background: #f8fafc; position: sticky; top: 0; }
 </table>
 </div>
 </div>
+
+<div class="card">
+<h2><i class="fas fa-list-check"></i> كل أوامر العمل (كل المواقع)</h2>
+<div style="display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; justify-content:center;">
+<label style="font-weight:700; color:#475569;">فلترة حسب الحالة:</label>
+<select id="allOrdersStatusFilter" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-family:'Tajawal';">
+<option value="all">الكل</option>
+<option value="open">مفتوحة</option>
+<option value="closed">مغلقة</option>
+</select>
+<span id="allOrdersCount" style="color:#64748b; font-size:.9rem;"></span>
+</div>
+<div class="tbl-wrap" style="border-top:none; max-height:500px; overflow:auto;">
+<table>
+<thead><tr><th>رقم الأمر</th><th>الموقع</th><th>القسم</th><th>الجهاز</th><th>الفني</th><th>الحالة</th><th>تاريخ الإغلاق</th></tr></thead>
+<tbody id="allOrdersBody"><tr><td colspan="7" style="text-align:center; color:#94a3b8;">جاري التحميل...</td></tr></tbody>
+</table>
+</div>
+</div>
+
 </div>
 
 <script type="module">
@@ -129,6 +156,104 @@ function log(msg) { logBox.style.display = 'block'; logBox.textContent += msg + 
 ok("<i class='fas fa-check-circle'></i> جاهز لاستقبال الملف!");
 btnPreview.disabled = false;
 loadSyncLog();
+
+// ===== كل أوامر العمل (كل المواقع) + المزامنة الفورية المستقلة =====
+async function loadAllPendingRows() {
+const snap = await getDocs(collection(db, "pending_orders"));
+const rows = [];
+snap.forEach(function (docSnap) {
+const r = docSnap.data();
+rows.push({
+id: r.id || docSnap.id,
+controlNo: r.controlNo || "",
+site: r.site || "",
+dept: r.dept || "",
+device: r.device || "",
+tech: r.tech || "",
+status: r.status || "Active",
+startDate: r.startDate || "",
+failDate: r.failDate || "",
+woType: r.woType || "",
+dSign: r.dSign || "",
+isCompleted: !!r.isCompleted
+});
+});
+return rows;
+}
+
+async function renderAllOrders() {
+const tbody = document.getElementById('allOrdersBody');
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8;">جاري التحميل...</td></tr>';
+try {
+const rows = await loadAllPendingRows();
+const filter = document.getElementById('allOrdersStatusFilter').value;
+const filtered = rows.filter(function (r) {
+if (filter === 'open') return !r.isCompleted;
+if (filter === 'closed') return r.isCompleted;
+return true;
+});
+tbody.innerHTML = '';
+document.getElementById('allOrdersCount').textContent = filtered.length + ' أمر';
+if (!filtered.length) {
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8;">لا توجد بيانات</td></tr>';
+return;
+}
+filtered.forEach(function (r) {
+const tr = document.createElement('tr');
+tr.innerHTML =
+'<td>' + esc(r.id) + '</td>' +
+'<td>' + esc(r.site) + '</td>' +
+'<td>' + esc(r.dept) + '</td>' +
+'<td>' + esc(r.device) + '</td>' +
+'<td>' + esc(r.tech) + '</td>' +
+'<td>' + esc(r.status) + (r.isCompleted ? ' <span style="color:#16a34a; font-weight:700;">(مغلق)</span>' : '') + '</td>' +
+'<td>' + esc(r.dSign || '-') + '</td>';
+tbody.appendChild(tr);
+});
+} catch (error) {
+console.error(error);
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#dc2626;">تعذر تحميل البيانات</td></tr>';
+}
+}
+
+document.getElementById('allOrdersStatusFilter').addEventListener('change', renderAllOrders);
+renderAllOrders();
+
+document.getElementById('btnSyncNow').addEventListener('click', async function () {
+const btnSN = document.getElementById('btnSyncNow');
+const msg = document.getElementById('syncNowMsg');
+btnSN.disabled = true;
+msg.textContent = 'جاري المزامنة...';
+try {
+const rows = await loadAllPendingRows();
+const res = await syncPendingToCm(rows);
+if (res && res.skipped) {
+msg.textContent = 'تعذرت المزامنة: لا توجد بيانات صيانة سابقة لدمجها معها.';
+} else {
+msg.textContent = 'تمت المزامنة بنجاح: ' + (res.addedCount || 0) + ' جديد، ' + (res.matchedCount || 0) + ' مطابق، ' + (res.closedCount || 0) + ' أُغلق، ' + (res.reopenedCount || 0) + ' أُعيد فتحه.';
+const now2 = new Date().toISOString();
+await addDoc(collection(db, "sync_log"), {
+at: now2,
+by: profile.email,
+fileName: 'مزامنة يدوية فورية (بدون رفع ملف)',
+fileCount: rows.length,
+added: res.addedCount || 0,
+updated: res.matchedCount || 0,
+reopened: res.reopenedCount || 0,
+closed: res.closedCount || 0,
+unchanged: 0
+});
+loadSyncLog();
+renderAllOrders();
+}
+} catch (error) {
+console.error(error);
+msg.textContent = 'حدث خطأ أثناء المزامنة.';
+} finally {
+btnSN.disabled = false;
+}
+});
+
 
 // قراءة الملف: الهيدر في الصف الثاني عادةً (الصف الأول عنوان التقرير)
 function readRows(wb) {
@@ -357,9 +482,10 @@ async function syncPendingToCm(pendingRows) {
         reopenedCount++;
       } else if (!open && wasOpen) {
         cmRec.status = "Signed Off";
+        cmRec.dSign = rec.dSign || cmRec.dSign || "";
         closedCount++;
       }
-    } else if (open) {
+    } else {
       cmRows.push({
         id: key,
         controlNo: rec.controlNo || "",
@@ -370,7 +496,7 @@ async function syncPendingToCm(pendingRows) {
         status: rec.status || "Active",
         dFail: rec.failDate,
         dStart: rec.startDate,
-        dSign: "",
+        dSign: rec.dSign || "",
         cls: ""
       });
       byId.set(key, cmRows.length - 1);
