@@ -93,14 +93,26 @@ tbody tr:hover { background: #f0f9ff; }
 .badge { padding: 5px 11px; border-radius: 6px; font-weight: 800; font-size: .78rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .age-green { background: #dcfce7; color: #166534; } .age-yellow { background: #fef08a; color: #854d0e; } .age-red { background: #fee2e2; color: #991b1b; }
 .badge-done { background: #dcfce7; color: #16a34a; } .badge-warn { background: #fee2e2; color: #dc2626; }
-.st-Active { background: #fee2e2; color: #991b1b; } .st-Assigned { background: #dbeafe; color: #1d4ed8; } .st-PendingApproval { background: #ede9fe; color: #6d28d9; } .st-Approved { background: #dcfce7; color: #166534; } .st-other { background: #e2e8f0; color: #334155; }
+.st-Active { background: #fee2e2; color: #991b1b; } .st-Assigned { background: #dbeafe; color: #1d4ed8; } .st-PendingApproval { background: #ede9fe; color: #6d28d9; } .st-Approved { background: #dcfce7; color: #166534; } .st-SignedOff { background: #dcfce7; color: #166534; } .st-other { background: #e2e8f0; color: #334155; }
 .last-text { display: block; font-weight: 700; font-size: .82rem; line-height: 1.4; max-width: 300px; }
 .last-date { display: block; font-size: .72rem; color: var(--muted); font-weight: 700; margin-top: 2px; }
 
 .btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; }
 .btn-update:hover { background: #0284c7; color: #fff; }
+.btn-close-order { background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; margin-inline-start: 6px; }
+.btn-close-order:hover { background: #16a34a; color: #fff; }
+.btn-view-order { background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; }
+.btn-view-order:hover { background: #334155; color: #fff; }
+.view-toggle { display: flex; gap: 10px; margin-bottom: 16px; }
+.view-toggle button { flex: 1; padding: 12px; border: none; border-radius: 10px; background: #e2e8f0; color: #334155; font-family: 'Tajawal'; font-weight: 800; cursor: pointer; font-size: .95rem; transition: .2s; }
+.view-toggle button.active { background: var(--primary); color: #fff; }
+.new-order-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: #f8fafc; border: 1px solid var(--line); padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+.new-order-fields label { display: block; font-size: .8rem; font-weight: 700; color: #334155; margin-bottom: 4px; }
+.new-order-fields select, .new-order-fields input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tajawal'; font-size: .9rem; background: #fff; }
+.tp-green { border-top: 4px solid var(--green); }
 
 #commentModal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
+#addOrderModal, #closeOrderModal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
 .modal-content { background: #fff; padding: 28px; border-radius: 18px; width: 95%; max-width: 620px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); max-height: 92vh; overflow-y: auto; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
 .order-info { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: .86rem; color: #475569; line-height: 1.9; font-weight: 600; }
@@ -183,7 +195,7 @@ td.empty::before { content: none; }
 @media print {
 @page { size: A4 landscape; margin: 9mm; }
 html, body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-#appScreen, #commentModal, #lightbox { display: none !important; }
+#appScreen, #commentModal, #lightbox, #addOrderModal, #closeOrderModal { display: none !important; }
 #printSheet { display: block !important; direction: rtl; font-family: 'Tajawal', sans-serif; color: #0f172a; }
 #printSheet .ps-head { display: flex; align-items: center; gap: 14px; padding-bottom: 10px; border-bottom: 3px solid #1e3a8a; margin-bottom: 10px; }
 #printSheet .ps-head img { height: 64px; object-fit: contain; }
@@ -229,6 +241,7 @@ html, body { background: #fff !important; -webkit-print-color-adjust: exact; pri
 </div>
 </div>
 <div class="header-actions">
+<button class="btn-action" id="btnAddOrder"><i class="fas fa-plus"></i> إضافة أمر عمل</button>
 <button class="btn-action" id="btnReload"><i class="fas fa-rotate"></i> تحديث</button>
 <button class="btn-action btn-print" onclick="window.print()"><i class="fas fa-print"></i> طباعة كشف الأعطال</button>
 <button class="btn-action btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
@@ -276,11 +289,26 @@ html, body { background: #fff !important; -webkit-print-color-adjust: exact; pri
 <div class="chart-card"><h4><i class="fas fa-user-gear" style="color:var(--accent)"></i> الأوامر حسب الفني</h4><div class="chart-box"><canvas id="chTech"></canvas></div></div>
 </div>
 
-<div class="panel tp-red">
+<div class="view-toggle">
+<button id="btnViewOpen" class="active" onclick="window.switchOrdersView('open')"><i class="fas fa-triangle-exclamation"></i> الأوامر المفتوحة</button>
+<button id="btnViewClosed" onclick="window.switchOrdersView('closed')"><i class="fas fa-box-archive"></i> الأوامر المغلقة</button>
+</div>
+
+<div class="panel tp-red" id="panelOpen">
 <div class="panel-head">
 <div class="panel-title"><div class="pi" style="background:var(--red)"><i class="fas fa-triangle-exclamation"></i></div><div><h3>أوامر العمل المفتوحة <span class="count-pill" id="c-t1">0</span></h3><small>أوامر العمل بحالة Active و Assigned</small></div></div>
 </div>
 <div class="table-wrap"><table id="table1"><thead id="head1"></thead><tbody id="body1"><tr><td colspan="10" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل أوامر العمل الخاصة بموقعكم...</td></tr></tbody></table></div>
+</div>
+
+<div class="panel tp-green" id="panelClosed" style="display:none">
+<div class="panel-head">
+<div class="panel-title"><div class="pi" style="background:var(--green)"><i class="fas fa-box-archive"></i></div><div><h3>الأوامر المغلقة <span class="count-pill" id="c-t2">0</span></h3><small>الأوامر التي تم إقفالها في موقعكم</small></div></div>
+</div>
+<div class="table-wrap"><table id="table2">
+<thead><tr><th>رقم الأمر</th><th>تاريخ الإغلاق</th><th>الحالة</th><th>القسم</th><th>الجهاز</th><th>الفني</th><th>إجراءات</th></tr></thead>
+<tbody id="body2"><tr><td colspan="7" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الأوامر المغلقة...</td></tr></tbody>
+</table></div>
 </div>
 
 
@@ -328,17 +356,44 @@ html, body { background: #fff !important; -webkit-print-color-adjust: exact; pri
 </div>
 </div>
 
+<div id="addOrderModal">
+<div class="modal-content">
+<div class="modal-header"><h3 style="margin:0; color:var(--primary);">إضافة أمر عمل جديد</h3><i class="fas fa-times" style="cursor: pointer; color:var(--red); font-size: 1.5rem;" onclick="window.closeAddOrderModal()"></i></div>
+<div class="new-order-fields">
+<div><label>رقم الكونترول *</label><input type="text" id="newControlNo"></div>
+<div><label>اسم الجهاز *</label><input type="text" id="newDevice"></div>
+<div><label>القسم *</label><input type="text" id="newDept"></div>
+<div><label>الفني المكلف *</label><input type="text" id="newTech"></div>
+<div><label>تاريخ العطل *</label><input type="date" id="newFailDate"></div>
+<div><label>تاريخ البدء *</label><input type="date" id="newStartDate"></div>
+</div>
+<textarea id="newNote" placeholder="ملاحظة (اختياري)..." maxlength="1000"></textarea>
+<button class="btn-save" id="btnSubmitNewOrder" onclick="window.submitNewOrder()"><i class="fas fa-save"></i> إضافة أمر العمل</button>
+</div>
+</div>
+
+<div id="closeOrderModal">
+<div class="modal-content">
+<div class="modal-header"><h3 style="margin:0; color:var(--primary);">إقفال أمر العمل: <span id="closeOrderId" style="color:var(--accent);"></span></h3><i class="fas fa-times" style="cursor: pointer; color:var(--red); font-size: 1.5rem;" onclick="window.closeCloseModal()"></i></div>
+<div class="new-order-fields">
+<div><label>تاريخ الإغلاق *</label><input type="date" id="closeDate"></div>
+</div>
+<textarea id="closeNote" placeholder="ملاحظة الإغلاق (اختياري)..." maxlength="1000"></textarea>
+<button class="btn-save" id="btnSubmitCloseOrder" onclick="window.submitCloseOrder()"><i class="fas fa-check-circle"></i> تأكيد إقفال الأمر</button>
+</div>
+</div>
+
 <script type="module">
 import { requireRole, logout, db, esc } from "./firebase-init.js";
-import { collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // المدير يرى موقعه فقط (الموقع يُقرأ من حسابه في السيرفر وليس من المتصفح)
 const { profile } = await requireRole(['manager']);
 const currentSite = profile.site;
 
 const IN_PROGRESS = ['Assigned', 'Pending for Approval', 'Approved'];
-const STATUS_AR = { 'Active': 'نشط', 'Assigned': 'مكلّف', 'Pending for Approval': 'بانتظار الاعتماد', 'Approved': 'معتمد' };
-const STATUS_CLS = { 'Active': 'st-Active', 'Assigned': 'st-Assigned', 'Pending for Approval': 'st-PendingApproval', 'Approved': 'st-Approved' };
+const STATUS_AR = { 'Active': 'نشط', 'Assigned': 'مكلّف', 'Pending for Approval': 'بانتظار الاعتماد', 'Approved': 'معتمد' , 'Signed Off': 'مغلق' };
+const STATUS_CLS = { 'Active': 'st-Active', 'Assigned': 'st-Assigned', 'Pending for Approval': 'st-PendingApproval', 'Approved': 'st-Approved', 'Signed Off': 'st-SignedOff' };
 const AGE_COL = { green: '#16a34a', yellow: '#eab308', red: '#dc2626' };
 const COLS = [
 { key: 'id', label: 'رقم الأمر' },
@@ -597,9 +652,10 @@ tr.innerHTML =
 '<td>' + infoCell(r) + '</td>' +
 '<td>' + (r.hasUpdate ? '<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>' : '<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
 '<td>' + (r.lastComment ? '<span class="last-text">' + esc(r.lastComment.text) + '</span><span class="last-date"><i class="far fa-clock"></i> ' + esc(fmtTs(r.lastComment)) + (r.comments.length > 1 ? ' · ' + r.comments.length + ' ردود' : '') + (r.lastComment.imgs && r.lastComment.imgs.length ? ' · <i class="fas fa-paperclip"></i> ' + r.lastComment.imgs.length : '') + '</span>' : '<span style="color:var(--red); font-weight:800; font-size:.8rem;">لا يوجد أي تبرير مرفوع</span>') + '</td>' +
-'<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button></td>';
+'<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button> <button class="btn-close-order"><i class="fas fa-check-circle"></i> إقفال الأمر</button></td>';
 Array.from(tr.children).forEach((td, i) => { if (COLS[i]) td.setAttribute('data-label', COLS[i].label); });
 tr.querySelector('.btn-update').addEventListener('click', () => window.openModal(r.id));
+tr.querySelector('.btn-close-order').addEventListener('click', () => window.openCloseModal(r.id));
 tbody.appendChild(tr);
 });
 }
@@ -654,7 +710,7 @@ $('modalNewComment').value = "";
 $('approvalFields').style.display = 'none';
 $('lblWriteType').textContent = "إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:";
 $('btnSaveComment').innerHTML = '<i class="fas fa-save"></i> حفظ المبرر وإرساله فوراً للأدمن';
-const order = LOCAL_ORDERS.find(o => o.id === orderId);
+const order = LOCAL_ORDERS.find(o => o.id === orderId) || LOCAL_CLOSED.find(o => o.id === orderId);
 $('modalInfo').innerHTML = '<b>الجهاز:</b> ' + esc(order.device) + '<br><b>الحالة:</b> ' + esc(STATUS_AR[order.status] || order.status) + ' &nbsp;|&nbsp; <b>الفني:</b> ' + esc(order.tech || '-') + ' &nbsp;|&nbsp; <b>التأخير:</b> ' + order.agingDays + ' يوم';
 renderCommentsList(order);
 $('fBk').value = order.backup || '';
@@ -792,6 +848,184 @@ console.error(error);
 alert("تعذر مسح الكومنت، تحقق من الصلاحيات والاتصال.");
 }
 };
+
+
+// ===== إضافة أمر عمل يدوياً وإقفال الأوامر وعرض الأوامر المغلقة =====
+let LOCAL_CLOSED = [];
+let CLOSED_LOADED = false;
+let currentClosingOrderId = null;
+
+window.switchOrdersView = function (view) {
+const openPanel = $('panelOpen');
+const closedPanel = $('panelClosed');
+const btnOpen = $('btnViewOpen');
+const btnClosed = $('btnViewClosed');
+if (view === 'closed') {
+openPanel.style.display = 'none';
+closedPanel.style.display = '';
+btnOpen.classList.remove('active');
+btnClosed.classList.add('active');
+if (!CLOSED_LOADED) { loadClosedOrders(); }
+} else {
+openPanel.style.display = '';
+closedPanel.style.display = 'none';
+btnClosed.classList.remove('active');
+btnOpen.classList.add('active');
+}
+};
+
+async function loadClosedOrders() {
+try {
+const q = query(collection(db, "pending_orders"), where("site", "==", currentSite), where("isCompleted", "==", true));
+const snapshot = await getDocs(q);
+LOCAL_CLOSED = [];
+snapshot.forEach(docSnap => {
+const r = docSnap.data();
+r.docId = docSnap.id;
+LOCAL_CLOSED.push(r);
+});
+LOCAL_CLOSED.sort((a, b) => String(b.dSign || b.completedAt || '').localeCompare(String(a.dSign || a.completedAt || '')));
+CLOSED_LOADED = true;
+renderClosedTable();
+} catch (error) {
+console.error(error);
+$('body2').innerHTML = '<tr><td colspan="7" class="empty">تعذر تحميل الأوامر المغلقة</td></tr>';
+}
+}
+
+function renderClosedTable() {
+const tbody = $('body2');
+tbody.innerHTML = '';
+$('c-t2').textContent = LOCAL_CLOSED.length;
+if (!LOCAL_CLOSED.length) {
+tbody.innerHTML = '<tr><td colspan="7" class="empty">لا توجد أوامر عمل مغلقة بعد</td></tr>';
+return;
+}
+LOCAL_CLOSED.forEach(r => {
+const tr = document.createElement('tr');
+tr.innerHTML =
+'<td>' + esc(r.id || '') + '</td>' +
+'<td>' + esc(r.dSign || r.completedAt || '-') + '</td>' +
+'<td><span class="badge ' + (STATUS_CLS[r.status] || 'st-other') + '">' + esc(STATUS_AR[r.status] || r.status || '') + '</span></td>' +
+'<td>' + esc(r.dept || '') + '</td>' +
+'<td>' + esc(r.device || '') + '</td>' +
+'<td>' + esc(r.tech || '') + '</td>' +
+'<td></td>';
+const actionTd = tr.lastElementChild;
+const btn = document.createElement('button');
+btn.className = 'btn-view-order';
+btn.innerHTML = '<i class="fas fa-eye"></i> عرض التفاصيل';
+btn.addEventListener('click', () => window.openModal(r.id));
+actionTd.appendChild(btn);
+tbody.appendChild(tr);
+});
+}
+
+window.openAddOrderModal = function () {
+$('newControlNo').value = '';
+$('newDevice').value = '';
+$('newDept').value = '';
+$('newTech').value = '';
+$('newFailDate').value = '';
+$('newStartDate').value = '';
+$('newNote').value = '';
+$('addOrderModal').style.display = 'flex';
+};
+window.closeAddOrderModal = function () {
+$('addOrderModal').style.display = 'none';
+};
+window.submitNewOrder = async function () {
+const controlNo = $('newControlNo').value.trim();
+const device = $('newDevice').value.trim();
+const dept = $('newDept').value.trim();
+const tech = $('newTech').value.trim();
+const failDate = $('newFailDate').value;
+const startDate = $('newStartDate').value;
+const note = $('newNote').value.trim();
+if (!controlNo || !device || !dept || !tech || !failDate || !startDate) {
+alert('الرجاء تعبئة كل الحقول المطلوبة (*).');
+return;
+}
+const btn = $('btnSubmitNewOrder');
+btn.disabled = true;
+try {
+const stamp = new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
+const docData = {
+controlNo: controlNo,
+site: currentSite,
+dept: dept,
+device: device,
+tech: tech,
+status: 'Active',
+startDate: startDate,
+failDate: failDate,
+woType: 'Corrective WO',
+isCompleted: false,
+comments: note ? [{ text: note, date: stamp, author: profile.email, images: [] }] : [],
+createdAt: new Date().toISOString(),
+createdBy: profile.email,
+source: 'manual'
+};
+const docRef = await addDoc(collection(db, "pending_orders"), docData);
+await updateDoc(docRef, { id: docRef.id });
+window.closeAddOrderModal();
+await loadSiteOrders();
+alert('تمت إضافة أمر العمل بنجاح.');
+} catch (error) {
+console.error(error);
+alert('حدث خطأ أثناء إضافة أمر العمل. تحقق من الصلاحيات والاتصال.');
+} finally {
+btn.disabled = false;
+}
+};
+
+window.openCloseModal = function (orderId) {
+currentClosingOrderId = orderId;
+$('closeOrderId').textContent = orderId;
+$('closeDate').value = new Date().toISOString().slice(0, 10);
+$('closeNote').value = '';
+$('closeOrderModal').style.display = 'flex';
+};
+window.closeCloseModal = function () {
+$('closeOrderModal').style.display = 'none';
+};
+window.submitCloseOrder = async function () {
+const closeDate = $('closeDate').value;
+const note = $('closeNote').value.trim();
+if (!closeDate) {
+alert('الرجاء تحديد تاريخ الإغلاق.');
+return;
+}
+const order = LOCAL_ORDERS.find(o => o.id === currentClosingOrderId);
+if (!order) { alert('تعذر العثور على أمر العمل.'); return; }
+const btn = $('btnSubmitCloseOrder');
+btn.disabled = true;
+try {
+const orderRef = doc(db, "pending_orders", order.docId);
+const stamp = new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
+const updated = Array.isArray(order.comments) ? [...order.comments] : [];
+if (note) updated.push({ text: note, date: stamp, author: profile.email, images: [] });
+await updateDoc(orderRef, {
+status: 'Signed Off',
+isCompleted: true,
+dSign: closeDate,
+completedAt: new Date().toISOString(),
+closedBy: profile.email,
+comments: updated
+});
+window.closeCloseModal();
+await loadSiteOrders();
+CLOSED_LOADED = false;
+alert('تم إقفال أمر العمل بنجاح.');
+} catch (error) {
+console.error(error);
+alert('حدث خطأ أثناء إقفال أمر العمل. تحقق من الصلاحيات والاتصال.');
+} finally {
+btn.disabled = false;
+}
+};
+
+$('btnAddOrder').addEventListener('click', window.openAddOrderModal);
 
 loadSiteOrders();
 </script>
