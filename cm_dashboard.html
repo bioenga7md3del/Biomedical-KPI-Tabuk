@@ -285,7 +285,7 @@ badge.className = 'status-badge st-error'; badge.innerHTML = '<i class="fas fa-e
 
 function buildCmRow(o) {
 const status = String(o.status || '').trim();
-const isClosed = status.toLowerCase() === 'signed off';
+const isClosed = !['active', 'assigned'].includes(status.toLowerCase());
 const dFail = parseDate(o.dFail);
 const dStart = parseDate(o.dStart);
 const dSign = parseDate(o.dSign);

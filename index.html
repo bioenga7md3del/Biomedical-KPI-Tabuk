@@ -338,7 +338,7 @@ badge.innerHTML = '<i class="fas fa-times-circle"></i> بانتظار الدات
 
 function buildCmExecRow(o) {
 const status = String(o.status || '').trim();
-const isClosed = status.toLowerCase() === 'signed off';
+const isClosed = !['active', 'assigned'].includes(status.toLowerCase());
 const dFail = parseDate(o.dFail);
 const dStart = parseDate(o.dStart);
 const dSign = parseDate(o.dSign);
