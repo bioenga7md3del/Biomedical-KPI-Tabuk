@@ -65,6 +65,10 @@ tr:hover { background: #f8fafc; }
 <option value="">-- جاري تحميل المواقع من السيرفر... --</option>
 </select>
 </div>
+<div class="form-group" id="customSiteGroup" style="display:none;">
+<label>اسم الموقع الجديد</label>
+<input type="text" id="siteNameCustom" class="form-control" placeholder="اكتب اسم الموقع/المستشفى الجديد">
+</div>
 <div class="form-group">
 <label>البريد الإلكتروني للمدير</label>
 <input type="email" id="siteEmail" class="form-control" placeholder="manager@example.com" style="direction:ltr; text-align:left;">
@@ -123,11 +127,17 @@ const snap = await getDocs(q);
 const uniqueSites = new Set();
 snap.forEach(d => { const s = d.data().site; if (s) uniqueSites.add(s); });
 
-if (uniqueSites.size === 0) {
-siteNameSelect.innerHTML = '<option value="">⚠️ لا توجد أوامر مفتوحة بالسيرفر لاستخراج المواقع</option>';
-return;
-}
-siteNameSelect.innerHTML = '<option value="">-- اختر المستشفى/الموقع --</option>';
+siteNameSelect.innerHTML = '';
+const optDefault = document.createElement('option');
+optDefault.value = '';
+optDefault.textContent = uniqueSites.size === 0 ? '⚠️ لا توجد أوامر مفتوحة بالسيرفر لاستخراج المواقع' : '-- اختر المستشفى/الموقع --';
+siteNameSelect.appendChild(optDefault);
+
+const optNew = document.createElement('option');
+optNew.value = '__new__';
+optNew.textContent = '+ إدخال اسم موقع جديد يدوياً';
+siteNameSelect.appendChild(optNew);
+
 [...uniqueSites].sort().forEach(site => {
 const o = document.createElement('option');
 o.value = site; o.textContent = site;
@@ -135,12 +145,30 @@ siteNameSelect.appendChild(o);
 });
 } catch (e) {
 console.error(e);
-siteNameSelect.innerHTML = '<option value="">❌ فشل جلب المواقع من قاعدة البيانات</option>';
+siteNameSelect.innerHTML = '';
+const optErr = document.createElement('option');
+optErr.value = '';
+optErr.textContent = '❌ فشل جلب المواقع من قاعدة البيانات';
+siteNameSelect.appendChild(optErr);
+const optNew2 = document.createElement('option');
+optNew2.value = '__new__';
+optNew2.textContent = '+ إدخال اسم موقع جديد يدوياً';
+siteNameSelect.appendChild(optNew2);
 }
 }
 
+siteNameSelect.addEventListener('change', () => {
+const grp = document.getElementById('customSiteGroup');
+if (siteNameSelect.value === '__new__') {
+grp.style.display = '';
+} else {
+grp.style.display = 'none';
+}
+});
+
 btnAddSite.addEventListener('click', async () => {
-const site = siteNameSelect.value;
+let site = siteNameSelect.value;
+if (site === '__new__') { site = document.getElementById('siteNameCustom').value.trim(); }
 const email = document.getElementById('siteEmail').value.trim().toLowerCase();
 const pass = document.getElementById('sitePass').value;
 
