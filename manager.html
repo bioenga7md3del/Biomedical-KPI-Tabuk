@@ -595,7 +595,7 @@ return true;
 
 function applyFilters() {
 const data = getFiltered();
-VIEW[1] = data.filter(r => r.group === 1);
+VIEW[1] = data.filter(r => r.group === 1 || r.group === 2);
 renderTable(1);
 updateKPIs();
 renderCharts(data);

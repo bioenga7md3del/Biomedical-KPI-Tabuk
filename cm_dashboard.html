@@ -543,7 +543,9 @@ function computeIndicators(data) {
   var techAll = techStats.slice().sort(function (a, b) { return a.af - b.af; });
   var byDept = groupStats(data, 'dept').filter(function(x){return x.name && x.name !== '-';}).sort(function (a, b) { return b.t - a.t; }).slice(0, 10);
   var bySite = groupStats(data, 'site').sort(function (a, b) { return b.t - a.t; }).slice(0, 10);
-  return { byDeviceCount: byDeviceCount, byDeviceDowntime: byDeviceDowntime, bySerial: bySerial, longest: longest, techAll: techAll, byDept: byDept, bySite: bySite };
+  var fastest = techAll.slice(0, 10);
+  var slowest = techAll.slice(-10).reverse();
+  return { byDeviceCount: byDeviceCount, byDeviceDowntime: byDeviceDowntime, bySerial: bySerial, longest: longest, techAll: techAll, fastest: fastest, slowest: slowest, byDept: byDept, bySite: bySite };
 }
 
 let LAST_TECH_ALL = [];
