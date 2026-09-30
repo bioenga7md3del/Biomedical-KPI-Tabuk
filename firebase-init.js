@@ -19,8 +19,9 @@ export const ADMIN_EMAIL = "bioenga7md3del@gmail.com";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-// experimentalAutoDetectLongPolling: يتجنب مشاكل انقطاع الاتصال المتكررة خلف بعض شبكات/بروكسي المستشفيات
-export const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+// experimentalForceLongPolling: الكشف التلقائي (auto-detect) لم يكن يحل المشكلة فعليًا هنا،
+// فتم إجبار Long-Polling دائماً لتفادي انقطاع قناة الاتصال المتكرر خلف الشبكة/البروكسي
+export const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 
 // تنظيف النصوص قبل إدخالها في innerHTML
 export function esc(v) {
