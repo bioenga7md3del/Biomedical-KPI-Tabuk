@@ -315,8 +315,8 @@ th { background: #eee !important; position: static; }
 import { requireRole, db, esc } from "./firebase-init.js";
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// الدخول مسموح للأدمن ومديري المواقع المسجلين فقط
-await requireRole(['admin', 'manager']);
+// الدخول مقصور على الأدمن فقط (هذه اللوحة تعرض أوامر عمل كل المواقع بدون تصفية)
+await requireRole(['admin']);
 
 // الحالات التي تُعتبر "تحت الإجراء" (كل ما عداها = عطل نشط)
 const BKL = { yes: 'جهاز بديل متوفر', no: 'لا يوجد جهاز بديل', na: 'لا يحتاج بديل' };
