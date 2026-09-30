@@ -147,7 +147,6 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 <div class="hero-stats">
 <div class="hero-stat"><b id="hs-cm">-</b><span>بلاغات تصحيحية</span></div>
 <div class="hero-stat"><b id="hs-ppm">-</b><span>التزام وقائي</span></div>
-<div class="hero-stat"><b id="hs-open">-</b><span>أعطال مفتوحة</span></div>
 </div>
 </div>
 
@@ -159,7 +158,6 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 <div class="pc-stats">
 <div class="pc-stat"><b id="pc-cm-total">-</b><span>بلاغ</span></div>
 <div class="pc-stat"><b id="pc-cm-rate">-</b><span>إنجاز</span></div>
-<div class="pc-stat"><b id="pc-cm-open">-</b><span>مفتوح</span></div>
 </div>
 <div class="btn-enter">شاشة التحكم <i class="fas fa-arrow-left"></i></div>
 </a>
@@ -191,7 +189,6 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 <div class="grid-kpi">
 <div class="kpi-card"><div class="kpi-label">إجمالي البلاغات</div><div class="kpi-val" id="ex-cm-total">0</div><div class="kpi-sub">Total Corrective WOs</div></div>
 <div class="kpi-card"><div class="kpi-label">نسبة الإنجاز</div><div class="kpi-val" id="ex-cm-rate" style="color:#16a34a">0%</div><div class="kpi-sub" id="ex-cm-closed">Signed Off</div></div>
-<div class="kpi-card"><div class="kpi-label">أعطال مفتوحة</div><div class="kpi-val" id="ex-open-cm" style="color:#dc2626">0</div><div class="kpi-sub">Active / Pending</div></div>
 <div class="kpi-card"><div class="kpi-label">متوسط الاستجابة</div><div class="kpi-val" id="ex-resp" style="color:#ea580c">0</div><div class="kpi-sub">أيام (Fail → Start)</div></div>
 <div class="kpi-card"><div class="kpi-label">متوسط الإصلاح</div><div class="kpi-val" id="ex-fix" style="color:#0891b2">0</div><div class="kpi-sub">أيام (Fail → Closed)</div></div>
 </div>
@@ -431,7 +428,6 @@ const fmt = (s, n) => n ? (s / n).toFixed(1) : '-';
 $('ex-cm-total').textContent = cmT;
 $('ex-cm-rate').textContent = cmRate + '%';
 $('ex-cm-closed').textContent = cmC + ' بلاغ منجز';
-$('ex-open-cm').textContent = cmO;
 $('ex-resp').textContent = fmt(sr, nr);
 $('ex-fix').textContent = fmt(sf, nf);
 
@@ -445,8 +441,7 @@ $('ex-prog-ppm').textContent = pP;
 
 $('hs-cm').textContent = cmT;
 $('hs-ppm').textContent = pRate + '%';
-$('hs-open').textContent = cmO;
-$('pc-cm-total').textContent = cmT; $('pc-cm-rate').textContent = cmRate + '%'; $('pc-cm-open').textContent = cmO;
+$('pc-cm-total').textContent = cmT; $('pc-cm-rate').textContent = cmRate + '%';
 $('pc-ppm-total').textContent = pT; $('pc-ppm-rate').textContent = pRate + '%'; $('pc-ppm-delayed').textContent = pL;
 
 renderCharts(cmT, pT, cmSites, ppmSites);
@@ -466,10 +461,9 @@ const cm = Object.entries(cmSites).sort((a, b) => (b[1].c + b[1].o) - (a[1].c + 
 charts.c = new Chart($('chartCM'), {
 type: 'bar',
 data: { labels: cm.map(x => short(x[0])), datasets: [
-{ label: 'منجز', data: cm.map(x => x[1].c), backgroundColor: '#1e3a8a', borderRadius: 4 },
-{ label: 'مفتوح', data: cm.map(x => x[1].o), backgroundColor: '#dc2626', borderRadius: 4 }
+{ label: 'إجمالي البلاغات', data: cm.map(x => x[1].c + x[1].o), backgroundColor: '#1e3a8a', borderRadius: 4 }
 ] },
-options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }, y: { stacked: true } }, plugins: { legend: { position: 'bottom' } } }
+options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
 });
 
 const pp = Object.entries(ppmSites).map(x => ({ n: x[0], p: Math.round(x[1].d / x[1].t * 100), t: x[1].t })).sort((a, b) => b.t - a.t).slice(0, 8);

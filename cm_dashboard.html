@@ -395,10 +395,9 @@ const top = Object.entries(cnt).sort((a, b) => (b[1].c + b[1].o) - (a[1].c + a[1
 draw('chartMain', {
 type: 'bar',
 data: { labels: top.map(x => x[0].length > 24 ? x[0].substring(0, 24) + '…' : x[0]), datasets: [
-{ label: 'منجز', data: top.map(x => x[1].c), backgroundColor: '#1e3a8a', borderRadius: 4 },
-{ label: 'مفتوح', data: top.map(x => x[1].o), backgroundColor: '#dc2626', borderRadius: 4 }
+{ label: 'إجمالي البلاغات', data: top.map(x => x[1].c + x[1].o), backgroundColor: '#1e3a8a', borderRadius: 4 }
 ] },
-options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }, y: { stacked: true } }, plugins: { legend: { position: 'bottom' } } }
+options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
 });
 
 // devices
