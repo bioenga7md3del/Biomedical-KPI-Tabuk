@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { initializeFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyCG3bBrP1SWia50pnH1VS9behJ80M4BA6U",
@@ -19,7 +19,8 @@ export const ADMIN_EMAIL = "bioenga7md3del@gmail.com";
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// experimentalAutoDetectLongPolling: يتجنب مشاكل انقطاع الاتصال المتكررة خلف بعض شبكات/بروكسي المستشفيات
+export const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 
 // تنظيف النصوص قبل إدخالها في innerHTML
 export function esc(v) {
