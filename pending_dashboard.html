@@ -415,6 +415,7 @@ snap.forEach(d => {
 const r = d.data();
 if (r.status && r.status !== 'Active' && r.status !== 'Assigned') return;
 r.agingDays = calculateDays(r.failDate || r.startDate || r.createdAt);
+if (r.agingDays < 2) return;
 r.ageCat = r.agingDays < 5 ? 'green' : (r.agingDays <= 30 ? 'yellow' : 'red');
 r.comments = Array.isArray(r.comments) ? r.comments : [];
 r.hasUpdate = r.comments.length > 0;
