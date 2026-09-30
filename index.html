@@ -53,6 +53,7 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 .portal-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; flex-shrink: 0; background: var(--bgc); color: var(--c); }
 .portal-info h3 { margin: 0 0 4px; font-size: 1.2rem; color: #0f172a; font-weight: 800; }
 .portal-info p { margin: 0; font-size: .88rem; color: var(--secondary); line-height: 1.6; }
+.pc-freq { margin-top: 6px; font-size: .76rem; color: var(--secondary); font-weight: 700; display: flex; align-items: center; gap: 5px; }
 .pc-stats { display: flex; gap: 10px; }
 .pc-stat { flex: 1; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 9px 6px; text-align: center; }
 .pc-stat b { display: block; font-size: 1.35rem; font-weight: 800; color: var(--c); line-height: 1.2; }
@@ -154,7 +155,7 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 <div class="portal-grid">
 <a href="cm_dashboard.html" class="portal-card pc-cm">
 <div class="pc-top"><div class="portal-icon"><i class="fas fa-tools"></i></div>
-<div class="portal-info"><h3>الصيانة التصحيحية (CM)</h3><p>بلاغات الأعطال، سرعة الاستجابة، ومتوسط أوقات الإصلاح.</p></div></div>
+<div class="portal-info"><h3>الصيانة التصحيحية (CM)</h3><p>بلاغات الأعطال، سرعة الاستجابة، ومتوسط أوقات الإصلاح.</p><p class="pc-freq"><i class="fas fa-rotate"></i> البيانات تُحدَّث مرة واحدة كل شهر</p></div></div>
 <div class="pc-stats">
 <div class="pc-stat"><b id="pc-cm-total">-</b><span>بلاغ</span></div>
 <div class="pc-stat"><b id="pc-cm-rate">-</b><span>إنجاز</span></div>
@@ -163,7 +164,7 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 </a>
 <a href="ppm_dashboard.html" class="portal-card pc-ppm">
 <div class="pc-top"><div class="portal-icon"><i class="fas fa-calendar-check"></i></div>
-<div class="portal-info"><h3>الصيانة الوقائية (PPM)</h3><p>الالتزام بالخطة المجدولة والأوامر المتأخرة وتحت الإجراء.</p></div></div>
+<div class="portal-info"><h3>الصيانة الوقائية (PPM)</h3><p>الالتزام بالخطة المجدولة والأوامر المتأخرة وتحت الإجراء.</p><p class="pc-freq"><i class="fas fa-rotate"></i> البيانات تُحدَّث مرة واحدة كل شهر</p></div></div>
 <div class="pc-stats">
 <div class="pc-stat"><b id="pc-ppm-total">-</b><span>مستحق</span></div>
 <div class="pc-stat"><b id="pc-ppm-rate">-</b><span>التزام</span></div>
@@ -185,7 +186,7 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 <div class="section-title"><i class="fas fa-chart-line"></i> الملخص التنفيذي (Executive Summary)</div>
 
 <div class="group" style="--gc:#dc2626; --gbg:#fee2e2">
-<div class="group-title"><span class="gi"><i class="fas fa-tools"></i></span> الصيانة التصحيحية (CM) <small id="cm-period"></small></div>
+<div class="group-title"><span class="gi"><i class="fas fa-tools"></i></span> الصيانة التصحيحية (CM) <small id="cm-period">البيانات تُحدَّث مرة واحدة كل شهر</small></div>
 <div class="grid-kpi">
 <div class="kpi-card"><div class="kpi-label">إجمالي البلاغات</div><div class="kpi-val" id="ex-cm-total">0</div><div class="kpi-sub">Total Corrective WOs</div></div>
 <div class="kpi-card"><div class="kpi-label">نسبة الإنجاز</div><div class="kpi-val" id="ex-cm-rate" style="color:#16a34a">0%</div><div class="kpi-sub" id="ex-cm-closed">Signed Off</div></div>
@@ -195,7 +196,7 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 </div>
 
 <div class="group" style="--gc:#16a34a; --gbg:#dcfce7">
-<div class="group-title"><span class="gi"><i class="fas fa-calendar-check"></i></span> الصيانة الوقائية (PPM) <small>حتى نهاية الشهر الحالي</small></div>
+<div class="group-title"><span class="gi"><i class="fas fa-calendar-check"></i></span> الصيانة الوقائية (PPM) <small>البيانات تُحدَّث مرة واحدة كل شهر · حتى نهاية الشهر الحالي</small></div>
 <div class="grid-kpi">
 <div class="kpi-card"><div class="kpi-label">إجمالي المستحق</div><div class="kpi-val" id="ex-ppm-total">0</div><div class="kpi-sub">Total Scheduled</div></div>
 <div class="kpi-card"><div class="kpi-label">نسبة الالتزام</div><div class="kpi-val" id="ex-ppm-rate">0%</div><div class="kpi-sub" id="ex-ppm-gap">المستهدف 90%</div></div>
