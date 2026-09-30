@@ -230,7 +230,11 @@ const infoBox = document.getElementById('loginInfo');
 const btnMain = document.getElementById('btnLoginMain');
 let currentProfile = null;
 
-function homeFor(profile) { return profile.role === 'admin' ? 'admin.html' : 'manager.html'; }
+function homeFor(profile) {
+  if (profile.role === 'admin') return 'admin.html';
+  if (profile.role === 'viewer') return 'pending_dashboard.html';
+  return 'manager.html';
+}
 
 window.openLoginModal = function() {
   if (currentProfile) { location.href = homeFor(currentProfile); return; }
@@ -247,7 +251,9 @@ onAuthStateChanged(auth, async (user) => {
   if (currentProfile) {
     btnMain.innerHTML = currentProfile.role === 'admin'
       ? '<i class="fas fa-cogs"></i> لوحة الإدارة'
-      : '<i class="fas fa-hospital"></i> بوابة الموقع';
+      : currentProfile.role === 'viewer'
+        ? '<i class="fas fa-list-check"></i> الأوامر المعلقة'
+        : '<i class="fas fa-hospital"></i> بوابة الموقع';
   } else {
     btnMain.innerHTML = '<i class="fas fa-sign-in-alt"></i> تسجيل الدخول النظامي';
   }
