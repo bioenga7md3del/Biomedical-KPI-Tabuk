@@ -179,6 +179,7 @@ th { background: #eee !important; position: static; }
 <div>
 <h1>لوحة متابعة الأعطال وأوامر العمل</h1>
 <p>قسم الأجهزة الطبية - تجمع تبوك الصحي</p>
+<p id="scopeNote" style="display:none; color:#7c3aed;"></p>
 </div>
 </div>
 <div class="header-actions">
@@ -315,8 +316,21 @@ th { background: #eee !important; position: static; }
 import { requireRole, db, esc } from "./firebase-init.js";
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// الدخول مقصور على الأدمن فقط (هذه اللوحة تعرض أوامر عمل كل المواقع بدون تصفية)
-await requireRole(['admin']);
+// الدخول: الأدمن (يشوف كل المواقع)، أو حساب "مُشاهد" موافَق عليه (يشوف بس المواقع المحددة له)
+const { profile: PROFILE } = await requireRole(['admin', 'viewer']);
+
+// المواقع المسموح للمستخدم يشوفها: null = بدون تصفية (الأدمن أو مُشاهد بصلاحية "كل المواقع")
+const ALLOWED_SITES = (PROFILE.role === 'viewer' && PROFILE.sites !== 'ALL')
+  ? new Set(Array.isArray(PROFILE.sites) ? PROFILE.sites : [])
+  : null;
+
+if (PROFILE.role === 'viewer') {
+  const note = document.getElementById('scopeNote');
+  note.textContent = ALLOWED_SITES
+    ? '👁 عرض محدود بمواقعك: ' + [...ALLOWED_SITES].join('، ')
+    : '👁 عرض محدود (حساب مُشاهد) - كل المواقع';
+  note.style.display = '';
+}
 
 // الحالات التي تُعتبر "تحت الإجراء" (كل ما عداها = عطل نشط)
 const BKL = { yes: 'جهاز بديل متوفر', no: 'لا يوجد جهاز بديل', na: 'لا يحتاج بديل' };
@@ -413,6 +427,7 @@ const snap = await getDocs(query(collection(db, "pending_orders"), where("isComp
 MASTER = [];
 snap.forEach(d => {
 const r = d.data();
+if (ALLOWED_SITES && !ALLOWED_SITES.has(r.site)) return;
 if (r.status && r.status !== 'Active' && r.status !== 'Assigned') return;
 r.agingDays = calculateDays(r.failDate || r.startDate || r.createdAt);
 if (r.agingDays < 2) return;

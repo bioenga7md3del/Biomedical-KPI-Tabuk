@@ -34,7 +34,7 @@ function currentUser() {
   });
 }
 
-// يرجع { role: 'admin' | 'manager', site, email } أو null
+// يرجع { role: 'admin' | 'manager' | 'viewer', site, sites, email } أو null
 export async function getProfile(user) {
   if (!user || !user.email) return null;
   if (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
@@ -42,8 +42,15 @@ export async function getProfile(user) {
   }
   try {
     const snap = await getDoc(doc(db, "users", user.uid));
-    if (snap.exists() && snap.data().role === "manager" && snap.data().site) {
-      return { role: "manager", site: snap.data().site, email: user.email };
+    if (snap.exists()) {
+      const d = snap.data();
+      if (d.role === "manager" && d.site) {
+        return { role: "manager", site: d.site, email: user.email };
+      }
+      // حساب "مُشاهد" (يدخل بس على صفحة الأوامر المعلقة) - لازم يكون موافَق عليه من الأدمن
+      if (d.role === "viewer" && d.status === "approved") {
+        return { role: "viewer", sites: d.sites || [], email: user.email };
+      }
     }
   } catch (e) { console.error(e); }
   return null;
@@ -66,9 +73,15 @@ export async function login(email, password) {
   const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
   const profile = await getProfile(cred.user);
   if (!profile) {
+    // فحص: هل الحساب ده طلب "مُشاهد" لسه معلّق مراجعة الأدمن؟
+    let pending = false;
+    try {
+      const snap = await getDoc(doc(db, "users", cred.user.uid));
+      if (snap.exists() && snap.data().role === "viewer" && snap.data().status === "pending") pending = true;
+    } catch (e) { /* تجاهل */ }
     await signOut(auth);
-    const err = new Error("no-role");
-    err.code = "app/no-role";
+    const err = new Error(pending ? "pending-approval" : "no-role");
+    err.code = pending ? "app/pending-approval" : "app/no-role";
     throw err;
   }
   return profile;
@@ -92,6 +105,7 @@ export function authErrorMessage(e) {
     case "auth/too-many-requests": return "محاولات كثيرة، حاول لاحقاً";
     case "auth/network-request-failed": return "تعذر الاتصال بالشبكة";
     case "app/no-role": return "هذا الحساب غير مفعّل في النظام، تواصل مع الإدارة";
+    case "app/pending-approval": return "طلبك لسه قيد المراجعة من الإدارة، هتقدر تسجل دخول بعد الموافقة عليه";
     default: return "تعذر تسجيل الدخول";
   }
 }

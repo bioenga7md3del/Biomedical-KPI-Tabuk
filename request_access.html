@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>طلب حساب عرض الأوامر المعلقة - تجمع تبوك الصحي</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+:root { --bg: #eef2f7; --surface: #ffffff; --text: #0f172a; --primary: #1e3a8a; --secondary: #64748b; --line: #e2e8f0; }
+* { box-sizing: border-box; outline: none; }
+body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.card { background: var(--surface); padding: 35px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.2); width: 100%; max-width: 440px; }
+.card-head { text-align: center; margin-bottom: 22px; }
+.card-head img { height: 56px; margin-bottom: 10px; }
+.card-head h2 { color: var(--primary); margin: 0 0 8px; font-size: 1.3rem; }
+.card-head p { color: var(--secondary); margin: 0; font-size: .9rem; line-height: 1.7; }
+.form-label { display: block; text-align: right; margin-bottom: 5px; font-weight: 700; color: #475569; font-size: .92rem; }
+.form-input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Tajawal'; font-size: 1rem; background: #f8fafc; }
+.form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,58,138,.1); }
+.form-input.ltr { direction: ltr; text-align: left; }
+.btn-submit { width: 100%; background: var(--primary); color: #fff; border: none; padding: 14px; font-size: 1.05rem; font-weight: 700; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; transition: .2s; }
+.btn-submit:hover { background: #1e40af; }
+.btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+#msgBox { display: none; margin-top: 16px; font-weight: 700; padding: 12px; border-radius: 8px; text-align: center; font-size: .9rem; line-height: 1.7; }
+.msg-error { color: #dc2626; background: #fee2e2; }
+.msg-success { color: #166534; background: #dcfce7; }
+.back-link { display: block; text-align: center; margin-top: 18px; color: #0284c7; font-weight: 700; font-size: .9rem; text-decoration: none; }
+.hint { font-size: .8rem; color: #94a3b8; margin: -10px 0 16px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+<div class="card-head">
+<img src="TabukCluster.jpeg" alt="شعار التجمع" onerror="this.style.display='none'"/>
+<h2><i class="fas fa-user-plus"></i> طلب حساب لعرض الأوامر المعلقة</h2>
+<p>هذا الحساب بيسمح بعرض شاشة "الأوامر المعلقة" فقط (بدون أي صفحة أخرى). بعد إرسال الطلب، هيتم تفعيله بعد موافقة الإدارة.</p>
+</div>
+
+<div id="formArea">
+<label class="form-label">الاسم:</label>
+<input type="text" id="rName" class="form-input" placeholder="اسمك بالكامل">
+
+<label class="form-label">البريد الإلكتروني:</label>
+<input type="email" id="rEmail" class="form-input ltr" placeholder="name@example.com" autocomplete="username">
+
+<label class="form-label">كلمة المرور:</label>
+<input type="password" id="rPass" class="form-input" placeholder="6 أحرف على الأقل" autocomplete="new-password">
+
+<label class="form-label">تأكيد كلمة المرور:</label>
+<input type="password" id="rPass2" class="form-input" placeholder="أعد كتابة كلمة المرور" autocomplete="new-password">
+<p class="hint">هتستخدم نفس البريد وكلمة المرور دول لتسجيل الدخول بعد الموافقة.</p>
+
+<button class="btn-submit" id="btnSubmit">إرسال الطلب</button>
+</div>
+
+<p id="msgBox"></p>
+<a href="index.html" class="back-link"><i class="fas fa-arrow-right"></i> الرجوع لتسجيل الدخول</a>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase-init.js";
+import { createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const formArea = document.getElementById('formArea');
+const msgBox = document.getElementById('msgBox');
+const btn = document.getElementById('btnSubmit');
+
+function showMsg(html, cls) {
+  msgBox.innerHTML = html;
+  msgBox.className = cls;
+  msgBox.style.display = 'block';
+}
+
+btn.addEventListener('click', async () => {
+  const name = document.getElementById('rName').value.trim();
+  const email = document.getElementById('rEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('rPass').value;
+  const pass2 = document.getElementById('rPass2').value;
+
+  msgBox.style.display = 'none';
+
+  if (!name) { showMsg('❌ الرجاء إدخال الاسم', 'msg-error'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showMsg('❌ الرجاء إدخال بريد إلكتروني صحيح', 'msg-error'); return; }
+  if (pass.length < 6) { showMsg('❌ كلمة المرور يجب ألا تقل عن 6 أحرف', 'msg-error'); return; }
+  if (pass !== pass2) { showMsg('❌ كلمة المرور وتأكيدها غير متطابقين', 'msg-error'); return; }
+
+  btn.disabled = true;
+  showMsg('<i class="fas fa-spinner fa-spin"></i> جاري إرسال الطلب...', 'msg-success');
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await setDoc(doc(db, "users", cred.user.uid), {
+      role: 'viewer',
+      status: 'pending',
+      email: email,
+      name: name,
+      requestedAt: new Date().toISOString()
+    });
+    await signOut(auth);
+
+    formArea.style.display = 'none';
+    showMsg('✅ تم إرسال طلبك بنجاح. هيتم مراجعته من الإدارة، وهتقدر تسجل دخول بعد الموافقة عليه بنفس البريد وكلمة المرور.', 'msg-success');
+  } catch (e) {
+    console.error(e);
+    let m = '❌ حدث خطأ أثناء إرسال الطلب';
+    if (e.code === 'auth/email-already-in-use') m = '❌ هذا البريد مسجل بالفعل. لو سبق وقدمت طلب، انتظر موافقة الإدارة، أو تواصل معها مباشرة';
+    else if (e.code === 'auth/invalid-email') m = '❌ صيغة البريد غير صحيحة';
+    else if (e.code === 'auth/weak-password') m = '❌ كلمة المرور ضعيفة';
+    else if (e.code === 'auth/network-request-failed') m = '❌ تعذر الاتصال بالشبكة، حاول مرة أخرى';
+    else if (e.code === 'auth/operation-not-allowed' || (e.code === 'permission-denied')) m = '❌ تعذر إرسال الطلب حاليًا، تواصل مع الإدارة';
+    showMsg(m, 'msg-error');
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('rPass2').addEventListener('keypress', e => { if (e.key === 'Enter') btn.click(); });
+</script>
+</body>
+</html>

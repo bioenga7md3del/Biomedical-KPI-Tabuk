@@ -99,13 +99,49 @@ tr:hover { background: #f8fafc; }
 </tbody>
 </table>
 </div>
+
+<div class="card" style="border-top-color:#7c3aed;">
+<h2 style="margin-top:0;"><i class="fas fa-user-clock" style="color:#7c3aed"></i> طلبات حسابات عرض الأوامر المعلقة (قيد المراجعة)</h2>
+<p style="color:#64748b;">طلبات وصلت من صفحة "طلب حساب" العامة. حدد للشخص موقع أو أكتر (أو كل المواقع) ثم وافق، أو ارفض الطلب.</p>
+<table>
+<thead>
+<tr>
+<th>الاسم</th>
+<th>البريد الإلكتروني</th>
+<th>تاريخ الطلب</th>
+<th>المواقع</th>
+<th>إجراءات</th>
+</tr>
+</thead>
+<tbody id="viewerRequestsBody">
+<tr><td colspan="5" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="card" style="border-top-color:#7c3aed;">
+<h2 style="margin-top:0;"><i class="fas fa-eye" style="color:#7c3aed"></i> حسابات عرض الأوامر المعلقة المفعّلة</h2>
+<table>
+<thead>
+<tr>
+<th>الاسم</th>
+<th>البريد الإلكتروني</th>
+<th>المواقع المسموحة</th>
+<th>إجراءات</th>
+</tr>
+</thead>
+<tbody id="viewerActiveBody">
+<tr><td colspan="4" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr>
+</tbody>
+</table>
+</div>
 </div>
 
 <script type="module">
 import { requireRole, db, esc, firebaseConfig, resetPassword } from "./firebase-init.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { collection, getDocs, setDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, getDocs, setDoc, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 await requireRole(['admin']);
 
@@ -120,12 +156,15 @@ const secondaryAuth = getAuth(secondaryApp);
 
 function msg(html, color) { statusMsg.innerHTML = `<span style="color:${color}">${html}</span>`; }
 
+let UNIQUE_SITES = [];
+
 async function loadUniqueSitesFromDB() {
 try {
 const q = query(collection(db, "pending_orders"), where("isCompleted", "==", false));
 const snap = await getDocs(q);
 const uniqueSites = new Set();
 snap.forEach(d => { const s = d.data().site; if (s) uniqueSites.add(s); });
+UNIQUE_SITES = [...uniqueSites].sort();
 
 siteNameSelect.innerHTML = '';
 const optDefault = document.createElement('option');
@@ -266,8 +305,139 @@ console.error(e);
 }
 }
 
-loadUniqueSitesFromDB();
+// ===== طلبات حسابات "عرض الأوامر المعلقة" (viewer) =====
+
+function fmtReqDate(v) {
+if (!v) return '-';
+const d = new Date(v);
+if (isNaN(d.getTime())) return String(v);
+return d.toLocaleString('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function buildSitesSelect(id, preselected) {
+preselected = preselected || [];
+const isAll = preselected === 'ALL';
+let html = `<select id="${id}" multiple size="4" style="min-width:170px; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-family:'Tajawal'; font-size:.85rem;">`;
+html += `<option value="__ALL__" ${isAll ? 'selected' : ''}>🌐 كل المواقع</option>`;
+UNIQUE_SITES.forEach(s => {
+const sel = (!isAll && preselected.includes(s)) ? 'selected' : '';
+html += `<option value="${esc(s)}" ${sel}>${esc(s)}</option>`;
+});
+html += `</select>`;
+return html;
+}
+
+function readSitesSelect(id) {
+const el = document.getElementById(id);
+const vals = [...el.selectedOptions].map(o => o.value);
+if (vals.includes('__ALL__')) return 'ALL';
+return vals;
+}
+
+async function loadViewerRequests() {
+const body = document.getElementById('viewerRequestsBody');
+try {
+const snap = await getDocs(query(collection(db, "users"), where("role", "==", "viewer"), where("status", "==", "pending")));
+body.innerHTML = '';
+if (snap.empty) {
+body.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">لا توجد طلبات معلقة حالياً.</td></tr>';
+return;
+}
+const rows = [];
+snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
+rows.sort((a, b) => String(a.requestedAt || '').localeCompare(String(b.requestedAt || '')));
+rows.forEach(u => {
+const tr = document.createElement('tr');
+const selId = 'sel_' + u.id;
+tr.innerHTML = `
+<td style="font-weight:700;">${esc(u.name || '-')}</td>
+<td style="direction:ltr; text-align:right;">${esc(u.email)}</td>
+<td style="font-size:.82rem; color:#64748b;">${esc(fmtReqDate(u.requestedAt))}</td>
+<td>${buildSitesSelect(selId, [])}</td>
+<td><div class="action-btns">
+<button class="btn-add" style="padding:6px 12px; font-size:.85rem;" data-act="approve"><i class="fas fa-check"></i> موافقة</button>
+<button class="btn-delete" data-act="reject"><i class="fas fa-times"></i> رفض</button>
+</div></td>`;
+tr.querySelector('[data-act="approve"]').addEventListener('click', () => approveViewer(u.id, u.email, selId));
+tr.querySelector('[data-act="reject"]').addEventListener('click', () => rejectViewer(u.id, u.email));
+body.appendChild(tr);
+});
+} catch (e) {
+console.error(e);
+body.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#dc2626;">خطأ في تحميل الطلبات.</td></tr>';
+}
+}
+
+async function approveViewer(uid, email, selId) {
+const sites = readSitesSelect(selId);
+if (sites !== 'ALL' && sites.length === 0) { alert('اختر موقع واحد على الأقل أو "كل المواقع"'); return; }
+try {
+await updateDoc(doc(db, "users", uid), { status: 'approved', sites: sites, approvedAt: new Date().toISOString() });
+loadViewerRequests();
+loadViewerActive();
+} catch (e) {
+console.error(e);
+alert('حدث خطأ أثناء الموافقة!');
+}
+}
+
+async function rejectViewer(uid, email) {
+if (!confirm(`هل أنت متأكد من رفض طلب "${email}"؟ لن يقدر يدخل نهائيًا بهذا البريد.`)) return;
+try {
+await deleteDoc(doc(db, "users", uid));
+loadViewerRequests();
+} catch (e) {
+console.error(e);
+alert('حدث خطأ!');
+}
+}
+
+async function loadViewerActive() {
+const body = document.getElementById('viewerActiveBody');
+try {
+const snap = await getDocs(query(collection(db, "users"), where("role", "==", "viewer"), where("status", "==", "approved")));
+body.innerHTML = '';
+if (snap.empty) {
+body.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">لا توجد حسابات مُفعّلة حالياً.</td></tr>';
+return;
+}
+const rows = [];
+snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
+rows.sort((a, b) => String(a.email || '').localeCompare(String(b.email || '')));
+rows.forEach(u => {
+const tr = document.createElement('tr');
+const sitesLabel = u.sites === 'ALL' ? '🌐 كل المواقع' : (Array.isArray(u.sites) && u.sites.length ? u.sites.join('، ') : '-');
+tr.innerHTML = `
+<td>${esc(u.name || '-')}</td>
+<td style="direction:ltr; text-align:right;">${esc(u.email)}</td>
+<td style="font-size:.85rem;">${esc(sitesLabel)}</td>
+<td><div class="action-btns">
+<button class="btn-delete" data-act="revoke"><i class="fas fa-trash"></i> إلغاء الصلاحية</button>
+</div></td>`;
+tr.querySelector('[data-act="revoke"]').addEventListener('click', () => revokeViewer(u.id, u.email));
+body.appendChild(tr);
+});
+} catch (e) {
+console.error(e);
+body.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#dc2626;">خطأ في تحميل الحسابات.</td></tr>';
+}
+}
+
+async function revokeViewer(uid, email) {
+if (!confirm(`هل أنت متأكد من إلغاء صلاحية "${email}"؟ لن يقدر يدخل مرة أخرى.`)) return;
+try {
+await deleteDoc(doc(db, "users", uid));
+loadViewerActive();
+} catch (e) {
+console.error(e);
+alert('حدث خطأ!');
+}
+}
+
+await loadUniqueSitesFromDB();
 loadSitesList();
+loadViewerRequests();
+loadViewerActive();
 </script>
 </body>
 </html>
