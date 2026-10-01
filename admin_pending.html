@@ -145,7 +145,7 @@ const logBox = document.getElementById('logBox');
 const previewCard = document.getElementById('previewCard');
 
 const REQUIRED_COLS = ['#', 'Control No', 'Fail Date', 'Site', 'Status', 'Assigned To', 'ECRI Code'];
-const COMPARE_FIELDS = ['controlNo', 'site', 'dept', 'device', 'tech', 'status', 'startDate', 'failDate'];
+const COMPARE_FIELDS = ['controlNo', 'site', 'dept', 'manufacturer', 'device', 'tech', 'status', 'startDate', 'failDate'];
 let PLAN = null;
 
 function s(v) { return String(v === undefined || v === null ? '' : v).trim(); }
@@ -272,6 +272,7 @@ function normalize(row) {
     controlNo: s(row['Control No']),
     site: s(row['Site']) || 'Unknown',
     dept: s(row['Department']),
+    manufacturer: s(row['Manufacturer']),
     device: s(row['ECRI Code']) || s(row['Equipment Name']) || 'Device',
     tech: s(row['Assigned To']) || 'Unknown',
     status: s(row['Status']) || 'Assigned',
@@ -547,7 +548,7 @@ btnApply.addEventListener('click', async function () {
   const ops = [];
 
   p.added.forEach(function (rec) {
-    const data = { id: rec.id, controlNo: rec.controlNo, site: rec.site, dept: rec.dept, device: rec.device, tech: rec.tech,
+    const data = { id: rec.id, controlNo: rec.controlNo, site: rec.site, dept: rec.dept, manufacturer: rec.manufacturer, device: rec.device, tech: rec.tech,
                    status: rec.status, startDate: rec.startDate, failDate: rec.failDate,
                    isCompleted: false, comments: [], createdAt: now, lastSyncDate: now };
     ops.push(function (b) { b.set(doc(db, "pending_orders", rec.id), data); });
@@ -555,7 +556,7 @@ btnApply.addEventListener('click', async function () {
 
   p.updated.concat(p.reopened).forEach(function (x) {
     const rec = x.rec;
-    const data = { controlNo: rec.controlNo, site: rec.site, dept: rec.dept, device: rec.device, tech: rec.tech,
+    const data = { controlNo: rec.controlNo, site: rec.site, dept: rec.dept, manufacturer: rec.manufacturer, device: rec.device, tech: rec.tech,
                    status: rec.status, startDate: rec.startDate, failDate: rec.failDate,
                    isCompleted: false, lastSyncDate: now };
     if (p.reopened.indexOf(x) !== -1) { data.reopenedAt = now; data.completedAt = null; }
