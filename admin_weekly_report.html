@@ -45,7 +45,7 @@ h2 { margin: 0 0 15px; color: #0f172a; font-size: 1.15rem; }
 .kpi { border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; background: #f8fafc; text-align: center; }
 .kpi span { font-weight: 700; font-size: .85rem; color: #64748b; display: block; margin-bottom: 6px; }
 .kpi b { font-size: 2rem; display: block; }
-.kpi.k-total b { color: var(--primary); } .kpi.k-done b { color: var(--green); } .kpi.k-open b { color: var(--red); } .kpi.k-pct b { color: var(--purple); }
+.kpi.k-total b { color: var(--primary); } .kpi.k-handled b { color: #0891b2; } .kpi.k-done b { color: var(--green); } .kpi.k-open b { color: var(--red); } .kpi.k-pct b { color: var(--purple); }
 
 .note-banner { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; padding: 14px 18px; border-radius: 10px; font-weight: 700; line-height: 1.8; margin-bottom: 18px; }
 .note-banner i { margin-left: 6px; }
@@ -109,9 +109,10 @@ th { background: #f8fafc; position: sticky; top: 0; }
 
 <div class="kpi-grid">
 <div class="kpi k-total"><span>إجمالي الأوامر المستلمة</span><b id="kTotal">0</b></div>
-<div class="kpi k-done"><span>أوامر منجزة</span><b id="kDone">0</b></div>
-<div class="kpi k-open"><span>أوامر مازالت مفتوحة</span><b id="kOpen">0</b></div>
-<div class="kpi k-pct"><span>نسبة الإنجاز</span><b id="kPct">0%</b></div>
+<div class="kpi k-handled"><span>تم التعامل معها</span><b id="kHandled">0%</b></div>
+<div class="kpi k-done"><span>مُصلحة وموقّعة نهائياً</span><b id="kDone">0</b></div>
+<div class="kpi k-open"><span>أوامر مازالت مفتوحة (Active)</span><b id="kOpen">0</b></div>
+<div class="kpi k-pct"><span>نسبة الإصلاح النهائي</span><b id="kPct">0%</b></div>
 </div>
 
 <div id="noteBanner"></div>
@@ -224,6 +225,8 @@ function parseAnyDate(str) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+function startOfDay(d) { if (!d) return null; return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
 function equipCategory(ecri) {
   return s(ecri).replace(/\s*\(\d+\)\s*$/, '').replace(/\s{2,}/g, ' ').trim() || 'غير محدد';
 }
@@ -242,10 +245,15 @@ function fmtDateShort(d) {
 function computeReport(rawRows, fileName) {
   const recs = rawRows.map(normalize).filter(r => r.id);
   const total = recs.length;
-  recs.forEach(r => { r.completed = isCompleted(r.status); r._failDateObj = parseAnyDate(r.failDate); r._signOffObj = parseAnyDate(r.signOffDate); });
+  recs.forEach(r => { r.completed = isCompleted(r.status); r._failDateObj = parseAnyDate(r.failDate); r._signOffObj = parseAnyDate(r.signOffDate); r._startObj = parseAnyDate(r.startDate); });
   const completed = recs.filter(r => r.completed).length;
   const open = total - completed;
   const completionPct = total ? Math.round(completed / total * 100) : 0;
+
+  // أي حالة غير Active تُعتبر "تم التعامل معها" (استُلمت وبدأ عليها إجراء) - مؤشر الإنجاز التنفيذي
+  const handled = recs.filter(r => String(r.status || '').trim().toLowerCase() !== 'active').length;
+  const notHandled = total - handled;
+  const handledPct = total ? Math.round(handled / total * 100) : 0;
 
   const statusBreakdown = groupCount(recs, r => r.status).map(x => ({ status: x.key, label: STATUS_AR[x.key] || x.key, count: x.count }));
 
@@ -266,6 +274,24 @@ function computeReport(rawRows, fileName) {
   const mean = turnHours.length ? turnHours.reduce((a, b) => a + b, 0) / turnHours.length : null;
   const median = turnHours.length ? (turnHours.length % 2 ? turnHours[(turnHours.length - 1) / 2] : (turnHours[turnHours.length / 2 - 1] + turnHours[turnHours.length / 2]) / 2) : null;
 
+  // مؤشر الاستجابة: الفرق بين تاريخ استقبال أمر العمل (Fail Date) وتاريخ بدء العمل عليه (start date)
+  const withStart = recs.filter(r => r._startObj);
+  const respDaysArr = withStart.map(r => {
+    const f = startOfDay(r._failDateObj), st = startOfDay(r._startObj);
+    if (!f || !st) return null;
+    return Math.max(0, Math.round((st.getTime() - f.getTime()) / 86400000));
+  }).filter(v => v !== null);
+  const avgRespDays = respDaysArr.length ? respDaysArr.reduce((a, b) => a + b, 0) / respDaysArr.length : null;
+  const sameDayPct = respDaysArr.length ? Math.round(respDaysArr.filter(v => v === 0).length / respDaysArr.length * 100) : null;
+  const noStartCount = total - withStart.length;
+
+  // مؤشر الإصلاح: الفرق بين تاريخ بدء العمل وتاريخ التوقيع النهائي (الأوامر المُصلحة والموقّعة فعلياً فقط)
+  const signedOffRecs = recs.filter(r => String(r.status || '').trim().toLowerCase() === 'signed off' && r._startObj && r._signOffObj);
+  const repairHoursArr = signedOffRecs.map(r => (r._signOffObj.getTime() - startOfDay(r._startObj).getTime()) / 3600000).filter(h => h >= 0);
+  repairHoursArr.sort((a, b) => a - b);
+  const avgRepairHours = repairHoursArr.length ? repairHoursArr.reduce((a, b) => a + b, 0) / repairHoursArr.length : null;
+  const medianRepairHours = repairHoursArr.length ? (repairHoursArr.length % 2 ? repairHoursArr[(repairHoursArr.length - 1) / 2] : (repairHoursArr[repairHoursArr.length / 2 - 1] + repairHoursArr[repairHoursArr.length / 2]) / 2) : null;
+
   const openOrders = recs.filter(r => !r.completed).sort((a, b) => (a._failDateObj ? a._failDateObj.getTime() : 0) - (b._failDateObj ? b._failDateObj.getTime() : 0))
     .map(r => ({ controlNo: r.controlNo || r.id, site: r.site, dept: r.dept, status: STATUS_AR[r.status] || r.status, tech: r.tech, failDate: fmtDateShort(r._failDateObj) }));
 
@@ -285,9 +311,13 @@ function computeReport(rawRows, fileName) {
 
   return {
     fileName: fileName, periodStart: periodStart, periodEnd: periodEnd,
-    totals: { total, completed, open, completionPct },
+    totals: { total, completed, open, completionPct, handled, notHandled, handledPct },
     statusBreakdown, siteBreakdown, techBreakdown, equipBreakdown, mfgBreakdown,
     turnaround: { meanHours: mean, medianHours: median, count: turnHours.length },
+    indicators: {
+      response: { avgDays: avgRespDays, sameDayPct: sameDayPct, respondedCount: withStart.length, noStartCount: noStartCount },
+      repair: { avgHours: avgRepairHours, medianHours: medianRepairHours, count: repairHoursArr.length }
+    },
     openOrders, note
   };
 }
@@ -306,8 +336,9 @@ function renderReport(report) {
   CURRENT_REPORT = report;
   $('reportMeta').textContent = 'الفترة: ' + (report.periodLabel || suggestPeriodLabel(report)) + (report.fileName ? ' — الملف: ' + report.fileName : '') + (report.createdAtDisplay ? ' — تاريخ الإنشاء: ' + report.createdAtDisplay : '');
   $('kTotal').textContent = report.totals.total;
+  $('kHandled').textContent = (report.totals.handledPct != null ? report.totals.handledPct : '-') + '%';
   $('kDone').textContent = report.totals.completed;
-  $('kOpen').textContent = report.totals.open;
+  $('kOpen').textContent = (report.totals.notHandled != null ? report.totals.notHandled : report.totals.open);
   $('kPct').textContent = report.totals.completionPct + '%';
   $('noteBanner').innerHTML = report.note ? '<div class="note-banner"><i class="fas fa-circle-exclamation"></i>' + esc(report.note) + '</div>' : '';
 
@@ -315,11 +346,18 @@ function renderReport(report) {
     '<tr><td>' + esc(x.site) + '</td><td>' + x.total + '</td><td>' + x.completed + '</td><td>' + x.open + '</td><td>' + x.completionPct + '%</td></tr>').join('') ||
     '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">لا توجد بيانات</td></tr>';
 
-  if (report.turnaround.count) {
-    $('turnLine').innerHTML = '<i class="fas fa-stopwatch"></i> من بين ' + report.turnaround.count + ' أمراً تم التوقيع عليه، متوسط زمن الإنجاز من البلاغ حتى التوقيع: <b>' + report.turnaround.meanHours.toFixed(1) + ' ساعة</b> (الوسيط: ' + report.turnaround.medianHours.toFixed(1) + ' ساعة).';
-  } else {
-    $('turnLine').innerHTML = '<i class="fas fa-stopwatch"></i> لا تتوفر بيانات كافية لحساب متوسط زمن الإنجاز لهذه الفترة.';
+  const ind = report.indicators || {};
+  let lines = [];
+  if (ind.response && ind.response.respondedCount) {
+    lines.push('<i class="fas fa-bolt"></i> <b>مؤشر الاستجابة:</b> متوسط ' + ind.response.avgDays.toFixed(1) + ' يوم من استقبال البلاغ حتى بدء العمل عليه (' + ind.response.sameDayPct + '% تم الرد عليها في نفس يوم البلاغ)' + (ind.response.noStartCount ? '، و' + ind.response.noStartCount + ' أمراً لسه من غير تاريخ بدء' : '') + '.');
   }
+  if (ind.repair && ind.repair.count) {
+    lines.push('<i class="fas fa-screwdriver-wrench"></i> <b>مؤشر الإصلاح:</b> متوسط ' + ind.repair.avgHours.toFixed(1) + ' ساعة من بدء العمل حتى التوقيع النهائي (الوسيط: ' + ind.repair.medianHours.toFixed(1) + ' ساعة)، من بين ' + ind.repair.count + ' أمراً مُصلحاً وموقّعاً.');
+  }
+  if (report.turnaround.count) {
+    lines.push('<i class="fas fa-stopwatch"></i> متوسط الزمن الإجمالي من البلاغ حتى التوقيع: <b>' + report.turnaround.meanHours.toFixed(1) + ' ساعة</b> (الوسيط: ' + report.turnaround.medianHours.toFixed(1) + ' ساعة).');
+  }
+  $('turnLine').innerHTML = lines.length ? lines.join('<br>') : 'لا تتوفر بيانات كافية لحساب مؤشرات الزمن لهذه الفترة.';
 
   const techTop = report.techBreakdown.slice(0, 10);
   $('techBody').innerHTML = techTop.map(x => '<tr><td>' + esc(x.tech) + '</td><td>' + x.count + '</td></tr>').join('') ||
