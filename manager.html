@@ -101,6 +101,10 @@ tbody tr:hover { background: #f0f9ff; }
 .btn-update:hover { background: #0284c7; color: #fff; }
 .btn-close-order { background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; margin-inline-start: 6px; }
 .btn-close-order:hover { background: #16a34a; color: #fff; }
+.btn-edit-order { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; margin-inline-start: 6px; }
+.btn-edit-order:hover { background: #0284c7; color: #fff; }
+.btn-delete-order { background: #fee2e2; color: var(--red); border: 1px solid #fca5a5; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; margin-inline-start: 6px; }
+.btn-delete-order:hover { background: var(--red); color: #fff; }
 .btn-view-order { background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; }
 .btn-view-order:hover { background: #334155; color: #fff; }
 .view-toggle { display: flex; gap: 10px; margin-bottom: 16px; }
@@ -112,7 +116,7 @@ tbody tr:hover { background: #f0f9ff; }
 .tp-green { border-top: 4px solid var(--green); }
 
 #commentModal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
-#addOrderModal, #closeOrderModal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
+#addOrderModal, #closeOrderModal, #editOrderModal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
 .modal-content { background: #fff; padding: 28px; border-radius: 18px; width: 95%; max-width: 620px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); max-height: 92vh; overflow-y: auto; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
 .order-info { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: .86rem; color: #475569; line-height: 1.9; font-weight: 600; }
@@ -195,7 +199,7 @@ td.empty::before { content: none; }
 @media print {
 @page { size: A4 landscape; margin: 9mm; }
 html, body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-#appScreen, #commentModal, #lightbox, #addOrderModal, #closeOrderModal { display: none !important; }
+#appScreen, #commentModal, #lightbox, #addOrderModal, #closeOrderModal, #editOrderModal { display: none !important; }
 #printSheet { display: block !important; direction: rtl; font-family: 'Tajawal', sans-serif; color: #0f172a; }
 #printSheet .ps-head { display: flex; align-items: center; gap: 14px; padding-bottom: 10px; border-bottom: 3px solid #1e3a8a; margin-bottom: 10px; }
 #printSheet .ps-head img { height: 64px; object-fit: contain; }
@@ -360,6 +364,7 @@ html, body { background: #fff !important; -webkit-print-color-adjust: exact; pri
 <div class="modal-content">
 <div class="modal-header"><h3 style="margin:0; color:var(--primary);">إضافة أمر عمل جديد</h3><i class="fas fa-times" style="cursor: pointer; color:var(--red); font-size: 1.5rem;" onclick="window.closeAddOrderModal()"></i></div>
 <div class="new-order-fields">
+<div><label>رقم أمر العمل *</label><input type="text" id="newOrderNo"></div>
 <div><label>رقم الكونترول *</label><input type="text" id="newControlNo"></div>
 <div><label>اسم الجهاز *</label><input type="text" id="newDevice"></div>
 <div><label>القسم *</label><input type="text" id="newDept"></div>
@@ -370,6 +375,23 @@ html, body { background: #fff !important; -webkit-print-color-adjust: exact; pri
 </div>
 <textarea id="newNote" placeholder="ملاحظة (اختياري)..." maxlength="1000"></textarea>
 <button class="btn-save" id="btnSubmitNewOrder" onclick="window.submitNewOrder()"><i class="fas fa-save"></i> إضافة أمر العمل</button>
+</div>
+</div>
+
+<div id="editOrderModal">
+<div class="modal-content">
+<div class="modal-header"><h3 style="margin:0; color:var(--primary);">تعديل أمر العمل: <span id="editOrderIdLbl" style="color:var(--accent);"></span></h3><i class="fas fa-times" style="cursor: pointer; color:var(--red); font-size: 1.5rem;" onclick="window.closeEditOrderModal()"></i></div>
+<div class="new-order-fields">
+<div><label>رقم أمر العمل *</label><input type="text" id="editOrderNo"></div>
+<div><label>رقم الكونترول *</label><input type="text" id="editControlNo"></div>
+<div><label>اسم الجهاز *</label><input type="text" id="editDevice"></div>
+<div><label>القسم *</label><input type="text" id="editDept"></div>
+<div><label>الشركة المصنعة</label><input type="text" id="editManufacturer"></div>
+<div><label>الفني المكلف *</label><input type="text" id="editTech"></div>
+<div><label>تاريخ العطل *</label><input type="date" id="editFailDate"></div>
+<div><label>تاريخ البدء *</label><input type="date" id="editStartDate"></div>
+</div>
+<button class="btn-save" id="btnSubmitEditOrder" onclick="window.submitEditOrder()"><i class="fas fa-save"></i> حفظ التعديلات</button>
 </div>
 </div>
 
@@ -386,7 +408,7 @@ html, body { background: #fff !important; -webkit-print-color-adjust: exact; pri
 
 <script type="module">
 import { requireRole, logout, db, esc } from "./firebase-init.js";
-import { collection, query, where, getDocs, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // المدير يرى موقعه فقط (الموقع يُقرأ من حسابه في السيرفر وليس من المتصفح)
 const { profile } = await requireRole(['manager']);
@@ -411,6 +433,7 @@ const COLS = [
 
 let currentEditingOrderId = "";
 let currentCommentEditIndex = null;
+let currentFieldsEditOrderId = "";
 let LOCAL_ORDERS = [];
 let VIEW = { 1: [], 2: [] };
 let QUICK = null;
@@ -653,10 +676,12 @@ tr.innerHTML =
 '<td>' + infoCell(r) + '</td>' +
 '<td>' + (r.hasUpdate ? '<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>' : '<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
 '<td>' + (r.lastComment ? '<span class="last-text">' + esc(r.lastComment.text) + '</span><span class="last-date"><i class="far fa-clock"></i> ' + esc(fmtTs(r.lastComment)) + (r.comments.length > 1 ? ' · ' + r.comments.length + ' ردود' : '') + (r.lastComment.imgs && r.lastComment.imgs.length ? ' · <i class="fas fa-paperclip"></i> ' + r.lastComment.imgs.length : '') + '</span>' : '<span style="color:var(--red); font-weight:800; font-size:.8rem;">لا يوجد أي تبرير مرفوع</span>') + '</td>' +
-'<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button> <button class="btn-close-order"><i class="fas fa-check-circle"></i> إقفال الأمر</button></td>';
+'<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button> <button class="btn-close-order"><i class="fas fa-check-circle"></i> إقفال الأمر</button> <button class="btn-edit-order"><i class="fas fa-pen"></i> تعديل</button> <button class="btn-delete-order"><i class="fas fa-trash"></i> حذف</button></td>';
 Array.from(tr.children).forEach((td, i) => { if (COLS[i]) td.setAttribute('data-label', COLS[i].label); });
 tr.querySelector('.btn-update').addEventListener('click', () => window.openModal(r.id));
 tr.querySelector('.btn-close-order').addEventListener('click', () => window.openCloseModal(r.id));
+tr.querySelector('.btn-edit-order').addEventListener('click', () => window.openEditOrderModal(r.id));
+tr.querySelector('.btn-delete-order').addEventListener('click', () => window.deleteOrderTrigger(r.id));
 tbody.appendChild(tr);
 });
 }
@@ -918,11 +943,17 @@ btn.className = 'btn-view-order';
 btn.innerHTML = '<i class="fas fa-eye"></i> عرض التفاصيل';
 btn.addEventListener('click', () => window.openModal(r.id));
 actionTd.appendChild(btn);
+const delBtn = document.createElement('button');
+delBtn.className = 'btn-delete-order';
+delBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
+delBtn.addEventListener('click', () => window.deleteOrderTrigger(r.id));
+actionTd.appendChild(delBtn);
 tbody.appendChild(tr);
 });
 }
 
 window.openAddOrderModal = function () {
+$('newOrderNo').value = '';
 $('newControlNo').value = '';
 $('newDevice').value = '';
 $('newDept').value = '';
@@ -937,6 +968,7 @@ window.closeAddOrderModal = function () {
 $('addOrderModal').style.display = 'none';
 };
 window.submitNewOrder = async function () {
+const orderNo = $('newOrderNo').value.trim();
 const controlNo = $('newControlNo').value.trim();
 const device = $('newDevice').value.trim();
 const dept = $('newDept').value.trim();
@@ -945,8 +977,12 @@ const tech = $('newTech').value.trim();
 const failDate = $('newFailDate').value;
 const startDate = $('newStartDate').value;
 const note = $('newNote').value.trim();
-if (!controlNo || !device || !dept || !tech || !failDate || !startDate) {
+if (!orderNo || !controlNo || !device || !dept || !tech || !failDate || !startDate) {
 alert('الرجاء تعبئة كل الحقول المطلوبة (*).');
+return;
+}
+if (LOCAL_ORDERS.some(o => o.id === orderNo)) {
+alert('رقم أمر العمل هذا مستخدم بالفعل لأمر مفتوح آخر بموقعكم، برجاء اختيار رقم مختلف.');
 return;
 }
 const btn = $('btnSubmitNewOrder');
@@ -954,6 +990,7 @@ btn.disabled = true;
 try {
 const stamp = new Date().toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
 const docData = {
+id: orderNo,
 controlNo: controlNo,
 site: currentSite,
 dept: dept,
@@ -970,8 +1007,7 @@ createdAt: new Date().toISOString(),
 createdBy: profile.email,
 source: 'manual'
 };
-const docRef = await addDoc(collection(db, "pending_orders"), docData);
-await updateDoc(docRef, { id: docRef.id });
+await addDoc(collection(db, "pending_orders"), docData);
 window.closeAddOrderModal();
 await loadSiteOrders();
 alert('تمت إضافة أمر العمل بنجاح.');
@@ -980,6 +1016,83 @@ console.error(error);
 alert('حدث خطأ أثناء إضافة أمر العمل. تحقق من الصلاحيات والاتصال.');
 } finally {
 btn.disabled = false;
+}
+};
+
+window.openEditOrderModal = function (orderId) {
+const order = LOCAL_ORDERS.find(o => o.id === orderId);
+if (!order) { alert('تعذر العثور على أمر العمل.'); return; }
+currentFieldsEditOrderId = orderId;
+$('editOrderIdLbl').textContent = orderId;
+$('editOrderNo').value = order.id || '';
+$('editControlNo').value = order.controlNo || '';
+$('editDevice').value = order.device || '';
+$('editDept').value = order.dept || '';
+$('editManufacturer').value = order.manufacturer || '';
+$('editTech').value = order.tech || '';
+$('editFailDate').value = order.failDate || '';
+$('editStartDate').value = order.startDate || '';
+$('editOrderModal').style.display = 'flex';
+};
+window.closeEditOrderModal = function () {
+$('editOrderModal').style.display = 'none';
+};
+window.submitEditOrder = async function () {
+const orderNo = $('editOrderNo').value.trim();
+const controlNo = $('editControlNo').value.trim();
+const device = $('editDevice').value.trim();
+const dept = $('editDept').value.trim();
+const manufacturer = $('editManufacturer').value.trim();
+const tech = $('editTech').value.trim();
+const failDate = $('editFailDate').value;
+const startDate = $('editStartDate').value;
+if (!orderNo || !controlNo || !device || !dept || !tech || !failDate || !startDate) {
+alert('الرجاء تعبئة كل الحقول المطلوبة (*).');
+return;
+}
+const order = LOCAL_ORDERS.find(o => o.id === currentFieldsEditOrderId);
+if (!order) { alert('تعذر العثور على أمر العمل.'); return; }
+if (orderNo !== order.id && LOCAL_ORDERS.some(o => o.id === orderNo)) {
+alert('رقم أمر العمل هذا مستخدم بالفعل لأمر مفتوح آخر بموقعكم، برجاء اختيار رقم مختلف.');
+return;
+}
+const btn = $('btnSubmitEditOrder');
+btn.disabled = true;
+try {
+const orderRef = doc(db, "pending_orders", order.docId);
+await updateDoc(orderRef, {
+id: orderNo,
+controlNo: controlNo,
+dept: dept,
+manufacturer: manufacturer,
+device: device,
+tech: tech,
+failDate: failDate,
+startDate: startDate
+});
+window.closeEditOrderModal();
+await loadSiteOrders();
+alert('تم حفظ تعديلات أمر العمل بنجاح.');
+} catch (error) {
+console.error(error);
+alert('حدث خطأ أثناء حفظ التعديلات. تحقق من الصلاحيات والاتصال.');
+} finally {
+btn.disabled = false;
+}
+};
+
+window.deleteOrderTrigger = async function (orderId) {
+const order = LOCAL_ORDERS.find(o => o.id === orderId) || LOCAL_CLOSED.find(o => o.id === orderId);
+if (!order) { alert('تعذر العثور على أمر العمل.'); return; }
+if (!confirm('هل أنت متأكد من حذف أمر العمل رقم (' + orderId + ') نهائياً؟ لا يمكن التراجع عن هذا الإجراء ولا يمكن استرجاع بياناته.')) return;
+try {
+await deleteDoc(doc(db, "pending_orders", order.docId));
+await loadSiteOrders();
+CLOSED_LOADED = false;
+if ($('panelClosed').style.display !== 'none') { loadClosedOrders(); }
+} catch (error) {
+console.error(error);
+alert('تعذر حذف أمر العمل. تحقق من الصلاحيات والاتصال.');
 }
 };
 
