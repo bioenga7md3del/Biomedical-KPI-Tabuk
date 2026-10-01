@@ -113,6 +113,9 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 <button class="btn-login-main" id="btnLoginMain" onclick="openLoginModal()">
 <i class="fas fa-sign-in-alt"></i> تسجيل الدخول النظامي
 </button>
+<button class="btn-login-main" id="btnLogoutMain" style="display:none; background:#fee2e2; color:#dc2626;" onclick="doLogoutMain()">
+<i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+</button>
 <div id="statusBadge" class="status-badge st-loading">
 <i class="fas fa-circle-notch fa-spin"></i> جاري قراءة البيانات...
 </div>
@@ -228,7 +231,10 @@ const modal = document.getElementById('loginModal');
 const errBox = document.getElementById('loginError');
 const infoBox = document.getElementById('loginInfo');
 const btnMain = document.getElementById('btnLoginMain');
+const btnLogoutMain = document.getElementById('btnLogoutMain');
 let currentProfile = null;
+
+window.doLogoutMain = function() { logout(); };
 
 function homeFor(profile) {
   if (profile.role === 'admin') return 'admin.html';
@@ -254,8 +260,10 @@ onAuthStateChanged(auth, async (user) => {
       : currentProfile.role === 'viewer'
         ? '<i class="fas fa-list-check"></i> الأوامر المعلقة'
         : '<i class="fas fa-hospital"></i> بوابة الموقع';
+    btnLogoutMain.style.display = 'flex';
   } else {
     btnMain.innerHTML = '<i class="fas fa-sign-in-alt"></i> تسجيل الدخول النظامي';
+    btnLogoutMain.style.display = 'none';
   }
 });
 

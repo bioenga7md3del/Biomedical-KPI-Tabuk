@@ -363,6 +363,7 @@ html, body { background: #fff !important; -webkit-print-color-adjust: exact; pri
 <div><label>رقم الكونترول *</label><input type="text" id="newControlNo"></div>
 <div><label>اسم الجهاز *</label><input type="text" id="newDevice"></div>
 <div><label>القسم *</label><input type="text" id="newDept"></div>
+<div><label>الشركة المصنعة</label><input type="text" id="newManufacturer"></div>
 <div><label>الفني المكلف *</label><input type="text" id="newTech"></div>
 <div><label>تاريخ العطل *</label><input type="date" id="newFailDate"></div>
 <div><label>تاريخ البدء *</label><input type="date" id="newStartDate"></div>
@@ -711,7 +712,7 @@ $('approvalFields').style.display = 'none';
 $('lblWriteType').textContent = "إضافة إفادة جديدة تفصيلية لجلب الدعم الإداري:";
 $('btnSaveComment').innerHTML = '<i class="fas fa-save"></i> حفظ المبرر وإرساله فوراً للأدمن';
 const order = LOCAL_ORDERS.find(o => o.id === orderId) || LOCAL_CLOSED.find(o => o.id === orderId);
-$('modalInfo').innerHTML = '<b>الجهاز:</b> ' + esc(order.device) + '<br><b>الحالة:</b> ' + esc(STATUS_AR[order.status] || order.status) + ' &nbsp;|&nbsp; <b>الفني:</b> ' + esc(order.tech || '-') + ' &nbsp;|&nbsp; <b>التأخير:</b> ' + order.agingDays + ' يوم';
+$('modalInfo').innerHTML = '<b>الجهاز:</b> ' + esc(order.device) + ' &nbsp;|&nbsp; <b>الشركة المصنعة:</b> ' + esc(order.manufacturer || '-') + '<br><b>الحالة:</b> ' + esc(STATUS_AR[order.status] || order.status) + ' &nbsp;|&nbsp; <b>الفني:</b> ' + esc(order.tech || '-') + ' &nbsp;|&nbsp; <b>التأخير:</b> ' + order.agingDays + ' يوم';
 renderCommentsList(order);
 $('fBk').value = order.backup || '';
 $('fUs').value = order.usage || '';
@@ -925,6 +926,7 @@ window.openAddOrderModal = function () {
 $('newControlNo').value = '';
 $('newDevice').value = '';
 $('newDept').value = '';
+$('newManufacturer').value = '';
 $('newTech').value = '';
 $('newFailDate').value = '';
 $('newStartDate').value = '';
@@ -938,6 +940,7 @@ window.submitNewOrder = async function () {
 const controlNo = $('newControlNo').value.trim();
 const device = $('newDevice').value.trim();
 const dept = $('newDept').value.trim();
+const manufacturer = $('newManufacturer').value.trim();
 const tech = $('newTech').value.trim();
 const failDate = $('newFailDate').value;
 const startDate = $('newStartDate').value;
@@ -954,6 +957,7 @@ const docData = {
 controlNo: controlNo,
 site: currentSite,
 dept: dept,
+manufacturer: manufacturer,
 device: device,
 tech: tech,
 status: 'Active',

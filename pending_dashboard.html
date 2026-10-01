@@ -42,6 +42,8 @@ body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--t
 .btn-action { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-family: 'Tajawal'; transition: .2s; font-size: .88rem; }
 .btn-action:hover { background: #e2e8f0; transform: translateY(-1px); }
 .btn-primary { background: var(--primary); color: #fff; border: none; }
+.btn-logout { background: #fee2e2; color: var(--red); border: 1px solid #fca5a5; }
+.btn-logout:hover { background: #fecaca; }
 .btn-primary:hover { background: #1e40af; box-shadow: 0 4px 12px rgba(30,58,138,.3); }
 
 .container { max-width: 1600px; margin: 1.5rem auto; padding: 0 1.5rem; }
@@ -187,6 +189,7 @@ th { background: #eee !important; position: static; }
 <button class="btn-action" onclick="reloadData()"><i class="fas fa-rotate"></i> تحديث البيانات</button>
 <button class="btn-action btn-primary" onclick="openPrintConfig()"><i class="fas fa-print"></i> تقرير مخصص</button>
 <a href="index.html" class="btn-action"><i class="fas fa-home"></i> الرئيسية</a>
+<button class="btn-action btn-logout" id="btnLogout"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
 </div>
 </header>
 
@@ -199,6 +202,8 @@ th { background: #eee !important; position: static; }
 <div class="option-item"><input type="checkbox" id="p-aging" checked><label>أيام التأخير</label></div>
 <div class="option-item"><input type="checkbox" id="p-status" checked><label>حالة الأمر</label></div>
 <div class="option-item"><input type="checkbox" id="p-site" checked><label>الموقع / المستشفى</label></div>
+<div class="option-item"><input type="checkbox" id="p-dept" checked><label>القسم</label></div>
+<div class="option-item"><input type="checkbox" id="p-mfg" checked><label>الشركة المصنعة</label></div>
 <div class="option-item"><input type="checkbox" id="p-device" checked><label>بيانات الجهاز</label></div>
 <div class="option-item"><input type="checkbox" id="p-tech" checked><label>اسم الفني</label></div>
 <div class="option-item"><input type="checkbox" id="p-info" checked><label>الجهاز والإصلاح المتوقع</label></div>
@@ -295,7 +300,7 @@ th { background: #eee !important; position: static; }
 <div class="table-wrap">
 <table id="table1">
 <thead id="head1"></thead>
-<tbody id="body1"><tr><td colspan="10" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
+<tbody id="body1"><tr><td colspan="12" class="empty"><i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -313,7 +318,7 @@ th { background: #eee !important; position: static; }
 </div>
 
 <script type="module">
-import { requireRole, db, esc } from "./firebase-init.js";
+import { requireRole, logout, db, esc } from "./firebase-init.js";
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // الدخول: الأدمن (يشوف كل المواقع)، أو حساب "مُشاهد" موافَق عليه (يشوف بس المواقع المحددة له)
@@ -331,6 +336,8 @@ if (PROFILE.role === 'viewer') {
     : '👁 عرض محدود (حساب مُشاهد) - كل المواقع';
   note.style.display = '';
 }
+
+document.getElementById('btnLogout').addEventListener('click', logout);
 
 // الحالات التي تُعتبر "تحت الإجراء" (كل ما عداها = عطل نشط)
 const BKL = { yes: 'جهاز بديل متوفر', no: 'لا يوجد جهاز بديل', na: 'لا يحتاج بديل' };
@@ -385,6 +392,8 @@ const COLS = [
 { key: 'agingDays', label: 'أيام التأخير', cls: 'col-aging' },
 { key: 'status', label: 'الحالة', cls: 'col-status' },
 { key: 'site', label: 'الموقع', cls: 'col-site' },
+{ key: 'dept', label: 'القسم', cls: 'col-dept' },
+{ key: 'manufacturer', label: 'الشركة المصنعة', cls: 'col-mfg' },
 { key: 'device', label: 'الجهاز الطبي', cls: 'col-device' },
 { key: 'tech', label: 'الفني', cls: 'col-tech' },
 { key: 'etaMs', label: 'الجهاز والإصلاح المتوقع', cls: 'col-info' },
@@ -439,7 +448,7 @@ r.lastUpdate = r.lastComment ? String(r.lastComment.text || '') : '';
 Object.assign(r, latestInfo(r.comments));
 r.status = r.status || 'Active';
 r.group = IN_PROGRESS.includes(r.status) ? 2 : 1;
-r._search = [r.id, r.controlNo, r.device, r.tech, r.site, r.dept, r.lastUpdate].join(' ').toLowerCase();
+r._search = [r.id, r.controlNo, r.device, r.tech, r.site, r.dept, r.manufacturer, r.lastUpdate].join(' ').toLowerCase();
 MASTER.push(r);
 });
 fillSelect('fSite', uniq('site'));
@@ -561,7 +570,7 @@ const rows = sortRows(VIEW[n], SORT[n]);
 $('c-t' + n).textContent = rows.length;
 
 if (!rows.length) {
-tbody.innerHTML = '<tr><td colspan="10" class="empty"><i class="far fa-face-smile"></i> لا توجد أوامر مطابقة في هذا الجدول.</td></tr>';
+tbody.innerHTML = '<tr><td colspan="12" class="empty"><i class="far fa-face-smile"></i> لا توجد أوامر مطابقة في هذا الجدول.</td></tr>';
 return;
 }
 
@@ -578,6 +587,8 @@ tr.innerHTML =
 '<td class="col-aging"><span class="badge ' + badgeClass + '">' + row.agingDays + ' يوم</span></td>' +
 '<td class="col-status"><span class="badge ' + (STATUS_CLS[row.status] || 'st-other') + '">' + esc(STATUS_AR[row.status] || row.status) + '</span></td>' +
 '<td class="col-site" style="font-weight:700;">' + esc(row.site) + '</td>' +
+'<td class="col-dept">' + esc(row.dept || '-') + '</td>' +
+'<td class="col-mfg">' + esc(row.manufacturer || '-') + '</td>' +
 '<td class="col-device" title="' + esc(device) + '">' + esc(shortDev) + '</td>' +
 '<td class="col-tech">' + esc(row.tech || '-') + '</td>' +
 '<td class="col-info">' + infoCell(row) + '</td>' +
@@ -689,8 +700,8 @@ const order = MASTER.find(o => o.id === id);
 if (!order) return;
 $('tl-title').innerHTML = '<i class="fas fa-route"></i> المسار الزمني لأمر: ' + esc(id);
 $('tl-meta').innerHTML =
-'<b>الموقع:</b> ' + esc(order.site) + ' &nbsp;|&nbsp; <b>الحالة:</b> ' + esc(STATUS_AR[order.status] || order.status) + '<br>' +
-'<b>الجهاز:</b> ' + esc(order.device) + '<br><b>الفني:</b> ' + esc(order.tech || '-') + ' &nbsp;|&nbsp; <b>التقادم:</b> ' + order.agingDays + ' يوم';
+'<b>الموقع:</b> ' + esc(order.site) + ' &nbsp;|&nbsp; <b>القسم:</b> ' + esc(order.dept || '-') + ' &nbsp;|&nbsp; <b>الحالة:</b> ' + esc(STATUS_AR[order.status] || order.status) + '<br>' +
+'<b>الجهاز:</b> ' + esc(order.device) + ' &nbsp;|&nbsp; <b>الشركة المصنعة:</b> ' + esc(order.manufacturer || '-') + '<br><b>الفني:</b> ' + esc(order.tech || '-') + ' &nbsp;|&nbsp; <b>التقادم:</b> ' + order.agingDays + ' يوم';
 const body = $('tl-body');
 body.innerHTML = '';
 const nodes = [{ label: 'فتح البلاغ وتسجيله', date: order.failDate || order.startDate || order.createdAt || 'تاريخ غير محدد', text: 'تم تسجيل العطل وإسناده للعمل والمتابعة الفنية.', icon: 'fa-file-medical', color: '#8b5cf6' }];
@@ -717,6 +728,7 @@ const rows = sortRows(VIEW[n], SORT[n]).map(r => ({
 'الحالة': STATUS_AR[r.status] || r.status,
 'الموقع': r.site || '',
 'القسم': r.dept || '',
+'الشركة المصنعة': r.manufacturer || '',
 'الجهاز': r.device || '',
 'الفني': r.tech || '',
 'حالة الجهاز': r.usage ? USL[r.usage] : '',
@@ -737,7 +749,7 @@ XLSX.writeFile(wb, (n === 1 ? 'active_faults_' : 'in_progress_') + new Date().to
 window.openPrintConfig = () => { $('printConfigModal').style.display = 'flex'; };
 window.closePrintConfig = () => { $('printConfigModal').style.display = 'none'; };
 window.executePrint = () => {
-const mapping = { 'p-fail': '.col-fail', 'p-aging': '.col-aging', 'p-status': '.col-status', 'p-site': '.col-site', 'p-device': '.col-device', 'p-tech': '.col-tech', 'p-info': '.col-info', 'p-update': '.col-update' };
+const mapping = { 'p-fail': '.col-fail', 'p-aging': '.col-aging', 'p-status': '.col-status', 'p-site': '.col-site', 'p-dept': '.col-dept', 'p-mfg': '.col-mfg', 'p-device': '.col-device', 'p-tech': '.col-tech', 'p-info': '.col-info', 'p-update': '.col-update' };
 document.querySelectorAll('.p-hide').forEach(el => el.classList.remove('p-hide'));
 Object.keys(mapping).forEach(k => { if (!$(k).checked) document.querySelectorAll(mapping[k]).forEach(el => el.classList.add('p-hide')); });
 if (!$('p-t1').checked) $('panelT1').classList.add('p-hide');
