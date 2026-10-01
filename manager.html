@@ -99,14 +99,18 @@ tbody tr:hover { background: #f0f9ff; }
 
 .btn-update { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; }
 .btn-update:hover { background: #0284c7; color: #fff; }
-.btn-close-order { background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; margin-inline-start: 6px; }
-.btn-close-order:hover { background: #16a34a; color: #fff; }
-.btn-edit-order { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; margin-inline-start: 6px; }
-.btn-edit-order:hover { background: #0284c7; color: #fff; }
-.btn-delete-order { background: #fee2e2; color: var(--red); border: 1px solid #fca5a5; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; margin-inline-start: 6px; }
-.btn-delete-order:hover { background: var(--red); color: #fff; }
-.btn-view-order { background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; transition: .2s; }
-.btn-view-order:hover { background: #334155; color: #fff; }
+.btn-actions-toggle { background: #fff; color: var(--primary); border: 1px solid #c7d2e5; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; font-size: .84rem; transition: .2s; box-shadow: 0 1px 2px rgba(15,23,42,.06); }
+.btn-actions-toggle:hover { background: #eef2ff; border-color: var(--primary-2); }
+.btn-actions-toggle.open { background: var(--primary); color: #fff; border-color: var(--primary); }
+#actionsMenu { display: none; position: fixed; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 16px 40px rgba(15,23,42,.2); padding: 7px; z-index: 5000; min-width: 200px; }
+#actionsMenu button { width: 100%; text-align: right; background: none; border: none; padding: 10px 13px; border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; font-size: .87rem; display: flex; align-items: center; gap: 10px; color: #334155; transition: .15s; }
+#actionsMenu button i { width: 16px; text-align: center; }
+#actionsMenu button:hover { background: #f1f5f9; }
+#actionsMenu button.am-info:hover { background: #e0f2fe; color: #0284c7; }
+#actionsMenu button.am-success:hover { background: #dcfce7; color: #166534; }
+#actionsMenu button.am-danger { color: var(--red); }
+#actionsMenu button.am-danger:hover { background: #fee2e2; color: #991b1b; }
+#actionsMenu .am-sep { height: 1px; background: var(--line); margin: 5px 4px; }
 .view-toggle { display: flex; gap: 10px; margin-bottom: 16px; }
 .view-toggle button { flex: 1; padding: 12px; border: none; border-radius: 10px; background: #e2e8f0; color: #334155; font-family: 'Tajawal'; font-weight: 800; cursor: pointer; font-size: .95rem; transition: .2s; }
 .view-toggle button.active { background: var(--primary); color: #fff; }
@@ -189,7 +193,7 @@ td:last-child { border-bottom: none; }
 td.empty { display: block; }
 td.empty::before { content: none; }
 .last-text { max-width: none; text-align: left; }
-.btn-update { width: 100%; justify-content: center; padding: 10px; }
+.btn-update, .btn-actions-toggle { width: 100%; justify-content: center; padding: 10px; }
 .modal-content { padding: 18px; width: 96%; }
 .fields-row { flex-direction: column; }
 .quick-replies-container .btn-quick { flex: 1 1 45%; }
@@ -199,7 +203,7 @@ td.empty::before { content: none; }
 @media print {
 @page { size: A4 landscape; margin: 9mm; }
 html, body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-#appScreen, #commentModal, #lightbox, #addOrderModal, #closeOrderModal, #editOrderModal { display: none !important; }
+#appScreen, #commentModal, #lightbox, #addOrderModal, #closeOrderModal, #editOrderModal, #actionsMenu { display: none !important; }
 #printSheet { display: block !important; direction: rtl; font-family: 'Tajawal', sans-serif; color: #0f172a; }
 #printSheet .ps-head { display: flex; align-items: center; gap: 14px; padding-bottom: 10px; border-bottom: 3px solid #1e3a8a; margin-bottom: 10px; }
 #printSheet .ps-head img { height: 64px; object-fit: contain; }
@@ -676,12 +680,9 @@ tr.innerHTML =
 '<td>' + infoCell(r) + '</td>' +
 '<td>' + (r.hasUpdate ? '<span class="badge badge-done"><i class="fas fa-check"></i> تم تقديم إفادة</span>' : '<span class="badge badge-warn"><i class="fas fa-exclamation-triangle"></i> بانتظار الإفادة</span>') + '</td>' +
 '<td>' + (r.lastComment ? '<span class="last-text">' + esc(r.lastComment.text) + '</span><span class="last-date"><i class="far fa-clock"></i> ' + esc(fmtTs(r.lastComment)) + (r.comments.length > 1 ? ' · ' + r.comments.length + ' ردود' : '') + (r.lastComment.imgs && r.lastComment.imgs.length ? ' · <i class="fas fa-paperclip"></i> ' + r.lastComment.imgs.length : '') + '</span>' : '<span style="color:var(--red); font-weight:800; font-size:.8rem;">لا يوجد أي تبرير مرفوع</span>') + '</td>' +
-'<td><button class="btn-update"><i class="fas fa-comments"></i> إدارة الردود</button> <button class="btn-close-order"><i class="fas fa-check-circle"></i> إقفال الأمر</button> <button class="btn-edit-order"><i class="fas fa-pen"></i> تعديل</button> <button class="btn-delete-order"><i class="fas fa-trash"></i> حذف</button></td>';
+'<td><button class="btn-actions-toggle" type="button"><i class="fas fa-ellipsis-vertical"></i> إجراءات <i class="fas fa-chevron-down" style="font-size:.7em"></i></button></td>';
 Array.from(tr.children).forEach((td, i) => { if (COLS[i]) td.setAttribute('data-label', COLS[i].label); });
-tr.querySelector('.btn-update').addEventListener('click', () => window.openModal(r.id));
-tr.querySelector('.btn-close-order').addEventListener('click', () => window.openCloseModal(r.id));
-tr.querySelector('.btn-edit-order').addEventListener('click', () => window.openEditOrderModal(r.id));
-tr.querySelector('.btn-delete-order').addEventListener('click', () => window.deleteOrderTrigger(r.id));
+tr.querySelector('.btn-actions-toggle').addEventListener('click', (e) => { e.stopPropagation(); window.toggleActionsMenu(e.currentTarget, r.id, false); });
 tbody.appendChild(tr);
 });
 }
@@ -876,6 +877,70 @@ alert("تعذر مسح الكومنت، تحقق من الصلاحيات وال�
 };
 
 
+// ===== قائمة الإجراءات المنسدلة (بدلاً من عدة أزرار منفصلة) =====
+let ACTIONS_CTX = null;
+function closeActionsMenu() {
+const menu = $('actionsMenu');
+menu.style.display = 'none';
+menu.innerHTML = '';
+document.querySelectorAll('.btn-actions-toggle.open').forEach(b => b.classList.remove('open'));
+ACTIONS_CTX = null;
+}
+function actionsMenuItems(closed) {
+if (!closed) {
+return [
+{ cls: 'am-info', icon: 'fa-comments', label: 'إدارة الردود', action: 'reply' },
+{ cls: 'am-info', icon: 'fa-pen', label: 'تعديل بيانات الأمر', action: 'edit' },
+{ sep: true },
+{ cls: 'am-success', icon: 'fa-check-circle', label: 'إقفال الأمر', action: 'close' },
+{ cls: 'am-danger', icon: 'fa-trash', label: 'حذف الأمر نهائياً', action: 'delete' }
+];
+}
+return [
+{ cls: 'am-info', icon: 'fa-eye', label: 'عرض التفاصيل', action: 'view' },
+{ sep: true },
+{ cls: 'am-danger', icon: 'fa-trash', label: 'حذف الأمر نهائياً', action: 'delete' }
+];
+}
+function runRowAction(action, orderId) {
+if (action === 'reply' || action === 'view') window.openModal(orderId);
+else if (action === 'edit') window.openEditOrderModal(orderId);
+else if (action === 'close') window.openCloseModal(orderId);
+else if (action === 'delete') window.deleteOrderTrigger(orderId);
+}
+window.toggleActionsMenu = function (btn, orderId, closed) {
+const menu = $('actionsMenu');
+const samePreviouslyOpen = ACTIONS_CTX && ACTIONS_CTX.id === orderId && menu.style.display === 'block';
+closeActionsMenu();
+if (samePreviouslyOpen) return;
+ACTIONS_CTX = { id: orderId, closed: closed };
+actionsMenuItems(closed).forEach(it => {
+if (it.sep) { const s = document.createElement('div'); s.className = 'am-sep'; menu.appendChild(s); return; }
+const b = document.createElement('button');
+b.type = 'button';
+b.className = it.cls;
+b.innerHTML = '<i class="fas ' + it.icon + '"></i> ' + it.label;
+b.addEventListener('click', () => { closeActionsMenu(); runRowAction(it.action, orderId); });
+menu.appendChild(b);
+});
+menu.style.display = 'block';
+btn.classList.add('open');
+const r = btn.getBoundingClientRect();
+const menuW = menu.offsetWidth, menuH = menu.offsetHeight;
+let left = r.right - menuW;
+if (left < 8) left = 8;
+if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+let top = r.bottom + 6;
+if (top + menuH > window.innerHeight - 8) top = Math.max(8, r.top - menuH - 6);
+menu.style.left = left + 'px';
+menu.style.top = top + 'px';
+};
+document.addEventListener('click', e => {
+if (ACTIONS_CTX && !e.target.closest('#actionsMenu') && !e.target.closest('.btn-actions-toggle')) closeActionsMenu();
+});
+window.addEventListener('scroll', () => { if (ACTIONS_CTX) closeActionsMenu(); }, true);
+window.addEventListener('resize', () => { if (ACTIONS_CTX) closeActionsMenu(); });
+
 // ===== إضافة أمر عمل يدوياً وإقفال الأوامر وعرض الأوامر المغلقة =====
 let LOCAL_CLOSED = [];
 let CLOSED_LOADED = false;
@@ -938,16 +1003,12 @@ tr.innerHTML =
 '<td>' + esc(r.tech || '') + '</td>' +
 '<td></td>';
 const actionTd = tr.lastElementChild;
-const btn = document.createElement('button');
-btn.className = 'btn-view-order';
-btn.innerHTML = '<i class="fas fa-eye"></i> عرض التفاصيل';
-btn.addEventListener('click', () => window.openModal(r.id));
-actionTd.appendChild(btn);
-const delBtn = document.createElement('button');
-delBtn.className = 'btn-delete-order';
-delBtn.innerHTML = '<i class="fas fa-trash"></i> حذف';
-delBtn.addEventListener('click', () => window.deleteOrderTrigger(r.id));
-actionTd.appendChild(delBtn);
+const toggleBtn = document.createElement('button');
+toggleBtn.className = 'btn-actions-toggle';
+toggleBtn.type = 'button';
+toggleBtn.innerHTML = '<i class="fas fa-ellipsis-vertical"></i> إجراءات <i class="fas fa-chevron-down" style="font-size:.7em"></i>';
+toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); window.toggleActionsMenu(e.currentTarget, r.id, true); });
+actionTd.appendChild(toggleBtn);
 tbody.appendChild(tr);
 });
 }
@@ -1146,6 +1207,7 @@ $('btnAddOrder').addEventListener('click', window.openAddOrderModal);
 
 loadSiteOrders();
 </script>
+<div id="actionsMenu"></div>
 <div id="lightbox"><img id="lbImg" alt=""></div>
 </body>
 </html>
